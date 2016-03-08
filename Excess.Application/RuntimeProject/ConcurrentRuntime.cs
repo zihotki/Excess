@@ -1,6 +1,5 @@
 ﻿using Excess.Compiler;
 using Excess.Compiler.Core;
-using Concurrent.Compiler;
 using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
@@ -21,7 +20,7 @@ namespace Excess.RuntimeProject
     {
         public ConcurrentRuntime(IPersistentStorage storage) : base(storage) { }
 
-        private static Injector _concurrent = new DelegateInjector(compiler => ConcurrentXS.Apply(compiler));
+        private static Injector _concurrent = new DelegateInjector(compiler => XSLang.Apply(compiler));
 
         private static Injector _main = new DelegateInjector(compiler =>
         {
