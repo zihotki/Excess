@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Excess.Application", "Excess.Application\Excess.Application.csproj", "{EDF5D964-4C0F-4F19-B674-58A38A5E5401}"
 EndProject
@@ -25,6 +25,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Excess.Compiler.Razor", "Excess.Compiler.Razor\Excess.Compiler.Razor.csproj", "{FF771A02-CF66-4F21-9E04-A87CEBCD7952}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Excess.Extensions.Concurrent", "Excess.Extensions.Concurrent\Excess.Extensions.Concurrent.csproj", "{99F869F8-7BD4-476A-98CA-27C63E89DA93}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Excess.Extensions.Sql", "Excess.Extension.Sql\Excess.Extensions.Sql.csproj", "{9C4C8337-899A-49A4-82F3-A8D6E1F34070}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Excess.Extensions.Sql.Tests", "Excess.Extensions.Sql.Tests\Excess.Extensions.Sql.Tests.csproj", "{167D9DE3-5DC6-487A-A5A4-44983D5A024C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -64,6 +68,14 @@ Global
 		{99F869F8-7BD4-476A-98CA-27C63E89DA93}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{99F869F8-7BD4-476A-98CA-27C63E89DA93}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{99F869F8-7BD4-476A-98CA-27C63E89DA93}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C4C8337-899A-49A4-82F3-A8D6E1F34070}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C4C8337-899A-49A4-82F3-A8D6E1F34070}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C4C8337-899A-49A4-82F3-A8D6E1F34070}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C4C8337-899A-49A4-82F3-A8D6E1F34070}.Release|Any CPU.Build.0 = Release|Any CPU
+		{167D9DE3-5DC6-487A-A5A4-44983D5A024C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{167D9DE3-5DC6-487A-A5A4-44983D5A024C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{167D9DE3-5DC6-487A-A5A4-44983D5A024C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{167D9DE3-5DC6-487A-A5A4-44983D5A024C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
