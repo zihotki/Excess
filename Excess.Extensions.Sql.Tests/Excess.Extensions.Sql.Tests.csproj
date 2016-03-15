@@ -124,6 +124,16 @@
     <Analyzer Include="..\packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.Analyzers.dll" />
     <Analyzer Include="..\packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.CSharp.Analyzers.dll" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Excess.Compiler\Excess.Compiler.csproj">
+      <Project>{FEACFBCC-4BFE-4C14-B40F-3DC856A85FD4}</Project>
+      <Name>Excess.Compiler</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Excess.Extension.Sql\Excess.Extensions.Sql.csproj">
+      <Project>{9c4c8337-899a-49a4-82f3-a8d6e1f34070}</Project>
+      <Name>Excess.Extensions.Sql</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

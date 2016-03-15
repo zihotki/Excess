@@ -4,57 +4,45 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Excess.Compiler.Core;
+using Microsoft.CodeAnalysis;
 using Xunit;
 
 namespace Excess.Extensions.Sql.Tests
 {
     public class SyntaxTests
     {
-        private void Build(string text)
+        private IEnumerable<string> Build(string text)
         {
-            errors = null;
+	        var errors = new List<string>();
 
-            var compilation = new Roslyn.Compilation(null);
+            var compilation = new Compiler.Roslyn.Compilation(null);
             var injector = new CompositeInjector<SyntaxToken, SyntaxNode, SemanticModel>(new[]
             {
                 new DelegateInjector<SyntaxToken, SyntaxNode, SemanticModel>(compiler => compiler
                     .Environment()
-                        .dependency<console>("Excess.Compiler.Tests.TestRuntime")
-                        //.dependency<object>(new[] {
-                        //    "System",
-                        //    "System.Collections",
-                        //    "System.Collections.Generic" })
                         .dependency(new[] {
-                            "System.Threading",
-                            "System.Threading.Tasks",
+							"System",
+                            "System.Collections",
+                            "System.Collections.Generic",
                             "System.Diagnostics",
                         })),
 
                 new DelegateInjector<SyntaxToken, SyntaxNode, SemanticModel>(compiler =>
-                    Extensions
-                    .Concurrent.Extension
-                        .Apply(compiler))
+					Extension.Apply(compiler))
             });
 
-            compilation.addDocument("concurrent-test", text, injector);
+            compilation.addDocument("sql-test", text, injector);
 
             Assembly assembly = compilation.build();
             if (assembly == null)
             {
-                errors = compilation.errors();
-
-                //debug
-                StringBuilder errorLines = new StringBuilder();
-                foreach (var error in errors)
-                {
-                    errorLines.AppendLine(error.ToString());
-                }
-
-                var errorString = errorLines.ToString();
-                return null;
+                errors = compilation.errors().Select(x => x.ToString()).ToList();
             }
 
-            var exportTypes = new Dictionary<string, Spawner>();
+
+	        return errors;
+	        /*var exportTypes = new Dictionary<string, Spawner>();
             foreach (var type in assembly.GetTypes())
             {
                 if (type.BaseType != typeof(ConcurrentObject))
@@ -79,15 +67,40 @@ namespace Excess.Extensions.Sql.Tests
 
                     throw new InvalidOperationException("unable to find a constructor");
                 };
-            }
-
-            return new Node(threads, exportTypes);
+            }*/
         }
 
         [Fact]
         public void Test1()
         {
-            
+	        var txt = @"
+public class Client
+{
+    public string Name {get; set;}
+	public string Surname {get; set;}
+	public DateTime BirthDate {get; set;}
+	public int Height {get; set;}
+}
+
+public class Query
+{
+	public static void Filter()
+	{
+		var filterValue = ""Peter"";
+
+		var query = Sql()
+		{
+			Select Client.Name, Client.Surname, Client.Height From Client
+			Where Name == filterValue
+				Order By Name
+		};		
+	}
+";
+
+	        var errors = Build(txt);
+
+			Assert.Empty(errors);
+
         }
     }
 }
