@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using Excess.Compiler.Core;
 using Microsoft.CodeAnalysis;
 using Xunit;
@@ -34,7 +30,7 @@ namespace Excess.Extensions.Sql.Tests
 
             compilation.addDocument("sql-test", text, injector);
 
-            Assembly assembly = compilation.build();
+            var assembly = compilation.build();
             if (assembly == null)
             {
                 errors = compilation.errors().Select(x => x.ToString()).ToList();
@@ -100,7 +96,6 @@ public class Query
 	        var errors = Build(txt);
 
 			Assert.Empty(errors);
-
         }
     }
 }
