@@ -32,14 +32,7 @@ tsql_file
     ;
 
 sql_clause
-    : dml_clause
-
-    /*| ddl_clause
-
-    | cfl_statement
-
-    | another_statement*/
-    ;
+    : dml_clause;
 
 // Data Manipulation Language: https://msdn.microsoft.com/en-us/library/ff848766(v=sql.120).aspx
 dml_clause

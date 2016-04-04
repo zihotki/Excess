@@ -7,7 +7,8 @@ namespace Excess.Extensions.Sql
 	{
 		public static void Apply(ExcessCompiler compiler)
 		{
-
+			compiler.Lexical()
+				.grammar<tsql>()
 		}
 	}
 }

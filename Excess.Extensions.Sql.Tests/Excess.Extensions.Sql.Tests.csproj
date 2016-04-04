@@ -129,7 +129,7 @@
       <Project>{FEACFBCC-4BFE-4C14-B40F-3DC856A85FD4}</Project>
       <Name>Excess.Compiler</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Excess.Extension.Sql\Excess.Extensions.Sql.csproj">
+    <ProjectReference Include="..\Excess.Extensions.Sql\Excess.Extensions.Sql.csproj">
       <Project>{9c4c8337-899a-49a4-82f3-a8d6e1f34070}</Project>
       <Name>Excess.Extensions.Sql</Name>
     </ProjectReference>
