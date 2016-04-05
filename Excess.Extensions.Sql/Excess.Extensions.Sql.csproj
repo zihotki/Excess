@@ -110,10 +110,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <Antlr4 Include="Grammar\tsql.g4">
-      <Generator>MSBuild:Compile</Generator>
-      <CustomToolNamespace>Excess.Extensions.Sql.Grammar</CustomToolNamespace>
-    </Antlr4>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -124,6 +120,10 @@
     <ProjectReference Include="..\Excess.Compiler\Excess.Compiler.csproj">
       <Project>{FEACFBCC-4BFE-4C14-B40F-3DC856A85FD4}</Project>
       <Name>Excess.Compiler</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Excess.Extensions.Sql.Grammar\Excess.Extensions.Sql.Grammar.csproj">
+      <Project>{6bd55f2a-a99c-4ff8-a98b-96cc7cde2b2f}</Project>
+      <Name>Excess.Extensions.Sql.Grammar</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

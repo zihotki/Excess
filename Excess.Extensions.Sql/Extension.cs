@@ -1,4 +1,6 @@
-﻿using ExcessCompiler = Excess.Compiler.ICompiler<Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxNode, Microsoft.CodeAnalysis.SemanticModel>;
+﻿using Antlr4.Runtime;
+using Excess.Compiler;
+using ExcessCompiler = Excess.Compiler.ICompiler<Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxNode, Microsoft.CodeAnalysis.SemanticModel>;
 
 
 namespace Excess.Extensions.Sql
@@ -8,7 +10,7 @@ namespace Excess.Extensions.Sql
 		public static void Apply(ExcessCompiler compiler)
 		{
 			compiler.Lexical()
-				.grammar<tsql>()
+				.grammar<TSQLGrammar, ParserRuleContext>("Sql", ExtensionKind.Code);
 		}
 	}
 }
