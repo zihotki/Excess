@@ -1,16 +1,23 @@
-﻿// Data Manipulation Language: https://msdn.microsoft.com/en-us/library/ff848766(v=sql.120).aspx
+﻿parser grammar dml;
+
+import tsql_lexer;
+import primitives;
+import common;
+
+// Data Manipulation Language: https://msdn.microsoft.com/en-us/library/ff848766(v=sql.120).aspx
 dml_clause
-    : delete_statement
-    | insert_statement
-    | select_statement
-    | update_statement
-    ;
+    : select_statement;
+	
+  /*| delete_statement
+    | insert_statement 
+    | update_statement;*/
+    
 
 	
 
 // DML
 
-// https://msdn.microsoft.com/en-us/library/ms189835.aspx
+/*// https://msdn.microsoft.com/en-us/library/ms189835.aspx
 delete_statement
     : with_expression?
       DELETE (TOP '(' expression ')' PERCENT?)?
@@ -33,13 +40,13 @@ insert_statement
       (VALUES '(' expression_list ')' (',' '(' expression_list ')')* |
                derived_table | execute_statement | DEFAULT VALUES)
       for_clause? option_clause? ';'?
-    ;
+    ;*/
 
 // https://msdn.microsoft.com/en-us/library/ms189499.aspx
 select_statement
-    : with_expression? query_expression order_by_clause? for_clause? option_clause? ';'?
+    : /*with_expression?*/ query_expression order_by_clause? /*for_clause?*/ option_clause? ';'?
     ;
-
+/*
 // https://msdn.microsoft.com/en-us/library/ms177523.aspx
 update_statement
     : with_expression?
@@ -66,4 +73,4 @@ output_dml_list_elem
 output_column_name
     : (DELETED | INSERTED | table_name) '.' ('*' | column_name)
     | DOLLAR_ACTION
-    ;
+    ;*/

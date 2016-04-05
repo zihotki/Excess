@@ -55,11 +55,14 @@
       <Generator>MSBuild:Compile</Generator>
       <CustomToolNamespace>Excess.Extensions.Sql.Grammar</CustomToolNamespace>
     </Antlr4>
-    <None Include="Grammar\cfl.g4" />
-    <None Include="Grammar\ddl.g4" />
+    <None Include="Grammar\common.g4" />
     <None Include="Grammar\dml.g4" />
-    <None Include="Grammar\other.g4" />
+    <None Include="Grammar\tsql_lexer.g4" />
+    <None Include="Grammar\primitives.g4" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Grammar\license.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
