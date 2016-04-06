@@ -1,4 +1,4 @@
-﻿parser grammar primitives;
+parser grammar primitives;
 
 import tsql_lexer;
 

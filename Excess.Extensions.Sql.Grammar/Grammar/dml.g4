@@ -1,7 +1,5 @@
-﻿parser grammar dml;
+parser grammar dml;
 
-import tsql_lexer;
-import primitives;
 import common;
 
 // Data Manipulation Language: https://msdn.microsoft.com/en-us/library/ff848766(v=sql.120).aspx

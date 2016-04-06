@@ -1,8 +1,5 @@
-﻿
-
 parser grammar common;
 
-import tsql_lexer;
 import primitives;
 
 
@@ -227,7 +224,7 @@ table_source_item
     : table_name_with_hint        as_table_alias?
     | rowset_function             as_table_alias?
     | derived_table              (as_table_alias column_alias_list?)?
-    | change_table                as_table_alias
+    /*| change_table                as_table_alias*/
     | function_call               as_table_alias?
     | LOCAL_ID                    as_table_alias?
     | LOCAL_ID '.' function_call (as_table_alias column_alias_list?)?

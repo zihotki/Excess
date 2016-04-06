@@ -1,4 +1,4 @@
-﻿lexer grammar tsql_lexer;
+lexer grammar tsql_lexer;
 
 // Lexer
 
