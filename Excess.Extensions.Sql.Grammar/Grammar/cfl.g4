@@ -1,4 +1,7 @@
-﻿// Control-of-Flow Language: https://msdn.microsoft.com/en-us/library/ms174290.aspx
+﻿import tsql_lexer;
+import primitives;
+
+// Control-of-Flow Language: https://msdn.microsoft.com/en-us/library/ms174290.aspx
 // Labels for better AST traverse.
 cfl_statement
     // https://msdn.microsoft.com/en-us/library/ms190487.aspx

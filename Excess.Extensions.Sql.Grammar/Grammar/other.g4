@@ -1,4 +1,7 @@
-﻿
+﻿import tsql_lexer;
+import primitives;
+
+
 another_statement
     : declare_statement
     | cursor_statement
@@ -86,6 +89,7 @@ transaction_statement
     | SAVE (TRAN | TRANSACTION) (id | LOCAL_ID)? ';'?
     ;
 
+	
 // https://msdn.microsoft.com/en-us/library/ms188037.aspx
 go_statement
     : GO (count=DECIMAL)?
@@ -94,4 +98,4 @@ go_statement
 // https://msdn.microsoft.com/en-us/library/ms188366.aspx
 use_statement
     : USE database=id ';'?
-    ;
+    ;*/

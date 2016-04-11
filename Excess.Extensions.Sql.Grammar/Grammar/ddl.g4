@@ -1,4 +1,8 @@
-﻿// Data Definition Language: https://msdn.microsoft.com/en-us/library/ff848799.aspx)
+﻿import tsql_lexer;
+import primitives;
+
+
+// Data Definition Language: https://msdn.microsoft.com/en-us/library/ff848799.aspx)
 ddl_clause
     : //create_function
       create_index
