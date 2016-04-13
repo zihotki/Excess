@@ -10,7 +10,7 @@ namespace Excess.Extensions.Sql.Tests
     {
         private IEnumerable<string> Build(string text)
         {
-	        var errors = new List<string>();
+            var errors = new List<string>();
 
             var compilation = new Compiler.Roslyn.Compilation(null);
             var injector = new CompositeInjector<SyntaxToken, SyntaxNode, SemanticModel>(new[]
@@ -18,14 +18,14 @@ namespace Excess.Extensions.Sql.Tests
                 new DelegateInjector<SyntaxToken, SyntaxNode, SemanticModel>(compiler => compiler
                     .Environment()
                         .dependency(new[] {
-							"System",
+                            "System",
                             "System.Collections",
                             "System.Collections.Generic",
                             "System.Diagnostics",
                         })),
 
                 new DelegateInjector<SyntaxToken, SyntaxNode, SemanticModel>(compiler =>
-					Extension.Apply(compiler))
+                    Extension.Apply(compiler))
             });
 
             compilation.addDocument("sql-test", text, injector);
@@ -37,8 +37,8 @@ namespace Excess.Extensions.Sql.Tests
             }
 
 
-	        return errors;
-	        /*var exportTypes = new Dictionary<string, Spawner>();
+            return errors;
+            /*var exportTypes = new Dictionary<string, Spawner>();
             foreach (var type in assembly.GetTypes())
             {
                 if (type.BaseType != typeof(ConcurrentObject))
@@ -69,33 +69,54 @@ namespace Excess.Extensions.Sql.Tests
         [Fact]
         public void Test1()
         {
-	        var txt = @"
+            var txt = @"
+public class Query
+{
+    public static void Filter()
+    {
+        Sql()
+        {
+            Select 
+        };		
+    }
+}";
+
+            var errors = Build(txt);
+
+            Assert.Empty(errors);
+        }
+
+        [Fact]
+        public void Test2()
+        {
+            var txt = @"
 public class Client
 {
     public string Name {get; set;}
-	public string Surname {get; set;}
-	public DateTime BirthDate {get; set;}
-	public int Height {get; set;}
+    public string Surname {get; set;}
+    public DateTime BirthDate {get; set;}
+    public int Height {get; set;}
 }
 
 public class Query
 {
-	public static void Filter()
-	{
-		var filterValue = ""Peter"";
+    public static void Filter()
+    {
+        var filterValue = ""Peter"";
 
-		var query = Sql()
-		{
-			Select Client.Name, Client.Surname, Client.Height From Client
-			Where Name == filterValue
-				Order By Name
-		};		
-	}
-";
+        var query = Sql()
+        {
+            Select Client.Name, Client.Surname, Client.Height From Client
+            Where Name == filterValue
+                Order By Name
+        };		
+    }
+}";
 
-	        var errors = Build(txt);
+            var errors = Build(txt);
 
-			Assert.Empty(errors);
+            Assert.Empty(errors);
         }
+
     }
 }
