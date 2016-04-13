@@ -20,13 +20,15 @@ namespace Excess.Extensions.Sql
             compiler.Lexical()
                 .grammar<TSQLGrammar, ParserRuleContext>("Sql", ExtensionKind.Code)
                 .transform<tsqlParser.Select_statementContext>(SelectStatement) 
+				.transform<tsqlParser.Select_list_elemContext>()
+
                 .then(Transform);
         }
 
         private static SyntaxNode SelectStatement(tsqlParser.Select_statementContext statement,
             Func<ParserRuleContext, Scope, SyntaxNode> transform, Scope scope)
         {
-            return CSharp.ReturnStatement();
+            return CSharp.Block(CSharp.EmptyStatement());
         }
 
         private static SyntaxNode Transform(SyntaxNode oldNode, SyntaxNode newNode, Scope scope, LexicalExtension<SyntaxToken> extension)

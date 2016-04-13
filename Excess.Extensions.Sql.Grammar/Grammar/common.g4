@@ -3,13 +3,13 @@ parser grammar common;
 import primitives;
 
 
-execute_clause
+/*execute_clause
     : (EXEC | EXECUTE) AS clause=(CALLER | SELF | OWNER | STRING)
     ;
 
 declare_local
     : LOCAL_ID AS? data_type ('=' expression)?
-    ;
+    ;*/
 
 
 
@@ -139,7 +139,7 @@ query_specification
     : SELECT (ALL | DISTINCT)? (TOP expression PERCENT? (WITH TIES)?)?
       select_list
       // https://msdn.microsoft.com/en-us/library/ms188029.aspx
-      (INTO into_table=table_name)?
+      /*(INTO into_table=table_name)? //select into is not supported yet*/
       (FROM table_source (',' table_source)*)?
       (WHERE where=search_condition)?
       // https://msdn.microsoft.com/en-us/library/ms177673.aspx
