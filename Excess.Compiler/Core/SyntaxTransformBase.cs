@@ -2,189 +2,197 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Excess.Compiler.Core
 {
-    public abstract class BaseSyntaxTransform<TToken, TNode, TModel> : ISyntaxTransform<TNode>
-    {
-        protected List<Func<TNode, Scope, IEnumerable<TNode>, TNode>> _transformers = new List<Func<TNode, Scope, IEnumerable<TNode>, TNode>>();
-        protected List<Func<TNode, Scope, IEnumerable<TNode>>> _selectors = new List<Func<TNode, Scope, IEnumerable<TNode>>>();
+	public abstract class BaseSyntaxTransform<TToken, TNode, TModel> : ISyntaxTransform<TNode>
+	{
+		protected List<Func<TNode, Scope, IEnumerable<TNode>>> _selectors = new List<Func<TNode, Scope, IEnumerable<TNode>>>();
+		protected List<Func<TNode, Scope, IEnumerable<TNode>, TNode>> _transformers = new List<Func<TNode, Scope, IEnumerable<TNode>, TNode>>();
 
-        Func<TNode, Scope, IEnumerable<TNode>, TNode> AddToScope(bool type, bool @namespace)
-        {
-            return (node, scope, nodes) =>
-            {
-                if (nodes == null)
-                    return node;
+		public ISyntaxTransform<TNode> AddToScope(Func<TNode, Scope, IEnumerable<TNode>> handler, bool type = false, bool @namespace = false)
+		{
+			_selectors.Add(handler);
+			_transformers.Add(AddToScope(type, @namespace));
+			return this;
+		}
 
-                TNode scopeNode = resolveScope(node, type, @namespace);
-                if (scopeNode != null)
-                {
-                    var document = scope.GetDocument<TToken, TNode, TModel>();
-                    return document.change(scopeNode, (n, s) => addToNode(n, nodes));
-                }
+		public ISyntaxTransform<TNode> AddToScope(string nodes, bool type = false, bool @namespace = false)
+		{
+			_selectors.Add(SelectFromScope(nodes));
+			_transformers.Add(AddToScope(type, @namespace));
+			return this;
+		}
 
-                return node;
-            };
-        }
+		public ISyntaxTransform<TNode> Remove(string nodes)
+		{
+			_selectors.Add(SelectFromScope(nodes));
+			_transformers.Add(RemoveNodes());
+			return this;
+		}
 
-        protected abstract TNode resolveScope(TNode node, bool type, bool @namespace);
+		public ISyntaxTransform<TNode> Remove(Func<TNode, Scope, IEnumerable<TNode>> selector)
+		{
+			_selectors.Add(selector);
+			_transformers.Add(RemoveNodes());
+			return this;
+		}
 
-        Func<TNode, Scope, IEnumerable<TNode>> SelectFromScope(string nodes)
-        {
-            return (node, scope) =>
-            {
-                return scope.get<IEnumerable<TNode>>(nodes);
-            };
-        }
+		public ISyntaxTransform<TNode> Replace(string nodes, Func<TNode, TNode> handler)
+		{
+			_selectors.Add(SelectFromScope(nodes));
+			_transformers.Add(ReplaceNodes((node, scope) => handler(node)));
+			return this;
+		}
 
-        public ISyntaxTransform<TNode> addToScope(Func<TNode, Scope, IEnumerable<TNode>> handler, bool type = false, bool @namespace = false)
-        {
-            _selectors.Add(handler);
-            _transformers.Add(AddToScope(type, @namespace));
-            return this;
-        }
+		public ISyntaxTransform<TNode> Replace(string nodes, Func<TNode, Scope, TNode> handler)
+		{
+			_selectors.Add(SelectFromScope(nodes));
+			_transformers.Add(ReplaceNodes(handler));
+			return this;
+		}
 
-        public ISyntaxTransform<TNode> addToScope(string nodes, bool type = false, bool @namespace = false)
-        {
-            _selectors.Add(SelectFromScope(nodes));
-            _transformers.Add(AddToScope(type, @namespace));
-            return this;
-        }
+		public ISyntaxTransform<TNode> Replace(Func<TNode, Scope, IEnumerable<TNode>> selector, Func<TNode, Scope, TNode> handler)
+		{
+			_selectors.Add(selector);
+			_transformers.Add(ReplaceNodes(handler));
+			return this;
+		}
 
-        Func<TNode, Scope, IEnumerable<TNode>, TNode> RemoveNodes()
-        {
-            return (node, scope, nodes) =>
-            {
-                if (nodes == null)
-                    return node;
+		public ISyntaxTransform<TNode> Replace(Func<TNode, Scope, IEnumerable<TNode>> selector, Func<TNode, TNode> handler)
+		{
+			_selectors.Add(selector);
+			_transformers.Add(ReplaceNodes((node, scope) => handler(node)));
+			return this;
+		}
 
-                return removeNodes(node, nodes);
-            };
-        }
+		public TNode Transform(TNode node, Scope scope)
+		{
+			var compiler = scope.GetService<TToken, TNode, TModel>();
 
-        public ISyntaxTransform<TNode> remove(string nodes)
-        {
-            _selectors.Add(SelectFromScope(nodes));
-            _transformers.Add(RemoveNodes());
-            return this;
-        }
+			Debug.Assert(compiler != null && _selectors.Count == _transformers.Count);
+			switch (_transformers.Count)
+			{
+				case 0:
+					return node;
+				case 1:
+				{
+					//do not track on single transformations
+					var selector = _selectors[0];
+					var nodes = selector != null
+						? selector(node, scope)
+						: new TNode[] {};
+					var resultNode = _transformers[0](node, scope, nodes);
+					return resultNode;
+				}
+				default:
+				{
+					//problem here is there are dependency nodes obtained 
+					//during match, so tracking should be performed.
+					//I never got the roslyn one to work for some reason.
+					//so, td:
 
-        public ISyntaxTransform<TNode> remove(Func<TNode, Scope, IEnumerable<TNode>> selector)
-        {
-            _selectors.Add(selector);
-            _transformers.Add(RemoveNodes());
-            return this;
-        }
+					var selectorIds = new Dictionary<object, List<string>>();
+					foreach (var selector in _selectors)
+					{
+						var sNodes = selector(node, scope);
+						if (sNodes.Any())
+						{
+							foreach (var sNode in sNodes)
+							{
+								var xsid = compiler.GetExcessId(sNode).ToString();
 
-        Func<TNode, Scope, IEnumerable<TNode>, TNode> ReplaceNodes(Func<TNode, Scope , TNode> handler)
-        {
-            return (node, scope, nodes) =>
-            {
-                if (nodes == null || !nodes.Any())
-                    return node;
+								List<string> selectorNodes;
+								if (!selectorIds.TryGetValue(selector, out selectorNodes))
+								{
+									selectorNodes = new List<string>();
+									selectorIds[selector] = selectorNodes;
+								}
 
-                return replaceNodes(node, scope, nodes, handler);
-            };
-        }
+								selectorNodes.Add(xsid);
+							}
+						}
+					}
 
-        public ISyntaxTransform<TNode> replace(string nodes, Func<TNode, TNode> handler)
-        {
-            _selectors.Add(SelectFromScope(nodes));
-            _transformers.Add(ReplaceNodes((node, scope) => handler(node)));
-            return this;
-        }
+					for (var i = 0; i < _transformers.Count; i++)
+					{
+						var transformer = _transformers[i];
+						var selector = _selectors[i];
 
-        public ISyntaxTransform<TNode> replace(string nodes, Func<TNode, Scope , TNode> handler)
-        {
-            _selectors.Add(SelectFromScope(nodes));
-            _transformers.Add(ReplaceNodes(handler));
-            return this;
-        }
+						IEnumerable<TNode> nodes = null;
+						List<string> nodeIds;
+						if (selectorIds.TryGetValue(selector, out nodeIds))
+						{
+							nodes = compiler.Find(node, nodeIds);
+						}
 
-        public ISyntaxTransform<TNode> replace(Func<TNode, Scope, IEnumerable<TNode>> selector, Func<TNode, Scope, TNode> handler)
-        {
-            _selectors.Add(selector);
-            _transformers.Add(ReplaceNodes(handler));
-            return this;
-        }
+						node = transformer(node, scope, nodes);
+						if (node == null)
+						{
+							return default(TNode);
+						}
+					}
 
-        public ISyntaxTransform<TNode> replace(Func<TNode, Scope, IEnumerable<TNode>> selector, Func<TNode, TNode> handler)
-        {
-            _selectors.Add(selector);
-            _transformers.Add(ReplaceNodes((node, scope) => handler(node)));
-            return this;
-        }
+					return node;
+				}
+			}
+		}
 
-        protected abstract TNode removeNodes(TNode node, IEnumerable<TNode> nodes);
-        protected abstract TNode replaceNodes(TNode node, Scope scope, IEnumerable<TNode> nodes, Func<TNode, Scope, TNode> handler);
-        protected abstract TNode addToNode(TNode node, IEnumerable<TNode> nodes);
+		private Func<TNode, Scope, IEnumerable<TNode>, TNode> AddToScope(bool type, bool @namespace)
+		{
+			return (node, scope, nodes) =>
+			{
+				if (nodes == null)
+				{
+					return node;
+				}
 
-        public TNode transform(TNode node, Scope scope)
-        {
-            var compiler = scope.GetService<TToken, TNode, TModel>();
+				var scopeNode = ResolveScope(node, type, @namespace);
+				if (scopeNode != null)
+				{
+					var document = scope.GetDocument<TToken, TNode, TModel>();
+					return document.Change(scopeNode, (n, s) => AddToNode(n, nodes));
+				}
 
-            Debug.Assert(compiler != null && _selectors.Count == _transformers.Count);
-            switch (_transformers.Count)
-            {
-                case 0: return node;
-                case 1:
-                {
-                    //do not track on single transformations
-                    var selector = _selectors[0];
-                    IEnumerable<TNode> nodes = selector != null? selector(node, scope) : new TNode[] { };
-                    var resultNode = _transformers[0](node, scope, nodes);
-                    return resultNode;
-                }
-                default:
-                {
-                    //problem here is there are dependency nodes obtained 
-                    //during match, so tracking should be performed.
-                    //I never got the roslyn one to work for some reason.
-                    //so, td:
+				return node;
+			};
+		}
 
-                    var selectorIds = new Dictionary<object, List<string>>();
-                    foreach (var selector in _selectors)
-                    {
-                        var sNodes = selector(node, scope);
-                        if (sNodes.Any())
-                        {
-                            foreach (var sNode in sNodes)
-                            {
-                                var xsid = compiler.GetExcessId(sNode).ToString();
+		protected abstract TNode ResolveScope(TNode node, bool type, bool @namespace);
 
-                                List<string> selectorNodes;
-                                if (!selectorIds.TryGetValue(selector, out selectorNodes))
-                                {
-                                    selectorNodes = new List<string>();
-                                    selectorIds[selector] = selectorNodes;
-                                }
+		private Func<TNode, Scope, IEnumerable<TNode>> SelectFromScope(string nodes)
+		{
+			return (node, scope) => scope.get<IEnumerable<TNode>>(nodes);
+		}
 
-                                selectorNodes.Add(xsid);
-                            }
-                        }
-                    }
+		private Func<TNode, Scope, IEnumerable<TNode>, TNode> RemoveNodes()
+		{
+			return (node, scope, nodes) =>
+			{
+				if (nodes == null)
+				{
+					return node;
+				}
 
-                    for (int i = 0;  i < _transformers.Count; i++)
-                    {
-                        var transformer = _transformers[i];
-                        var selector    = _selectors[i];
+				return RemoveNodes(node, nodes);
+			};
+		}
 
-                        IEnumerable<TNode> nodes = null;
-                        List<string> nodeIds;
-                        if (selectorIds.TryGetValue(selector, out nodeIds))
-                            nodes = compiler.Find(node, nodeIds);
+		private Func<TNode, Scope, IEnumerable<TNode>, TNode> ReplaceNodes(Func<TNode, Scope, TNode> handler)
+		{
+			return (node, scope, nodes) =>
+			{
+				if (nodes == null || !nodes.Any())
+				{
+					return node;
+				}
 
-                        node = transformer(node, scope, nodes);
-                        if (node == null)
-                            return default(TNode);
-                    }
+				return ReplaceNodes(node, scope, nodes, handler);
+			};
+		}
 
-                    return node;
-                }
-            }
-        }    
-    }
+		protected abstract TNode RemoveNodes(TNode node, IEnumerable<TNode> nodes);
+		protected abstract TNode ReplaceNodes(TNode node, Scope scope, IEnumerable<TNode> nodes, Func<TNode, Scope, TNode> handler);
+		protected abstract TNode AddToNode(TNode node, IEnumerable<TNode> nodes);
+	}
 }

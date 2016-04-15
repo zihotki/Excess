@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  * jQuery JavaScript Library v2.1.1
  * http://jquery.com/
  *
@@ -19401,7 +19401,7 @@ function headersGetter(headers) {
  *
  * This function is used for both request and response transforming
  *
- * @param {*} data Data to transform.
+ * @param {*} data Data to Transform.
  * @param {function(string=)} headers HTTP headers getter fn.
  * @param {number} status HTTP status code of the response.
  * @param {(Function|Array.<Function>)} fns Function or an array of functions.
@@ -19466,10 +19466,10 @@ function $HttpProvider() {
    *
    **/
   var defaults = this.defaults = {
-    // transform incoming response data
+    // Transform incoming response data
     transformResponse: [defaultHttpResponseTransform],
 
-    // transform outgoing request data
+    // Transform outgoing request data
     transformRequest: [function(d) {
       return isObject(d) && !isFile(d) && !isBlob(d) && !isFormData(d) ? toJson(d) : d;
     }],
@@ -19626,7 +19626,7 @@ function $HttpProvider() {
      *
      * The response object has these properties:
      *
-     *   - **data** – `{string|Object}` – The response body transformed with the transform
+     *   - **data** – `{string|Object}` – The response body transformed with the Transform
      *     functions.
      *   - **status** – `{number}` – HTTP status code of the response.
      *   - **headers** – `{function([headerName])}` – Header getter function.
@@ -19769,13 +19769,13 @@ function $HttpProvider() {
      * transformations have been run.
      *
      * ```js
-     * function appendTransform(defaults, transform) {
+     * function appendTransform(defaults, Transform) {
      *
      *   // We can't guarantee that the default transformation is an array
      *   defaults = angular.isArray(defaults) ? defaults : [defaults];
      *
      *   // Append the new transformation to the defaults
-     *   return defaults.concat(transform);
+     *   return defaults.concat(Transform);
      * }
      *
      * $http({
@@ -19970,13 +19970,13 @@ function $HttpProvider() {
      *    - **xsrfCookieName** – `{string}` – Name of cookie containing the XSRF token.
      *    - **transformRequest** –
      *      `{function(data, headersGetter)|Array.<function(data, headersGetter)>}` –
-     *      transform function or an array of such functions. The transform function takes the http
+     *      Transform function or an array of such functions. The Transform function takes the http
      *      request body and headers and returns its transformed (typically serialized) version.
      *      See {@link ng.$http#overriding-the-default-transformations-per-request
      *      Overriding the Default Transformations}
      *    - **transformResponse** –
      *      `{function(data, headersGetter, status)|Array.<function(data, headersGetter, status)>}` –
-     *      transform function or an array of such functions. The transform function takes the http
+     *      Transform function or an array of such functions. The Transform function takes the http
      *      response body, headers and status and returns its transformed (typically deserialized) version.
      *      See {@link ng.$http#overriding-the-default-transformations-per-request
      *      Overriding the Default TransformationjqLiks}
@@ -28189,7 +28189,7 @@ function $$CookieReaderProvider() {
  * @name $filterProvider
  * @description
  *
- * Filters are just functions which transform input to an output. However filters need to be
+ * Filters are just functions which Transform input to an output. However filters need to be
  * Dependency Injected. To achieve this a filter definition consists of a factory function which is
  * annotated with dependencies and is responsible for creating a filter function.
  *

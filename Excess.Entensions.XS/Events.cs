@@ -22,15 +22,15 @@ namespace Excess.Entensions.XS
             var syntax = compiler.Syntax();
 
             lexical
-                .match()
-                    .token("event", named: "ev")
-                    .identifier(named: "id")
-                    .enclosed('(', ')', contents: "args")
-                    .then(LexicalEventDeclaration);
+                .Match()
+                    .Token("event", named: "ev")
+                    .Identifier(named: "id")
+                    .Enclosed('(', ')', contents: "args")
+                    .Then(LexicalEventDeclaration);
 
             syntax
-                .match<MethodDeclarationSyntax>(method => method.ReturnType.ToString() == "on")
-                    .then(EventHandler);
+                .Match<MethodDeclarationSyntax>(method => method.ReturnType.ToString() == "on")
+                    .Then(EventHandler);
         }
 
         private static SyntaxNode EventHandler(SyntaxNode node, Scope scope)
@@ -58,7 +58,7 @@ namespace Excess.Entensions.XS
                 .WithModifiers(RoslynCompiler.@private);
 
             var document = scope.GetDocument<SyntaxToken, SyntaxNode, SemanticModel>();
-            return document.change(result, SemanticEventHandler);
+            return document.Change(result, SemanticEventHandler);
         }
 
         private static SyntaxNode SemanticEventHandler(SyntaxNode oldNode, SyntaxNode node, SemanticModel model, Scope scope)
@@ -124,7 +124,7 @@ namespace Excess.Entensions.XS
 
                         //event initialization
                         var document = scope.GetDocument<SyntaxToken, SyntaxNode, SemanticModel>();
-                        document.change(mthd.Parent, RoslynCompiler.AddInitializers(EventInitializer(ev.Name, methodName)));
+                        document.Change(mthd.Parent, RoslynCompiler.AddInitializers(EventInitializer(ev.Name, methodName)));
                         found = true;
                         break;
                     }
@@ -162,7 +162,7 @@ namespace Excess.Entensions.XS
 
             var document = scope.GetDocument<SyntaxToken, SyntaxNode, SemanticModel>();
 
-            yield return document.change(keyword, EventDeclaration(args));
+            yield return document.Change(keyword, EventDeclaration(args));
             yield return CSharp.Identifier(" useless ");
             yield return identifier;
         }
@@ -185,7 +185,7 @@ namespace Excess.Entensions.XS
 
                 //add the delegate
                 var document = scope.GetDocument<SyntaxToken, SyntaxNode, SemanticModel>();
-                document.change(@event.Parent, RoslynCompiler.AddMember(delegateDecl));
+                document.Change(@event.Parent, RoslynCompiler.AddMember(delegateDecl));
 
                 return @event
                     .WithDeclaration(@event.Declaration

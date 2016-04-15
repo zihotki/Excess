@@ -23,13 +23,13 @@ namespace Excess.Compiler.Tests
             //code extension
             instance
                 .match<InstanceFoo>()
-                    .input (new InstanceConnector { Id = "input" }, dt: FooInput)
-                    .output(new InstanceConnector { Id = "output" })
-                    .then(TransformFoo)
+                    .Input (new InstanceConnector { Id = "input" }, dt: FooInput)
+                    .Output(new InstanceConnector { Id = "output" })
+                    .Then(TransformFoo)
                 .match<InstanceBar>()
-                    .input(new InstanceConnector { Id = "input" })
-                    .output(new InstanceConnector { Id = "output" }, transform:  BarOutput)
-                    .then(TransformBar)
+                    .Input(new InstanceConnector { Id = "input" })
+                    .Output(new InstanceConnector { Id = "output" }, transform:  BarOutput)
+                    .Then(TransformBar)
 
                 .then(TransformInstances);
 

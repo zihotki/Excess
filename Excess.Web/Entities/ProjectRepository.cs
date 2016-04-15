@@ -192,7 +192,7 @@ namespace Excess.Web.Entities
 
                     files.Add(new ProjectFile
                     {
-                        Name = "transform",
+                        Name = "Transform",
                         Contents = ProjectTemplates.Transform,
                     });
                     break;

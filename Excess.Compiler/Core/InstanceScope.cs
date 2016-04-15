@@ -1,53 +1,49 @@
-﻿using Microsoft.CodeAnalysis;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 
 namespace Excess.Compiler.Core
 {
-    public static class ScopeExtensions
-    {
-        public static void AddInstanceInitializer(this Scope scope, SyntaxNode node)
-        {
-            List<SyntaxNode> _instanceInitializer = scope.find<List<SyntaxNode>>("_instanceInitializer");
-            Debug.Assert(_instanceInitializer != null);
+	public static class ScopeExtensions
+	{
+		public static void AddInstanceInitializer(this Scope scope, SyntaxNode node)
+		{
+			var instanceInitializer = scope.find<List<SyntaxNode>>("_instanceInitializer");
+			Debug.Assert(instanceInitializer != null);
 
-            _instanceInitializer.Add(node);
-        }
+			instanceInitializer.Add(node);
+		}
 
-        public static List<SyntaxNode> GetInstanceInitializers(this Scope scope)
-        {
-            List<SyntaxNode> _instanceInitializer = scope.find<List<SyntaxNode>>("_instanceInitializer");
-            Debug.Assert(_instanceInitializer != null);
+		public static List<SyntaxNode> GetInstanceInitializers(this Scope scope)
+		{
+			var instanceInitializer = scope.find<List<SyntaxNode>>("_instanceInitializer");
+			Debug.Assert(instanceInitializer != null);
 
-            return _instanceInitializer;
-        }
+			return instanceInitializer;
+		}
 
-        public static void AddInstanceDeclaration(this Scope scope, SyntaxNode node)
-        {
-            List<SyntaxNode> _instanceDeclaration = scope.find<List<SyntaxNode>>("_instanceDeclaration");
-            Debug.Assert(_instanceDeclaration != null);
+		public static void AddInstanceDeclaration(this Scope scope, SyntaxNode node)
+		{
+			var instanceDeclaration = scope.find<List<SyntaxNode>>("_instanceDeclaration");
+			Debug.Assert(instanceDeclaration != null);
 
-            _instanceDeclaration.Add(node);
-        }
+			instanceDeclaration.Add(node);
+		}
 
-        public static List<SyntaxNode> GetInstanceDeclarations(this Scope scope)
-        {
-            List<SyntaxNode> _instanceDeclaration = scope.find<List<SyntaxNode>>("_instanceDeclaration");
-            Debug.Assert(_instanceDeclaration != null);
+		public static List<SyntaxNode> GetInstanceDeclarations(this Scope scope)
+		{
+			var instanceDeclaration = scope.find<List<SyntaxNode>>("_instanceDeclaration");
+			Debug.Assert(instanceDeclaration != null);
 
-            return _instanceDeclaration;
-        }
+			return instanceDeclaration;
+		}
 
-        internal static void InitInstance(this Scope scope)
-        {
-            Debug.Assert(scope.find<List<SyntaxNode>>("_instanceDeclaration") == null);
+		internal static void InitInstance(this Scope scope)
+		{
+			Debug.Assert(scope.find<List<SyntaxNode>>("_instanceDeclaration") == null);
 
-            scope.set("_instanceDeclaration", new List<SyntaxNode>());
-            scope.set("_instanceInitializer", new List<SyntaxNode>());
-        }
-    }
+			scope.set("_instanceDeclaration", new List<SyntaxNode>());
+			scope.set("_instanceInitializer", new List<SyntaxNode>());
+		}
+	}
 }

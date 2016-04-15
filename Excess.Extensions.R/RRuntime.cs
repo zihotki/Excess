@@ -72,7 +72,7 @@ namespace Excess.Extensions.R
         private static IEnumerable<R> Transform<S1, S2, R>(Vector<S1> v1, Vector<S2> v2, Func<S1, S2, R> transform)
         {
             if (!v1.data.Any() || !v2.data.Any())
-                throw new InvalidOperationException("cannot transform empty vector");
+                throw new InvalidOperationException("cannot Transform empty vector");
 
             var max = Math.Max(v1.length, v2.length);
             var enum1 = v1.data.GetEnumerator();

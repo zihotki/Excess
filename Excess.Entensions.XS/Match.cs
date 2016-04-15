@@ -22,13 +22,13 @@ namespace Excess.Entensions.XS
             var lexical = compiler.Lexical();
 
             lexical
-                .match()
-                    .token("match", named: "keyword")
-                    .enclosed('(', ')')
-                    .token('{')
-                    .then(lexical.transform()
-                        .replace("keyword", "switch")
-                        .then(ProcessMatch, referenceToken: "keyword"));
+                .Match()
+                    .Token("match", named: "keyword")
+                    .Enclosed('(', ')')
+                    .Token('{')
+                    .Then(lexical.Transform()
+                        .Replace("keyword", "switch")
+                        .Then(ProcessMatch, referenceToken: "keyword"));
         }
 
         private static SyntaxNode ProcessMatch(SyntaxNode node, Scope scope)

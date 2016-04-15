@@ -24,7 +24,7 @@ namespace Excess.RuntimeProject
         {
             var environment = scope.get<ICompilerEnvironment>();
 
-            string path = environment.path().ToolPath;
+            string path = environment.Path().ToolPath;
             string grammar = Path.GetFileName(file);
 
             CompileGrammar(grammar, path, contents, result);

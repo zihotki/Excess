@@ -169,7 +169,7 @@ namespace Excess.Web.Migrations
                 {
                     ID           = 8,
                     OwnerProject = 3,
-                    Name         = "transform",
+                    Name         = "Transform",
                     Contents     = Samples.ContractTransform,
                 },
 
@@ -195,7 +195,7 @@ namespace Excess.Web.Migrations
                 {
                     ID           = 11,
                     OwnerProject = 4,
-                    Name         = "transform",
+                    Name         = "Transform",
                     Contents     = Samples.MatchTransform,
                 },
 
@@ -221,7 +221,7 @@ namespace Excess.Web.Migrations
                 {
                     ID           = 14,
                     OwnerProject = 5,
-                    Name         = "transform",
+                    Name         = "Transform",
                     Contents     = Samples.AsynchTransform,
                 },
 

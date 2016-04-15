@@ -17,7 +17,7 @@ namespace Excess.Extensions.Sql.Tests
             {
                 new DelegateInjector<SyntaxToken, SyntaxNode, SemanticModel>(compiler => compiler
                     .Environment()
-                        .dependency(new[] {
+                        .Dependency(new[] {
                             "System",
                             "System.Collections",
                             "System.Collections.Generic",
@@ -25,7 +25,7 @@ namespace Excess.Extensions.Sql.Tests
                         })),
 
                 new DelegateInjector<SyntaxToken, SyntaxNode, SemanticModel>(compiler =>
-                    Extension.Apply(compiler))
+                    SqlExtension.Apply(compiler))
             });
 
             compilation.addDocument("sql-test", text, injector);
@@ -107,7 +107,7 @@ public class Query
         var query = Sql()
         {
             Select Client.Name, Client.Surname, Client.Height From Client
-            Where Name == filterValue
+            Where Name = filterValue
                 Order By Name
         };		
     }

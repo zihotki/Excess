@@ -489,15 +489,15 @@ var $$rAFSchedulerFactory = ['$$rAF', function($$rAF) {
 
       .item.ng-enter,
       .item.ng-leave {
-        transition: transform 1.5s ease;
+        transition: Transform 1.5s ease;
       }
 
       .item.ng-enter {
-        transform: translateX(50px);
+        Transform: translateX(50px);
       }
 
       .item.ng-enter-active {
-        transform: translateX(0);
+        Transform: translateX(0);
       }
     </file>
     <file name="script.js">
@@ -625,13 +625,13 @@ var ANIMATE_TIMER_KEY = '$$animateCss';
  * }
  *
  * @keyframes pulse {
- *   from { transform: scale(0.5); }
- *   to { transform: scale(1.5); }
+ *   from { Transform: scale(0.5); }
+ *   to { Transform: scale(1.5); }
  * }
  *
  * @-webkit-keyframes pulse {
- *   from { -webkit-transform: scale(0.5); }
- *   to { -webkit-transform: scale(1.5); }
+ *   from { -webkit-Transform: scale(0.5); }
+ *   to { -webkit-Transform: scale(1.5); }
  * }
  * ```
  *
@@ -658,13 +658,13 @@ var ANIMATE_TIMER_KEY = '$$animateCss';
  * }
  *
  * @keyframes rotate {
- *   from { transform: rotate(0deg); }
- *   to { transform: rotate(360deg); }
+ *   from { Transform: rotate(0deg); }
+ *   to { Transform: rotate(360deg); }
  * }
  *
  * @-webkit-keyframes rotate {
- *   from { -webkit-transform: rotate(0deg); }
- *   to { -webkit-transform: rotate(360deg); }
+ *   from { -webkit-Transform: rotate(0deg); }
+ *   to { -webkit-Transform: rotate(360deg); }
  * }
  * ```
  *
@@ -3714,10 +3714,10 @@ var ngAnimateSwapDirective = ['$animate', '$rootScope', function($animate, $root
  * ```css
  * .slide.ng-enter {
  *   transition:0.5s linear all;
- *   transform:translateY(-100px);
+ *   Transform:translateY(-100px);
  * }
  * .slide.ng-enter.ng-enter-active {
- *   transform:translateY(0);
+ *   Transform:translateY(0);
  * }
  * ```
  *
@@ -3838,14 +3838,14 @@ var ngAnimateSwapDirective = ['$animate', '$rootScope', function($animate, $root
  *   width:100%;
  * }
  * .view-animation.ng-enter {
- *   transform:translateX(100%);
+ *   Transform:translateX(100%);
  * }
  * .view-animation.ng-leave,
  * .view-animation.ng-enter.ng-enter-active {
- *   transform:translateX(0%);
+ *   Transform:translateX(0%);
  * }
  * .view-animation.ng-leave.ng-leave-active {
- *   transform:translateX(-100%);
+ *   Transform:translateX(-100%);
  * }
  * ```
  *
@@ -3864,7 +3864,7 @@ var ngAnimateSwapDirective = ['$animate', '$rootScope', function($animate, $root
  *
  *   /&#42; the scale will be applied during the out animation,
  *          but will be animated away when the in animation runs &#42;/
- *   transform: scale(1.2);
+ *   Transform: scale(1.2);
  * }
  *
  * .banner.ng-anchor-in {
@@ -3966,13 +3966,13 @@ var ngAnimateSwapDirective = ['$animate', '$rootScope', function($animate, $root
         transition:0.5s linear all;
       }
       .view.ng-enter {
-        transform:translateX(100%);
+        Transform:translateX(100%);
       }
       .view.ng-enter.ng-enter-active, .view.ng-leave {
-        transform:translateX(0%);
+        Transform:translateX(0%);
       }
       .view.ng-leave.ng-leave-active {
-        transform:translateX(-100%);
+        Transform:translateX(-100%);
       }
       .record.ng-anchor-out {
         background:red;

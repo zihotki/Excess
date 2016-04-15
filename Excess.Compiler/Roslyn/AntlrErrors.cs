@@ -12,6 +12,7 @@ namespace Excess.Compiler.Roslyn
     {
         Scope _scope;
         int _offset;
+
         public AntlrErrors(Scope scope, int offset)
         {
             _scope = scope;

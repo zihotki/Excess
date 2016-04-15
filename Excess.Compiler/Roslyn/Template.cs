@@ -1,189 +1,209 @@
-﻿using Microsoft.CodeAnalysis;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Excess.Compiler.Roslyn;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace Excess.Compiler.Roslyn
 {
-    using Microsoft.CodeAnalysis.CSharp;
-    using Microsoft.CodeAnalysis.CSharp.Syntax;
-    using CSharp = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
-    using Roslyn = RoslynCompiler;
+	using CSharp = SyntaxFactory;
+	using Roslyn = RoslynCompiler;
 
-    public class Template
-    {
-        public static Template ParseExpression(string text)
-        {
-            var expr = CSharp.ParseExpression(text);
-            return new Template(expr, GetValues(expr));
-        }
+	public class Template
+	{
+		private readonly SyntaxNode _root;
+		private readonly IDictionary<object, int> _values;
 
-        public static Template ParseStatement(string text)
-        {
-            var statement = CSharp.ParseStatement(text);
-            return new Template(statement, GetValues(statement));
-        }
+		private Template(SyntaxNode root, IDictionary<object, int> values)
+		{
+			_root = root;
+			_values = values;
+		}
 
-        public static Template ParseStatements(string text)
-        {
-            var statements = CSharp.ParseStatement("{" + text + "}");
-            return new Template(statements, GetValues(statements));
-        }
+		public static Template ParseExpression(string text)
+		{
+			var expr = CSharp.ParseExpression(text);
+			return new Template(expr, GetValues(expr));
+		}
 
-        public static Template Parse(string text)
-        {
-            var parsed = CSharp.ParseCompilationUnit(text);
-            return new Template(parsed, GetValues(parsed));
-        }
+		public static Template ParseStatement(string text)
+		{
+			var statement = CSharp.ParseStatement(text);
+			return new Template(statement, GetValues(statement));
+		}
 
-        private static IDictionary<object, int> GetValues(SyntaxNode node)
-        {
-            var result = new Dictionary<object, int>();
-            var tokens = node
-                .DescendantTokens()
-                .Where(token => matchValue(token, result));
+		public static Template ParseStatements(string text)
+		{
+			var statements = CSharp.ParseStatement("{" + text + "}");
+			return new Template(statements, GetValues(statements));
+		}
 
-            tokens.All(_ => true);
-            return result;
-        }
+		public static Template Parse(string text)
+		{
+			var parsed = CSharp.ParseCompilationUnit(text);
+			return new Template(parsed, GetValues(parsed));
+		}
 
-        private static bool matchValue(SyntaxToken token, Dictionary<object, int> values)
-        {
-            var name = token.ToString();
+		private static IDictionary<object, int> GetValues(SyntaxNode node)
+		{
+			var result = new Dictionary<object, int>();
+			var tokens = node
+				.DescendantTokens()
+				.Where(token => MatchValue(token, result));
 
-            int idx;
-            if (name.StartsWith("__") && int.TryParse(name.Substring(2), out idx))
-                values[token.Parent] = idx;
-            else if (name.StartsWith("_") && int.TryParse(name.Substring(1), out idx))
-                values[token] = idx;
-            else
-                return false;
+			tokens.All(_ => true);
+			return result;
+		}
 
-            return true;
-        }
+		private static bool MatchValue(SyntaxToken token, Dictionary<object, int> values)
+		{
+			var name = token.ToString();
 
-        SyntaxNode _root;
-        IDictionary<object, int> _values;
+			int idx;
+			if (name.StartsWith("__") && int.TryParse(name.Substring(2), out idx))
+			{
+				values[token.Parent] = idx;
+			}
+			else if (name.StartsWith("_") && int.TryParse(name.Substring(1), out idx))
+			{
+				values[token] = idx;
+			}
+			else
+			{
+				return false;
+			}
 
-        private Template(SyntaxNode root, IDictionary<object, int> values)
-        {
-            _root = root;
-            _values = values;
-        }
+			return true;
+		}
 
-        public SyntaxNode Get(params object[] values)
-        {
-            return instantiate(values);
-        }
+		public SyntaxNode Get(params object[] values)
+		{
+			return Instantiate(values);
+		}
 
-        public T Get<T>(params object[] values) where T : SyntaxNode
-        {
-            var result = instantiate(values);
-            return result
-                .DescendantNodesAndSelf()
-                .OfType<T>()
-                .First();
-        }
+		public T Get<T>(params object[] values) where T : SyntaxNode
+		{
+			var result = Instantiate(values);
+			return result
+				.DescendantNodesAndSelf()
+				.OfType<T>()
+				.First();
+		}
 
-        public T Value<T>() where T : SyntaxNode
-        {
-            return (T)_values.First().Key;
-        }
+		public T Value<T>() where T : SyntaxNode
+		{
+			return (T) _values.First().Key;
+		}
 
-        public IDictionary<object, int> Values()
-        {
-            return _values;
-        }
+		public IDictionary<object, int> Values()
+		{
+			return _values;
+		}
 
-        private SyntaxNode instantiate(params object[] values)
-        {
-            var result = _root;
-            var nodes = _values.Keys.OfType<SyntaxNode>();
-            var tokens = _values.Keys.OfType<SyntaxToken>();
+		private SyntaxNode Instantiate(params object[] values)
+		{
+			var result = _root;
+			var nodes = _values.Keys.OfType<SyntaxNode>();
+			var tokens = _values.Keys.OfType<SyntaxToken>();
 
-            var hasNodes = nodes.Any();
-            var hasTokens = tokens.Any();
+			var hasNodes = nodes.Any();
+			var hasTokens = tokens.Any();
 
-            if (hasNodes && hasTokens)
-                result = result.ReplaceNodes(nodes
-                    .Union(tokens.Select(token => token.Parent)), (oldNode, newNode) => getMixedNode(oldNode, newNode, values));
-            else if (hasNodes)
-                result = result.ReplaceNodes(nodes, (oldNode, newNode) => getNode(oldNode, values));
-            else if (hasTokens)
-                result = result.ReplaceTokens(tokens, (oldToken, newToken) => getToken(oldToken, values));
+			if (hasNodes && hasTokens)
+			{
+				result = result.ReplaceNodes(nodes
+					.Union(tokens.Select(token => token.Parent)), (oldNode, newNode) => GetMixedNode(oldNode, newNode, values));
+			}
+			else if (hasNodes)
+			{
+				result = result.ReplaceNodes(nodes, (oldNode, newNode) => GetNode(oldNode, values));
+			}
+			else if (hasTokens)
+			{
+				result = result.ReplaceTokens(tokens, (oldToken, newToken) => GetToken(oldToken, values));
+			}
 
-            return result;
-        }
+			return result;
+		}
 
-        private SyntaxNode getMixedNode(SyntaxNode oldNode, SyntaxNode newNode, object[] values)
-        {
-            int idx;
-            if (_values.TryGetValue(oldNode, out idx))
-                return getNode(oldNode, values);
+		private SyntaxNode GetMixedNode(SyntaxNode oldNode, SyntaxNode newNode, object[] values)
+		{
+			int idx;
+			if (_values.TryGetValue(oldNode, out idx))
+			{
+				return GetNode(oldNode, values);
+			}
 
-            var newTokens = newNode.DescendantTokens().GetEnumerator();
-            foreach (var token in oldNode.DescendantTokens())
-            {
-                newTokens.MoveNext();
-                if (_values.TryGetValue(token, out idx))
-                {
-                    var newToken = getToken(token, values);
-                    return newNode.ReplaceToken(newTokens.Current, newToken);
-                }
-                var value = values[idx];
-            }
+			var newTokens = newNode.DescendantTokens().GetEnumerator();
+			foreach (var token in oldNode.DescendantTokens())
+			{
+				newTokens.MoveNext();
+				if (_values.TryGetValue(token, out idx))
+				{
+					var newToken = GetToken(token, values);
+					return newNode.ReplaceToken(newTokens.Current, newToken);
+				}
+				var value = values[idx];
+			}
 
-            return newNode;
-        }
+			return newNode;
+		}
 
-        private SyntaxNode getNode(SyntaxNode node, object[] values)
-        {
-            int idx = _values[node];
-            var value = values[idx];
-            if (value is SyntaxNode)
-                return (SyntaxNode)value;
+		private SyntaxNode GetNode(SyntaxNode node, object[] values)
+		{
+			var idx = _values[node];
+			var value = values[idx];
+			if (value is SyntaxNode)
+			{
+				return (SyntaxNode) value;
+			}
 
-            if (value is SyntaxToken)
-                return ((SyntaxToken)value).Parent;
+			if (value is SyntaxToken)
+			{
+				return ((SyntaxToken) value).Parent;
+			}
 
-            if (value is bool)
-            {
-                if ((bool)value)
-                    return Roslyn.@true;
-                else
-                    return Roslyn.@false;
-            }
+			if (value is bool)
+			{
+				if ((bool) value)
+				{
+					return Roslyn.@true;
+				}
+				return Roslyn.@false;
+			}
 
-            return CSharp.ParseExpression(value.ToString());
-        }
+			return CSharp.ParseExpression(value.ToString());
+		}
 
-        private SyntaxToken getToken(SyntaxToken token, object[] values)
-        {
-            int idx = _values[token];
-            var value = values[idx];
+		private SyntaxToken GetToken(SyntaxToken token, object[] values)
+		{
+			var idx = _values[token];
+			var value = values[idx];
 
-            if (value == null)
-                return token;
+			if (value == null)
+			{
+				return token;
+			}
 
-            if (value is SyntaxToken)
-                return (SyntaxToken)value;
+			if (value is SyntaxToken)
+			{
+				return (SyntaxToken) value;
+			}
 
-            if (value is SyntaxNode)
-                return (value as SyntaxNode).DescendantTokens().Single();
+			if (value is SyntaxNode)
+			{
+				return (value as SyntaxNode).DescendantTokens().Single();
+			}
 
-            if (value is bool)
-            {
-                if ((bool)value)
-                    return CSharp.Token(SyntaxKind.TrueKeyword);
-                else
-                    return CSharp.Token(SyntaxKind.FalseKeyword);
-            }
+			if (value is bool)
+			{
+				if ((bool) value)
+				{
+					return CSharp.Token(SyntaxKind.TrueKeyword);
+				}
+				return CSharp.Token(SyntaxKind.FalseKeyword);
+			}
 
-            return CSharp.ParseToken(value.ToString());
-        }
-    }
+			return CSharp.ParseToken(value.ToString());
+		}
+	}
 }

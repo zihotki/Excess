@@ -21,7 +21,7 @@ namespace Excess.Entensions.XS
 
     internal class JsonGrammar : IGrammar<SyntaxToken, SyntaxNode, ParserRuleContext>
     {
-        public ParserRuleContext parse(IEnumerable<SyntaxToken> tokens, Scope scope, int offset)
+        public ParserRuleContext Parse(IEnumerable<SyntaxToken> tokens, Scope scope, int offset)
         {
             var text = RoslynCompiler.TokensToString(tokens);
             AntlrInputStream stream = new AntlrInputStream(text);
@@ -43,18 +43,18 @@ namespace Excess.Entensions.XS
         public static void Apply(ExcessCompiler compiler)
         {
             compiler.Environment()
-                .dependency<JObject>("Newtonsoft.Json.Linq");
+                .Dependency<JObject>("Newtonsoft.Json.Linq");
 
             compiler.Lexical()
-                .grammar<JsonGrammar, ParserRuleContext>("json", ExtensionKind.Code)
-                    .transform<JSONParser.ExpressionContext>(AntlrExpression.Parse)
-                    .transform<JSONParser.JsonContext>(Main)
+                .Grammar<JsonGrammar, ParserRuleContext>("json", ExtensionKind.Code)
+                    .Transform<JSONParser.ExpressionContext>(AntlrExpression.Parse)
+                    .Transform<JSONParser.JsonContext>(Main)
                     .transform<JSONParser.ObjectContext>(JObject)
                     .transform<JSONParser.ArrayContext>(JArray)
                     .transform<JSONParser.PairContext>(JPair)
                     .transform<JSONParser.ValueContext>(JValue)
 
-                    .then(Transform);
+                    .Then(Transform);
             ;
         }
 

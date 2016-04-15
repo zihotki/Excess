@@ -1,277 +1,306 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-
-using Compilation = Excess.Compiler.Roslyn.Compilation;
 using Excess.Compiler;
-using Excess.Entensions.XS;
 using Excess.Compiler.Roslyn;
+using Excess.Entensions.XS;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Compilation = Excess.Compiler.Roslyn.Compilation;
 
 namespace Excess.RuntimeProject
 {
-    internal abstract class BaseRuntime : IRuntimeProject
-    {
-        protected static Dictionary<string, ICompilationTool> _tools = new Dictionary<string, ICompilationTool>();
-        public BaseRuntime(IPersistentStorage storage)
-        {
-            _compilation = new Compilation(storage);
-            _compilation.ToolStarted += (sender, args) => notify(NotificationKind.System, "Starting tool: " + args.Tool.displayName + " for " + args.Document);
-            _compilation.ToolFinished += (sender, args) =>
-            {
-                if (args.Result != null)
-                {
-                    bool hasError = args.Result.ContainsKey("error");
-                    if (hasError)
-                        notify(NotificationKind.Error, "Tool failed: " + args.Result["error"]);
-                    else
-                    {
-                        foreach(var msg in args.Result)
-                            notify(NotificationKind.System, msg.Key);
-                    }
-                }
+	internal abstract class BaseRuntime : IRuntimeProject
+	{
+		protected static Dictionary<string, ICompilationTool> _tools = new Dictionary<string, ICompilationTool>();
 
-                notify(NotificationKind.System, "Finished: " + args.Tool.displayName + " for " + args.Document);
-            };
+		//Console
+		protected static SyntaxTree consoleTree = SyntaxFactory.ParseSyntaxTree(
+			@"using System;
+			public class console
+			{
+				static private Action<string> _notify;
+				static public void setup(Action<string> notify)
+				{
+					_notify = notify;
+				}
+
+				static public void write(string message)
+				{
+					_notify(message);
+				}
+			}");
+
+		protected static SyntaxTree randomTree = SyntaxFactory.ParseSyntaxTree(
+			@"using System;
+			public class random
+			{
+				static private Random _random = new Random();
+
+				static public int Int()
+				{
+					return _random.Next();
+				}
+
+				static public int Int(int range)
+				{
+					return _random.Next(range);
+				}
+
+				static public double Double()
+				{
+					return _random.NextDouble();
+				}
+			}");
+
+		protected bool _busy;
+		protected Compilation _compilation;
+		protected bool _dirty;
+
+		protected Dictionary<string, int> _files = new Dictionary<string, int>();
+		private INotifier _notifier;
 
 
-            foreach (var tool in _tools)
-            {
-                _compilation.registerTool(tool.Key, tool.Value);
-            }
+		public BaseRuntime(IPersistentStorage storage)
+		{
+			_compilation = new Compilation(storage);
+			_compilation.ToolStarted += (sender, args) => Notify(NotificationKind.System, "Starting tool: " + args.Tool.DisplayName + " for " + args.Document);
+			_compilation.ToolFinished += (sender, args) =>
+			{
+				if (args.Result != null)
+				{
+					var hasError = args.Result.ContainsKey("error");
+					if (hasError)
+					{
+						Notify(NotificationKind.Error, "Tool failed: " + args.Result["error"]);
+					}
+					else
+					{
+						foreach (var msg in args.Result)
+						{
+							Notify(NotificationKind.System, msg.Key);
+						}
+					}
+				}
 
-            _compilation.addCSharpFile("console", consoleTree);
-            _compilation.addCSharpFile("random", randomTree);
-        }
+				Notify(NotificationKind.System, "Finished: " + args.Tool.DisplayName + " for " + args.Document);
+			};
 
-        public bool busy()
-        {
-            return _busy;
-        }
 
-        protected Compilation _compilation;
+			foreach (var tool in _tools)
+			{
+				_compilation.registerTool(tool.Key, tool.Value);
+			}
 
-        public IEnumerable<Error> compile()
-        {
-            if (_busy)
-                throw new InvalidOperationException();
+			_compilation.addCSharpFile("console", consoleTree);
+			_compilation.addCSharpFile("random", randomTree);
+		}
 
-            _busy = true;
-            IEnumerable<Error> errors = null;
-            try
-            {
-                errors = doCompile();
-            }
-            catch(Exception e)
-            {
-                errors = new[] { new Error {
-                    File = "compiler",
-                    Line = -1,
-                    Message = e.Message,
-                }};
-            }
+		public bool Busy()
+		{
+			return _busy;
+		}
 
-            _busy = false;
-            return errors;
-        }
 
-        public IEnumerable<Error> run(INotifier notifier, out dynamic client)
-        {
-            client = null;
-            if (_busy)
-                throw new InvalidOperationException();
+		public IEnumerable<Error> Compile()
+		{
+			if (_busy)
+			{
+				throw new InvalidOperationException();
+			}
 
-            _notifier = notifier;
-            _busy = true;
-            IEnumerable<Error> errors = null;
-            try
-            {
-                errors = doCompile();
-                if (errors == null)
-                {
-                    Assembly assembly = _compilation.build();
-                    if (assembly != null)
-                    {
-                        setupConsole(assembly);
-                        doRun(assembly, out client);
-                    }
-                    else
-                        errors = gatherErrors(_compilation.errors());
-                }
-            }
-            catch (Exception e)
-            {
-                errors = new[] { new Error {
-                    File = "compiler",
-                    Line = -1,
-                    Message = e.Message,
-                }};
-            }
+			_busy = true;
+			IEnumerable<Error> errors = null;
+			try
+			{
+				errors = DoCompile();
+			}
+			catch (Exception e)
+			{
+				errors = new[]
+				{
+					new Error
+					{
+						File = "compiler",
+						Line = -1,
+						Message = e.Message
+					}
+				};
+			}
 
-            _busy = false;
-            return errors;
-        }
+			_busy = false;
+			return errors;
+		}
 
-        private IEnumerable<Error> gatherErrors(IEnumerable<Diagnostic> diagnostics)
-        {
-            if (diagnostics == null)
-                return null;
+		public IEnumerable<Error> Run(INotifier notifier, out dynamic client)
+		{
+			client = null;
+			if (_busy)
+			{
+				throw new InvalidOperationException();
+			}
 
-            return diagnostics
-                .Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error)
-                .Select(diagnostic =>
-                {
-                    var mapped = _compilation.OriginalPosition(diagnostic.Location);
-                    return new Error
-                    {
-                        File = mapped.Path,
-                        Line = mapped.StartLinePosition.Line,
-                        Character = mapped.StartLinePosition.Character,
-                        Message = diagnostic.GetMessage()
-                    };
-                });
-        }
+			_notifier = notifier;
+			_busy = true;
+			IEnumerable<Error> errors = null;
+			try
+			{
+				errors = DoCompile();
+				if (errors == null)
+				{
+					var assembly = _compilation.build();
+					if (assembly != null)
+					{
+						SetupConsole(assembly);
+						DoRun(assembly, out client);
+					}
+					else
+					{
+						errors = GatherErrors(_compilation.errors());
+					}
+				}
+			}
+			catch (Exception e)
+			{
+				errors = new[]
+				{
+					new Error
+					{
+						File = "compiler",
+						Line = -1,
+						Message = e.Message
+					}
+				};
+			}
 
-        public void add(string file, int fileId, string contents)
-        {
-            if (_files.ContainsKey(file))
-                throw new InvalidOperationException("duplicate file");
+			_busy = false;
+			return errors;
+		}
 
-            _compilation.addDocument(file, contents, getInjector(file));
+		public void Add(string file, int fileId, string contents)
+		{
+			if (_files.ContainsKey(file))
+			{
+				throw new InvalidOperationException("duplicate file");
+			}
 
-            _files[file] = fileId;
-            _dirty = true;
-        }
+			_compilation.addDocument(file, contents, GetInjector(file));
 
-        protected virtual ICompilerInjector<SyntaxToken, SyntaxNode, SemanticModel> getInjector(string file)
-        {
-            return XSLang.Create();
-        }
+			_files[file] = fileId;
+			_dirty = true;
+		}
 
-        public void modify(string file, string contents)
-        {
-            if (!_files.ContainsKey(file))
-                throw new InvalidOperationException();
+		public void Modify(string file, string contents)
+		{
+			if (!_files.ContainsKey(file))
+			{
+				throw new InvalidOperationException();
+			}
 
-            _compilation.updateDocument(file, contents);
-            _dirty = true;
-        }
+			_compilation.updateDocument(file, contents);
+			_dirty = true;
+		}
 
-        public abstract string defaultFile();
+		public abstract string DefaultFile();
 
-        public string fileContents(string file)
-        {
-            if (_files.ContainsKey(file))
-                return _compilation.documentText(file);
+		public string FileContents(string file)
+		{
+			if (_files.ContainsKey(file))
+			{
+				return _compilation.documentText(file);
+			}
 
-            return null;
-        }
+			return null;
+		}
 
-        public int fileId(string file)
-        {
-            int result;
-            if (_files.TryGetValue(file, out result))
-                return result;
+		public int FileId(string file)
+		{
+			int result;
+			if (_files.TryGetValue(file, out result))
+			{
+				return result;
+			}
 
-            return -1;
-        }
+			return -1;
+		}
 
-        public virtual IEnumerable<TreeNodeAction> fileActions(string file)
-        {
-            return new TreeNodeAction[] { };
-        }
+		public virtual IEnumerable<TreeNodeAction> FileActions(string file)
+		{
+			return new TreeNodeAction[] {};
+		}
 
-        protected bool _busy  = false;
-        protected bool _dirty = false;
+		public void setFilePath(dynamic path)
+		{
+			_compilation.setPath(path);
+		}
 
-        protected virtual IEnumerable<Error> doCompile()
-        {
-            if (!_dirty)
-            {
-                notify(NotificationKind.System, "Compilation up to date");
-                return null;
-            }
+		private IEnumerable<Error> GatherErrors(IEnumerable<Diagnostic> diagnostics)
+		{
+			if (diagnostics == null)
+			{
+				return null;
+			}
 
-            var result = _compilation.compile();
-            if (_dirty)
-                _dirty = false;
+			return diagnostics
+				.Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error)
+				.Select(diagnostic =>
+				{
+					var mapped = _compilation.OriginalPosition(diagnostic.Location);
+					return new Error
+					{
+						File = mapped.Path,
+						Line = mapped.StartLinePosition.Line,
+						Character = mapped.StartLinePosition.Character,
+						Message = diagnostic.GetMessage()
+					};
+				});
+		}
 
-            if (result)
-                return null;
+		protected virtual ICompilerInjector<SyntaxToken, SyntaxNode, SemanticModel> GetInjector(string file)
+		{
+			return XSLang.Create();
+		}
 
-            return gatherErrors(_compilation.errors());
-        }
+		protected virtual IEnumerable<Error> DoCompile()
+		{
+			if (!_dirty)
+			{
+				Notify(NotificationKind.System, "Compilation up to date");
+				return null;
+			}
 
-        public void setFilePath(dynamic path)
-        {
-            _compilation.setPath(path);
-        }
+			var result = _compilation.compile();
+			if (_dirty)
+			{
+				_dirty = false;
+			}
 
-        protected abstract void doRun(Assembly asm, out dynamic clientData);
-        
-        protected Dictionary<string, int> _files = new Dictionary<string, int>();
-        private INotifier _notifier;
+			if (result)
+			{
+				return null;
+			}
 
-        protected void notify(NotificationKind kind, string message)
-        {
-            if (_notifier != null)
-                _notifier.notify(new Notification { Kind = kind, Message = message });
-        }
+			return GatherErrors(_compilation.errors());
+		}
 
-        //Console
-        static protected SyntaxTree consoleTree = SyntaxFactory.ParseSyntaxTree(
-            @"using System;
-            public class console
-            {
-                static private Action<string> _notify;
-                static public void setup(Action<string> notify)
-                {
-                    _notify = notify;
-                }
+		protected abstract void DoRun(Assembly asm, out dynamic clientData);
 
-                static public void write(string message)
-                {
-                    _notify(message);
-                }
-            }");
+		protected void Notify(NotificationKind kind, string message)
+		{
+			_notifier?.notify(new Notification {Kind = kind, Message = message});
+		}
 
-        static protected SyntaxTree randomTree = SyntaxFactory.ParseSyntaxTree(
-            @"using System;
-            public class random
-            {
-                static private Random _random = new Random();
+		private void SetupConsole(Assembly assembly)
+		{
+			var console = assembly.GetType("console");
+			var method = console.GetMethod("setup");
+			method.Invoke(null, new[] {(Action<string>) ConsoleNotify});
+		}
 
-                static public int Int()
-                {
-                    return _random.Next();
-                }
-
-                static public int Int(int range)
-                {
-                    return _random.Next(range);
-                }
-
-                static public double Double()
-                {
-                    return _random.NextDouble();
-                }
-            }");
-
-        private void setupConsole(Assembly assembly)
-        {
-            Type console = assembly.GetType("console");
-            var  method = console.GetMethod("setup");
-            method.Invoke(null, new [] { (Action<string>)consoleNotify });
-        }
-
-        private void consoleNotify(string message)
-        {
-            notify(NotificationKind.Application, message);
-        }
-    }
+		private void ConsoleNotify(string message)
+		{
+			Notify(NotificationKind.Application, message);
+		}
+	}
 }

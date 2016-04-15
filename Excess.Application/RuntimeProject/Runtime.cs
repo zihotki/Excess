@@ -36,15 +36,15 @@ namespace Excess.RuntimeProject
 
     public interface IRuntimeProject
     {
-        bool busy();
-        IEnumerable<Error> compile();
-        IEnumerable<Error> run(INotifier notifier, out dynamic client);
-        void add(string file, int id, string contents);
-        void modify(string file, string contents);
-        string defaultFile();
-        string fileContents(string file);
-        int fileId(string file);
-        IEnumerable<TreeNodeAction> fileActions(string file);
+        bool Busy();
+        IEnumerable<Error> Compile();
+        IEnumerable<Error> Run(INotifier notifier, out dynamic client);
+        void Add(string file, int id, string contents);
+        void Modify(string file, string contents);
+        string DefaultFile();
+        string FileContents(string file);
+        int FileId(string file);
+        IEnumerable<TreeNodeAction> FileActions(string file);
         void setFilePath(dynamic path);
     }
 

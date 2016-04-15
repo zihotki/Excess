@@ -23,21 +23,21 @@ namespace Excess.Entensions.XS
             var semantics = compiler.Semantics();
 
             lexical
-                .match()
-                    .token("typedef")
-                    .identifier(named: "id")
-                    .token("=")
-                    .until(';', named: "definition")
-                    .then(TypedefAssignment)
-                .match() 
-                    .token("typedef", named: "keyword")
-                    .until(';', named: "definition")
-                    .then(compiler.Lexical().transform()
-                        .remove("keyword")
-                        .then(Typedef));
+                .Match()
+                    .Token("typedef")
+                    .Identifier(named: "id")
+                    .Token("=")
+                    .Until(';', named: "definition")
+                    .Then(TypedefAssignment)
+                .Match() 
+                    .Token("typedef", named: "keyword")
+                    .Until(';', named: "definition")
+                    .Then(compiler.Lexical().Transform()
+                        .Remove("keyword")
+                        .Then(Typedef));
 
             semantics
-                .error("CS0246", FixMissingType);
+                .Error("CS0246", FixMissingType);
         }
 
         private static IEnumerable<SyntaxToken> TypedefAssignment(IEnumerable<SyntaxToken> tokens, Scope scope)
@@ -63,7 +63,7 @@ namespace Excess.Entensions.XS
             var document = scope.GetDocument<SyntaxToken, SyntaxNode, SemanticModel>();
 
             yield return identifier.WithLeadingTrivia(CSharp.ParseLeadingTrivia(" "));
-            yield return document.change(CSharp.Token(SyntaxKind.SemicolonToken), Typedef);
+            yield return document.Change(CSharp.Token(SyntaxKind.SemicolonToken), Typedef);
         }
 
         private static SyntaxNode Typedef(SyntaxNode node, Scope scope)
@@ -103,7 +103,7 @@ namespace Excess.Entensions.XS
 
             //schedule deletion
             var document = scope.GetDocument<SyntaxToken, SyntaxNode, SemanticModel>();
-            document.change(field.Parent, RoslynCompiler.RemoveMember(field));
+            document.Change(field.Parent, RoslynCompiler.RemoveMember(field));
 
             //return intact
             return node;
@@ -127,7 +127,7 @@ namespace Excess.Entensions.XS
                         realType = RoslynCompiler.Mark(realType); //make sure not to duplicate nodes
 
                         var document = scope.GetDocument<SyntaxToken, SyntaxNode, SemanticModel>();
-                        document.change(node, RoslynCompiler.ReplaceNode(realType));
+                        document.Change(node, RoslynCompiler.ReplaceNode(realType));
                     }
                 }
             }

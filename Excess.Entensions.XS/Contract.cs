@@ -21,7 +21,7 @@ namespace Excess.Entensions.XS
             var syntax = compiler.Syntax();
 
             syntax
-                .extension("contract", ExtensionKind.Code, ProcessContract);
+                .Extension("contract", ExtensionKind.Code, ProcessContract);
         }
 
         private static SyntaxNode ProcessContract(SyntaxNode node, Scope scope, SyntacticalExtension<SyntaxNode> extension)

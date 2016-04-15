@@ -9,7 +9,7 @@ namespace Excess.Extensions.Sql
 {
 	public class TSQLGrammar : IGrammar<SyntaxToken, SyntaxNode, ParserRuleContext>
 	{
-		public ParserRuleContext parse(IEnumerable<SyntaxToken> tokens, Scope scope, int offset)
+		public ParserRuleContext Parse(IEnumerable<SyntaxToken> tokens, Scope scope, int offset)
 		{
 			var text = RoslynCompiler.TokensToString(tokens);
 			var stream = new AntlrInputStream(text);

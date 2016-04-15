@@ -16,7 +16,7 @@ namespace Excess.Compiler.Roslyn
     {
         public static SyntaxNode Parse(ParserRuleContext node, Func<ParserRuleContext, Scope, SyntaxNode> continuation, Scope scope)
         {
-            return visitNode((ParserRuleContext)node); //td: scope needed?
+            return VisitNode((ParserRuleContext)node); //td: scope needed?
         }
 
         static Dictionary<string, Func<ParserRuleContext, ExpressionSyntax>> _handlers = new Dictionary<string, Func<ParserRuleContext, ExpressionSyntax>>();
@@ -72,7 +72,7 @@ namespace Excess.Compiler.Roslyn
         private static ExpressionSyntax Expression(ParserRuleContext node)
         {
             Debug.Assert(node.ChildCount == 1);
-            return visitNode(node.GetRuleContext<ParserRuleContext>(0));
+            return VisitNode(node.GetRuleContext<ParserRuleContext>(0));
         }
 
         private static ExpressionSyntax Assignment(ParserRuleContext node)
@@ -81,8 +81,8 @@ namespace Excess.Compiler.Roslyn
                 return Expression(node.GetRuleContext<ParserRuleContext>(0));
 
             Debug.Assert(node.ChildCount == 3);
-            var left = visitNode(node.GetRuleContext<ParserRuleContext>(0));
-            var right = visitNode(node.GetRuleContext<ParserRuleContext>(2));
+            var left = VisitNode(node.GetRuleContext<ParserRuleContext>(0));
+            var right = VisitNode(node.GetRuleContext<ParserRuleContext>(2));
 
             SyntaxKind kind;
             var op = GetBinaryOperator(node.children[1].GetText(), out kind);
@@ -162,7 +162,7 @@ namespace Excess.Compiler.Roslyn
                 return Expression(node.GetRuleContext<ParserRuleContext>(0));
 
             Debug.Assert(node.ChildCount == 2);
-            var expr = visitNode(node.GetRuleContext<ParserRuleContext>(2));
+            var expr = VisitNode(node.GetRuleContext<ParserRuleContext>(2));
 
             SyntaxKind kind;
             var op = GetUnaryOperator(node.children[0].GetText(), out kind);
@@ -175,11 +175,11 @@ namespace Excess.Compiler.Roslyn
             var expr = null as ExpressionSyntax;
             var args = null as ArgumentListSyntax;
             if (node.ChildCount == 1)
-                expr = visitNode(node.GetRuleContext<ParserRuleContext>(0));
+                expr = VisitNode(node.GetRuleContext<ParserRuleContext>(0));
             else
             {
                 Debug.Assert(node.ChildCount == 2);
-                expr = visitNode(node.GetRuleContext<ParserRuleContext>(1));
+                expr = VisitNode(node.GetRuleContext<ParserRuleContext>(1));
                 args = Arguments(node.GetRuleContext<ParserRuleContext>(0));
             }
 
@@ -203,7 +203,7 @@ namespace Excess.Compiler.Roslyn
                 return Expression(node.GetRuleContext<ParserRuleContext>(0));
 
             Debug.Assert(node.ChildCount == 3);
-            var expr = visitNode(node.GetRuleContext<ParserRuleContext>(0));
+            var expr = VisitNode(node.GetRuleContext<ParserRuleContext>(0));
 
             return CSharp.ParenthesizedExpression(expr);
         }
@@ -215,7 +215,7 @@ namespace Excess.Compiler.Roslyn
 
             Debug.Assert(node.ChildCount == 2);
             var type = CSharp.ParseTypeName(node.children[0].GetText());
-            var expr = visitNode(node.GetRuleContext<ParserRuleContext>(1));
+            var expr = VisitNode(node.GetRuleContext<ParserRuleContext>(1));
 
             return CSharp.CastExpression(type, expr);
         }
@@ -226,8 +226,8 @@ namespace Excess.Compiler.Roslyn
                 return Expression(node.GetRuleContext<ParserRuleContext>(0));
 
             Debug.Assert(node.ChildCount == 3);
-            var left = visitNode(node.GetRuleContext<ParserRuleContext>(0));
-            var right = visitNode(node.GetRuleContext<ParserRuleContext>(1));
+            var left = VisitNode(node.GetRuleContext<ParserRuleContext>(0));
+            var right = VisitNode(node.GetRuleContext<ParserRuleContext>(1));
 
             SyntaxKind kind;
             var op = GetBinaryOperator(node.children[1].GetText(), out kind);
@@ -241,7 +241,7 @@ namespace Excess.Compiler.Roslyn
                 return Expression(node.GetRuleContext<ParserRuleContext>(0));
 
             Debug.Assert(node.ChildCount == 3);
-            var left = visitNode(node.GetRuleContext<ParserRuleContext>(0));
+            var left = VisitNode(node.GetRuleContext<ParserRuleContext>(0));
             var right = CSharp.IdentifierName(node.children[2].GetText());
 
             SyntaxKind kind;
@@ -255,7 +255,7 @@ namespace Excess.Compiler.Roslyn
                 return Expression(node.GetRuleContext<ParserRuleContext>(0));
 
             Debug.Assert(node.ChildCount == 4);
-            var expr = visitNode(node.GetRuleContext<ParserRuleContext>(0));
+            var expr = VisitNode(node.GetRuleContext<ParserRuleContext>(0));
             var index = (ArgumentListSyntax)Arguments(node.GetRuleContext<ParserRuleContext>(2));
 
             return CSharp.ElementAccessExpression(
@@ -268,7 +268,7 @@ namespace Excess.Compiler.Roslyn
             if (node.ChildCount == 1)
                 return Expression(node.GetRuleContext<ParserRuleContext>(0));
 
-            var expr = visitNode(node.GetRuleContext<ParserRuleContext>(0));
+            var expr = VisitNode(node.GetRuleContext<ParserRuleContext>(0));
             var args = null as ArgumentListSyntax;
 
             if (node.ChildCount == 4)
@@ -285,14 +285,14 @@ namespace Excess.Compiler.Roslyn
                 return Expression(node.GetRuleContext<ParserRuleContext>(0));
 
             Debug.Assert(node.ChildCount == 2);
-            var expr = visitNode(node.GetRuleContext<ParserRuleContext>(0));
+            var expr = VisitNode(node.GetRuleContext<ParserRuleContext>(0));
 
             SyntaxKind kind;
             var op = GetBinaryOperator(node.children[1].GetText(), out kind);
             return CSharp.PostfixUnaryExpression(kind, expr, op);
         }
 
-        private static ExpressionSyntax visitNode(ParserRuleContext node)
+        private static ExpressionSyntax VisitNode(ParserRuleContext node)
         {
             var typename = node.GetType().Name;
             return _handlers[typename](node);

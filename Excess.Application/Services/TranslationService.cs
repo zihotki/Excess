@@ -33,7 +33,7 @@ namespace Excess
         {
             _compiler = new RoslynCompiler();
             Injector injector = new CompositeInjector(new[] { XSLang.Create(), demoExtensions() });
-            injector.apply(_compiler);
+            injector.Apply(_compiler);
         }
 
         private Injector demoExtensions()

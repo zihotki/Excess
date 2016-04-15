@@ -26,12 +26,12 @@ namespace Excess.RuntimeProject
         {
             compiler
                 .Lexical()
-                    .normalize()
-                    .with(statements: MoveToRun);
+                    .Normalize()
+                    .With(statements: MoveToRun);
 
             compiler
                 .Environment()
-                    .dependency<System.Linq.Expressions.Expression>("System.Linq");
+                    .Dependency<System.Linq.Expressions.Expression>("System.Linq");
         });
 
         static CompilationUnitSyntax _app = CSharp.ParseCompilationUnit(@"
@@ -96,7 +96,7 @@ namespace Excess.RuntimeProject
                         statements.Select(sn => (StatementSyntax)sn))));
         }
 
-        protected override ICompilerInjector<SyntaxToken, SyntaxNode, SemanticModel> getInjector(string file)
+        protected override ICompilerInjector<SyntaxToken, SyntaxNode, SemanticModel> GetInjector(string file)
         {
             var xs = XSLang.Create();
             if (file == "application")

@@ -29,13 +29,13 @@ namespace Excess.Web.Controllers
                 _project = project;
             }
 
-            public int addFile(string name, string contents, bool hidden)
+            public int AddFile(string name, string contents, bool hidden)
             {
                 ProjectRepository repo = new ProjectRepository();
                 return repo.AddFile(_project, name, contents, hidden);
             }
 
-            public int cachedId(string name)
+            public int CachedId(string name)
             {
                 var file = _project.Find(name);
                 if (file == null)
@@ -45,7 +45,7 @@ namespace Excess.Web.Controllers
                 return repo.fileCache(file.ID);
             }
 
-            public void cachedId(string name, int hash)
+            public void CachedId(string name, int hash)
             {
                 ProjectRepository repo = new ProjectRepository();
 
@@ -84,7 +84,7 @@ namespace Excess.Web.Controllers
 
             IRuntimeProject runtime = _manager.createRuntime(project.ProjectType, project.Name, config, path, new ProjectStorage(project));
             foreach (var file in project.ProjectFiles)
-                runtime.add(file.Name, file.ID, file.Contents);
+                runtime.Add(file.Name, file.ID, file.Contents);
 
             Session["project"] = runtime;
 
@@ -95,7 +95,7 @@ namespace Excess.Web.Controllers
 
             return Json(new
             {
-                defaultFile = runtime.defaultFile(),
+                defaultFile = runtime.DefaultFile(),
                 tree        = new[] { projectTree(project, runtime) }
             }, JsonRequestBehavior.AllowGet);
         }
@@ -106,7 +106,7 @@ namespace Excess.Web.Controllers
             if (project == null || file == null)
                 return HttpNotFound(); //td: right error
 
-            string contents = project.fileContents(file);
+            string contents = project.FileContents(file);
             if (contents == null)
                 return HttpNotFound(); //td: right error
 
@@ -120,11 +120,11 @@ namespace Excess.Web.Controllers
             if (project == null)
                 return HttpNotFound(); //td: right error
 
-            project.modify(file, contents);
+            project.Modify(file, contents);
 
             if (Session["projectId"] != null)
             {
-                int fileIdx = project.fileId(file);
+                int fileIdx = project.FileId(file);
                 if (fileIdx < 0)
                     return HttpNotFound(); //td: right error
 
@@ -152,7 +152,7 @@ namespace Excess.Web.Controllers
                 fileId = repo.CreateFile((int)Session["projectId"], className, contents);
             }
 
-            project.add(className, fileId, contents);
+            project.Add(className, fileId, contents);
 
             var node = new TreeNode
             {
@@ -164,7 +164,7 @@ namespace Excess.Web.Controllers
                             {
                                 new TreeNodeAction { id = "remove-file", icon = "fa-times-circle-o"       },
                                 new TreeNodeAction { id = "open-tab",    icon = "fa-arrow-circle-o-right" },
-                            }.Union(project.fileActions(className))
+                            }.Union(project.FileActions(className))
             };
 
             return Json(new
@@ -193,7 +193,7 @@ namespace Excess.Web.Controllers
             if (project == null)
                 return HttpNotFound(); //td: right error
 
-            var result = new CompilationResult(project.compile());
+            var result = new CompilationResult(project.Compile());
             return Json(result, JsonRequestBehavior.AllowGet);
         }
 
@@ -204,7 +204,7 @@ namespace Excess.Web.Controllers
                 return HttpNotFound(); //td: right error
 
             dynamic clientData;
-            var errors = project.run(new HubNotifier(notification), out clientData);
+            var errors = project.Run(new HubNotifier(notification), out clientData);
             var result = new CompilationResult(errors, clientData);
             return Json(result, JsonRequestBehavior.AllowGet);
         }
@@ -368,7 +368,7 @@ namespace Excess.Web.Controllers
                             {
                                 new TreeNodeAction { id = "remove-file", icon = "fa-times-circle-o"       },
                                 new TreeNodeAction { id = "open-tab",    icon = "fa-arrow-circle-o-right" },
-                            }.Union(runtime.fileActions(projectFile.Name))
+                            }.Union(runtime.FileActions(projectFile.Name))
                         };
                     })
             };

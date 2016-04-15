@@ -1,4 +1,4 @@
-/*
+﻿/*
  * angular-ui-bootstrap
  * http://angular-ui.github.io/bootstrap/
 
@@ -6488,7 +6488,7 @@ angular.module('ui.bootstrap.typeahead', ['ui.bootstrap.debounce', 'ui.bootstrap
             isNoResultsSetter(originalScope, false);
             scope.matches.length = 0;
 
-            //transform labels
+            //Transform labels
             for (var i = 0; i < matches.length; i++) {
               locals[parserResult.itemName] = matches[i];
               scope.matches.push({

@@ -16,14 +16,7 @@ using System.Linq.Expressions;
 
 namespace Excess.Compiler.Roslyn
 {
-    public interface ICompilationTool
-    {
-        string displayName { get; }
-        bool doNotCache { get; }
-        bool compile(string file, string contents, Scope scope, Dictionary<string, string> result);
-    }
-
-    public class ToolEventArgs
+	public class ToolEventArgs
     {
         public ICompilationTool Tool { get; set; }
         public string Document { get; set; }
@@ -44,7 +37,7 @@ namespace Excess.Compiler.Roslyn
 
         public void setPath(dynamic path)
         {
-            _environment.setPath(path);
+            _environment.SetPath(path);
         }
 
         public event ToolEventHandler ToolStarted;
@@ -114,7 +107,7 @@ namespace Excess.Compiler.Roslyn
             if (string.IsNullOrEmpty(ext))
             {
                 compiler = new RoslynCompiler(_environment, _scope);
-                injector.apply(compiler);
+                injector.Apply(compiler);
             }
             else if (ext == ".cs")
             {
@@ -124,8 +117,8 @@ namespace Excess.Compiler.Roslyn
             {
                 if (_tools.TryGetValue(ext, out tool))
                 {
-                    var storage = _environment.storage();
-                    hash = storage == null ? hash : storage.cachedId(id);
+                    var storage = _environment.Storage();
+                    hash = storage == null ? hash : storage.CachedId(id);
                 }
             }
 
@@ -144,7 +137,7 @@ namespace Excess.Compiler.Roslyn
                 newDoc.Document = new RoslynDocument(compiler.Scope, contents, id);
 
                 var documentInjector = newDoc.Compiler as IDocumentInjector<SyntaxToken, SyntaxNode, SemanticModel>;
-                documentInjector.apply(newDoc.Document);
+                documentInjector.Apply(newDoc.Document);
             }
             else
                 newDoc.Contents = contents;
@@ -169,7 +162,7 @@ namespace Excess.Compiler.Roslyn
                 doc.Document = new RoslynDocument(doc.Compiler.Scope, contents, id);
 
                 var documentInjector = doc.Compiler as IDocumentInjector<SyntaxToken, SyntaxNode, SemanticModel>;
-                documentInjector.apply(doc.Document);
+                documentInjector.Apply(doc.Document);
 
                 doc.Stage = CompilerStage.Started;
             }
@@ -286,7 +279,7 @@ namespace Excess.Compiler.Roslyn
                     continue;
 
                 int hash = 0;
-                if (!tool.doNotCache)
+                if (!tool.DoNotCache)
                     hash = doc.Contents.GetHashCode();
 
                 if (hash == 0 || hash != doc.Hash)
@@ -298,7 +291,7 @@ namespace Excess.Compiler.Roslyn
                     bool failed = false;
                     try
                     {
-                        tool.compile(doc.Id, doc.Contents, _scope, result);
+                        tool.Compile(doc.Id, doc.Contents, _scope, result);
                     }
                     catch (Exception e)
                     {
@@ -328,7 +321,7 @@ namespace Excess.Compiler.Roslyn
                     changed = true;
 
                     var oldRoot = document.SyntaxRoot;
-                    document.applyChanges(CompilerStage.Syntactical);
+                    document.ApplyChanges(CompilerStage.Syntactical);
                     var newRoot = document.SyntaxRoot;
 
                     Debug.Assert(newRoot != null);
@@ -345,7 +338,7 @@ namespace Excess.Compiler.Roslyn
                     _trees[doc.Id] = newTree;
                 }
 
-                if (document.hasErrors())
+                if (document.HasErrors())
                     return false;
             }
 
@@ -354,9 +347,9 @@ namespace Excess.Compiler.Roslyn
 
         private void toolResults(Dictionary<string, string> result, string fileName, int hash) 
         {
-            var storage = _environment.storage();
+            var storage = _environment.Storage();
             if (storage != null)
-                storage.cachedId(fileName, hash);
+                storage.CachedId(fileName, hash);
 
             foreach (var file in result)
             {
@@ -367,7 +360,7 @@ namespace Excess.Compiler.Roslyn
                 else
                 {
                     if (storage != null)
-                        storage.addFile(file.Key, file.Value, true);
+                        storage.AddFile(file.Key, file.Value, true);
 
                     addCSharpFile(file.Key, file.Value);
                 }
@@ -400,7 +393,7 @@ namespace Excess.Compiler.Roslyn
                     Debug.Assert(document.Model != null);
 
                     var oldRoot = document.SyntaxRoot;
-                    if (!document.applyChanges(CompilerStage.Semantical))
+                    if (!document.ApplyChanges(CompilerStage.Semantical))
                         needsProcessing = true;
 
                     var newRoot = document.SyntaxRoot;
@@ -449,9 +442,9 @@ namespace Excess.Compiler.Roslyn
         protected virtual RoslynEnvironment createEnvironment(IPersistentStorage storage)
         {
             var result = new RoslynEnvironment(_scope, storage);
-            result.dependency<object>(new[] { "System", "System.Collections" });
-            result.dependency<Queue<object>>(new[] { "System.Collections.Generic" });
-            result.dependency<Expression>(new[] { "System.Linq" });
+            result.Dependency<object>(new[] { "System", "System.Collections" });
+            result.Dependency<Queue<object>>(new[] { "System.Collections.Generic" });
+            result.Dependency<Expression>(new[] { "System.Linq" });
 
             return result;
         }

@@ -39,28 +39,28 @@ namespace Excess.RuntimeProject
 
             compiler
                 .Environment()
-                    .dependency<Injector>(new [] {
+                    .Dependency<Injector>(new [] {
                         "Excess.Compiler",
                         "Excess.Compiler.Core",
                         "Excess.Compiler.Roslyn"
                     })
-                    .dependency<System.Linq.Expressions.Expression>("System.Linq")
-                    .dependency<SyntaxNode>("Microsoft.CodeAnalysis")
-                    .dependency<CSharpSyntaxNode>(new[] {
+                    .Dependency<System.Linq.Expressions.Expression>("System.Linq")
+                    .Dependency<SyntaxNode>("Microsoft.CodeAnalysis")
+                    .Dependency<CSharpSyntaxNode>(new[] {
                         "Microsoft.CodeAnalysis.CSharp",
                         "Microsoft.CodeAnalysis.CSharp.Syntax"})
-                    .dependency(string.Empty, path: Path.Combine(assemblyPath, "System.Runtime.dll"))
-                    .dependency(string.Empty, path: Path.Combine(assemblyPath, "System.Threading.Tasks.dll"))
-                    .dependency<ParserRuleContext>("Antlr4.Runtime")
-                    .dependency<CodeCompileUnit>("System.CodeDom");
+                    .Dependency(string.Empty, path: Path.Combine(assemblyPath, "System.Runtime.dll"))
+                    .Dependency(string.Empty, path: Path.Combine(assemblyPath, "System.Threading.Tasks.dll"))
+                    .Dependency<ParserRuleContext>("Antlr4.Runtime")
+                    .Dependency<CodeCompileUnit>("System.CodeDom");
         });
 
         private static Injector _extension = new DelegateInjector(compiler =>
         {
             compiler
                 .Lexical()
-                    .normalize()
-                        .with(statements: MoveToApply, then: CreateExtensionClass);
+                    .Normalize()
+                        .With(statements: MoveToApply, then: CreateExtensionClass);
         });
 
         static private CompilationUnitSyntax ExtensionClass = CSharp.ParseCompilationUnit(@"
@@ -106,8 +106,8 @@ namespace Excess.RuntimeProject
         {
             compiler
                 .Lexical()
-                    .normalize()
-                        .with(members: MoveToClass, then: CreateTransformClass);
+                    .Normalize()
+                        .With(members: MoveToClass, then: CreateTransformClass);
         });
 
         static private CompilationUnitSyntax TransformClass = CSharp.ParseCompilationUnit(@"
@@ -140,13 +140,13 @@ namespace Excess.RuntimeProject
                         .Select(member => (MemberDeclarationSyntax)member))));
         }
 
-        protected override ICompilerInjector<SyntaxToken, SyntaxNode, SemanticModel> getInjector(string file)
+        protected override ICompilerInjector<SyntaxToken, SyntaxNode, SemanticModel> GetInjector(string file)
         {
-            var xs = base.getInjector(file);
+            var xs = base.GetInjector(file);
             if (file == "extension")
                 return new CompositeInjector(new[] { _references, _extension, xs });
 
-            if (file == "transform")
+            if (file == "Transform")
                 return new CompositeInjector(new[] { _references, _transform, xs });
 
             return new CompositeInjector(new[] { _references, xs });
@@ -276,12 +276,12 @@ lexical
                     expressionCount++;
                 }
 
-                ext.AppendFormat("\t\t.transform<{0}>({1})\n", type, context);
+                ext.AppendFormat("\t\t.Transform<{0}>({1})\n", type, context);
                 xform.AppendFormat(NodeTransformFunction, context, type);
             }
 
             if (expressionCount == _expressionTypes.Length)
-                extensionText.AppendFormat("\t\t.transform<{0}.ExpressionContext>(AntlrExpression.Parse)\n", parserName);
+                extensionText.AppendFormat("\t\t.Transform<{0}.ExpressionContext>(AntlrExpression.Parse)\n", parserName);
             else
             {
                 extensionText.Append(expressionExtensionText);
@@ -296,7 +296,7 @@ lexical
             return true;
         }
 
-        public override string defaultFile()
+        public override string DefaultFile()
         {
             return "extension";
         }
@@ -328,7 +328,7 @@ lexical
                     throw new InvalidOperationException("Corrupted extension");
 
                 _compiler = new RoslynCompiler();
-                result.apply(_compiler);
+                result.Apply(_compiler);
             }
 
             client = new {
@@ -336,12 +336,12 @@ lexical
                 debuggerCtrl = "dslDebuggerCtrl",
                 debuggerData = new
                 {
-                    keywords = keywordString(_compiler.Environment().keywords())
+                    keywords = keywordString(_compiler.Environment().Keywords())
                 }
             };
         }
 
-        public override IEnumerable<TreeNodeAction> fileActions(string file)
+        public override IEnumerable<TreeNodeAction> FileActions(string file)
         {
             if (file == "extension")
                 return new[] { new TreeNodeAction { id = "add-extension-item", icon = "fa-plus-circle" } };
@@ -349,7 +349,7 @@ lexical
             if (Path.GetExtension(file) == ".g4")
                 return new[] { new TreeNodeAction { id = "generate-grammar", icon = "fa-flash" } };
 
-            return base.fileActions(file);
+            return base.FileActions(file);
         }
     }
 }

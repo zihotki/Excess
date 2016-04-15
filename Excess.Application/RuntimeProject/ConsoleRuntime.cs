@@ -24,7 +24,7 @@ namespace Excess.RuntimeProject
     {
         public ConsoleRuntime(IPersistentStorage storage) : base(storage) { }
 
-        public override string defaultFile()
+        public override string DefaultFile()
         {
             return "application";
         }
@@ -33,8 +33,8 @@ namespace Excess.RuntimeProject
         {
             compiler
                 .Lexical()
-                    .normalize()
-                        .with(statements: MoveToMain, members: MoveToApplication);
+                    .Normalize()
+                        .With(statements: MoveToMain, members: MoveToApplication);
         });
 
         private static SyntaxNode MoveToMain(SyntaxNode root, IEnumerable<SyntaxNode> statements, Scope scope)
@@ -76,9 +76,9 @@ namespace Excess.RuntimeProject
                         .WithMembers(CSharp.List(members))}));
         }
 
-        protected override ICompilerInjector<SyntaxToken, SyntaxNode, SemanticModel> getInjector(string file)
+        protected override ICompilerInjector<SyntaxToken, SyntaxNode, SemanticModel> GetInjector(string file)
         {
-            var xs = base.getInjector(file);
+            var xs = base.GetInjector(file);
             if (file == "application")
                 return new CompositeInjector(new[] { _main, xs });
 
@@ -92,14 +92,14 @@ namespace Excess.RuntimeProject
             Type appType = asm.GetType("application");
             if (appType == null)
             {
-                notify(NotificationKind.Error, "Application class missing");
+                Notify(NotificationKind.Error, "Application class missing");
                 return;
             }
 
             var main = appType.GetMethod("main", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
             if (main == null)
             {
-                notify(NotificationKind.Error, "Main method missing");
+                Notify(NotificationKind.Error, "Main method missing");
                 return;
             }
 

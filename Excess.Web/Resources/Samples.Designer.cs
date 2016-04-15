@@ -573,7 +573,7 @@ namespace Excess.Web.Resources {
         ///        .token(&quot;match&quot;, named: &quot;keyword&quot;)
         ///        .enclosed(&apos;(&apos;, &apos;)&apos;)
         ///        .token(&apos;{&apos;)
-        ///        .then(lexical.transform()
+        ///        .then(lexical.Transform()
         ///            .replace(&quot;keyword&quot;, &quot;switch&quot;)
         ///            .then(ProcessMatch, referenceToken: &quot;keyword&quot;));.
         /// </summary>

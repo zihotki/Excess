@@ -5882,9 +5882,9 @@ button.close {
   outline: 0;
 }
 .modal.fade .modal-dialog {
-  -webkit-transition: -webkit-transform .3s ease-out;
-       -o-transition:      -o-transform .3s ease-out;
-          transition:         transform .3s ease-out;
+  -webkit-transition: -webkit-Transform .3s ease-out;
+       -o-transition:      -o-Transform .3s ease-out;
+          transition:         Transform .3s ease-out;
   -webkit-transform: translate(0, -25%);
       -ms-transform: translate(0, -25%);
        -o-transform: translate(0, -25%);
@@ -6258,9 +6258,9 @@ button.close {
 }
 @media all and (transform-3d), (-webkit-transform-3d) {
   .carousel-inner > .item {
-    -webkit-transition: -webkit-transform .6s ease-in-out;
-         -o-transition:      -o-transform .6s ease-in-out;
-            transition:         transform .6s ease-in-out;
+    -webkit-transition: -webkit-Transform .6s ease-in-out;
+         -o-transition:      -o-Transform .6s ease-in-out;
+            transition:         Transform .6s ease-in-out;
 
     -webkit-backface-visibility: hidden;
             backface-visibility: hidden;

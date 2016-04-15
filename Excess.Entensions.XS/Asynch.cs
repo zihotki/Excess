@@ -21,8 +21,8 @@ namespace Excess.Entensions.XS
 
             //code extension
             syntax
-                .extension("asynch", ExtensionKind.Code, ProcessAsynch)
-                .extension("synch", ExtensionKind.Code, ProcessSynch);
+                .Extension("asynch", ExtensionKind.Code, ProcessAsynch)
+                .Extension("synch", ExtensionKind.Code, ProcessSynch);
         }
 
         private static SyntaxNode ProcessAsynch(SyntaxNode node, Scope scope, SyntacticalExtension<SyntaxNode> extension)
@@ -36,7 +36,7 @@ namespace Excess.Entensions.XS
                         (oldNode, newNode) => extension.Body);
 
                 var document = scope.GetDocument<SyntaxToken, SyntaxNode, SemanticModel>();
-                document.change(node.Parent, RoslynCompiler.AddStatement(ContextVariable, before: node));
+                document.Change(node.Parent, RoslynCompiler.AddStatement(ContextVariable, before: node));
 
                 return result;
             }

@@ -23,24 +23,24 @@ namespace Excess.Entensions.XS
             var semantics = compiler.Semantics();
 
             lexical
-                .match() //lambda
-                    .any('(', '=', ',')
-                    .token("function", named: "fn")
-                    .enclosed('(', ')')
-                    .token('{', named: "brace")
-                    .then(compiler.Lexical().transform()
-                        .remove("fn")
-                        .insert("=>", before: "brace"))
-                .match()
-                    .token("function", named: "fn") //declarations
-                    .identifier(named: "id")
-                    .enclosed('(', ')')
-                    .token('{')
-                    .then(lexical.transform()
-                        .remove("fn")
-                        .then(ProcessMemberFunction, referenceToken: "id"));
+                .Match() //lambda
+                    .Any('(', '=', ',')
+                    .Token("function", named: "fn")
+                    .Enclosed('(', ')')
+                    .Token('{', named: "brace")
+                    .Then(compiler.Lexical().Transform()
+                        .Remove("fn")
+                        .Insert("=>", before: "brace"))
+                .Match()
+                    .Token("function", named: "fn") //declarations
+                    .Identifier(named: "id")
+                    .Enclosed('(', ')')
+                    .Token('{')
+                    .Then(lexical.Transform()
+                        .Remove("fn")
+                        .Then(ProcessMemberFunction, referenceToken: "id"));
             semantics
-                .error("CS0246", FunctionType);
+                .Error("CS0246", FunctionType);
         }
 
         private static SyntaxNode ProcessMemberFunction(SyntaxNode node, Scope scope)
@@ -52,7 +52,7 @@ namespace Excess.Entensions.XS
                 var method = node as MethodDeclarationSyntax;
                 if (method.ReturnType.IsMissing)
                 {
-                    document.change(method, ReturnType);
+                    document.Change(method, ReturnType);
                     return method.WithReturnType(RoslynCompiler.@void); 
                 }
 
@@ -87,8 +87,8 @@ namespace Excess.Entensions.XS
 
             //We are not allowed to modify parents, so schedule the removal of the code
             //And its insertion in the final lambda variable
-            document.change(parent, RoslynCompiler.RemoveStatement(body));
-            document.change(statement, ProcessCodeFunction(function, body));
+            document.Change(parent, RoslynCompiler.RemoveStatement(body));
+            document.Change(statement, ProcessCodeFunction(function, body));
             return node;
         }
 
@@ -146,7 +146,7 @@ namespace Excess.Entensions.XS
             if (newType != null)
             {
                 var document = scope.GetDocument<SyntaxToken, SyntaxNode, SemanticModel>();
-                document.change(node, RoslynCompiler.ReplaceNode(newType));
+                document.Change(node, RoslynCompiler.ReplaceNode(newType));
             }
         }
 

@@ -122,7 +122,7 @@ namespace Excess.Extensions.Concurrent
                         result));
 
                     var document = _scope.GetDocument();
-                    document.change(node.Parent, Roslyn.ExplodeBlock(block));
+                    document.Change(node.Parent, Roslyn.ExplodeBlock(block));
                     return block;
                 }
 

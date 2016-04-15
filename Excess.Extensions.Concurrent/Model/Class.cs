@@ -86,7 +86,7 @@ namespace Excess.Extensions.Concurrent.Model
 
         public Signal AddSignal()
         {
-            var signal = AddSignal(Roslyn.uniqueId(), false);
+            var signal = AddSignal(Roslyn.UniqueId(), false);
             signal.Internal = true;
             return signal;
         }

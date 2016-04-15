@@ -19,13 +19,13 @@ namespace Excess.Entensions.XS
         static public void Apply(ExcessCompiler compiler)
         {
             compiler.Lexical()
-                .match()
-                    .any(new[] { '(', '=', ',' }, named: "start", matchDocumentStart: true)
-                    .enclosed('[', ']', start: "open", end: "close")
-                    .then(compiler.Lexical().transform()
-                        .insert("new []", after: "start")
-                        .replace("open", "{")
-                        .replace("close", "}"));
+                .Match()
+                    .Any(new[] { '(', '=', ',' }, named: "start", matchDocumentStart: true)
+                    .Enclosed('[', ']', start: "open", end: "close")
+                    .Then(compiler.Lexical().Transform()
+                        .Insert("new []", after: "start")
+                        .Replace("open", "{")
+                        .Replace("close", "}"));
         }
     }
 }

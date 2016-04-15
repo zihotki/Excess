@@ -1,44 +1,42 @@
-﻿using Excess.Compiler.Core;
-using Microsoft.CodeAnalysis;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Excess.Compiler.Core;
+using Microsoft.CodeAnalysis;
 
 namespace Excess.Compiler.Roslyn
 {
-    public class RoslynInstanceDocument : RoslynDocument, IInstanceDocument<SyntaxNode>
-    {
+	public class RoslynInstanceDocument : RoslynDocument, IInstanceDocument<SyntaxNode>
+	{
+		private readonly InstanceDocumentBase<SyntaxNode> _instance = new InstanceDocumentBase<SyntaxNode>();
 
-        Func<string, IDictionary<string, object>, ICollection<Connection>, Scope, bool> _parser;
-        public RoslynInstanceDocument(Func<string, IDictionary<string, object>, ICollection<Connection>, Scope, bool> parser, Scope scope = null) : base(scope)
-        {
-            _parser = parser;
-        }
+		private readonly Func<string, IDictionary<string, object>, ICollection<Connection>, Scope, bool> _parser;
 
-        InstanceDocumentBase<SyntaxNode> _instance = new InstanceDocumentBase<SyntaxNode>();
-        public void change(Func<string, object, Scope, bool> match, IInstanceTransform<SyntaxNode> transform)
-        {
-            _instance.change(match, transform);
-        }
+		public RoslynInstanceDocument(Func<string, IDictionary<string, object>, ICollection<Connection>, Scope, bool> parser, Scope scope = null) : base(scope)
+		{
+			_parser = parser;
+		}
 
-        public void change(Func<IDictionary<string, Tuple<object, SyntaxNode>>, Scope, SyntaxNode> transform)
-        {
-            _instance.change(transform);
-        }
+		public void Change(Func<string, object, Scope, bool> match, IInstanceTransform<SyntaxNode> transform)
+		{
+			_instance.Change(match, transform);
+		}
 
-        protected override void applyLexical()
-        {
-            Debug.Assert(_parser != null);
-            var instances = new Dictionary<string, object>();
-            var connections = new List<Connection>();
-            if (_parser(_text, instances, connections, _scope))
-            {
-                _scope.InitInstance();
-                _root = _instance.transform(instances, connections, _scope);
-            }
-        }
-    }
+		public void Change(Func<IDictionary<string, Tuple<object, SyntaxNode>>, Scope, SyntaxNode> transform)
+		{
+			_instance.Change(transform);
+		}
+
+		protected override void ApplyLexical()
+		{
+			Debug.Assert(_parser != null);
+			var instances = new Dictionary<string, object>();
+			var connections = new List<Connection>();
+			if (_parser(_text, instances, connections, _scope))
+			{
+				_scope.InitInstance();
+				_root = _instance.transform(instances, connections, _scope);
+			}
+		}
+	}
 }

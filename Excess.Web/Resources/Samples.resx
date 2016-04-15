@@ -645,7 +645,7 @@ lexical
         .token("match", named: "keyword")
         .enclosed('(', ')')
         .token('{')
-        .then(lexical.transform()
+        .then(lexical.Transform()
             .replace("keyword", "switch")
             .then(ProcessMatch, referenceToken: "keyword"));</value>
   </data>

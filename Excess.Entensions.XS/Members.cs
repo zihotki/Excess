@@ -24,33 +24,33 @@ namespace Excess.Entensions.XS
 
             lexical
                 //methods 
-                .match()
-                    .token("method", named: "keyword")
-                    .identifier(named: "id")
-                    .enclosed('(', ')')
-                    .token('{')
-                    .then(lexical.transform()
-                        .remove("keyword")
-                        .then(Method, referenceToken: "id"))
+                .Match()
+                    .Token("method", named: "keyword")
+                    .Identifier(named: "id")
+                    .Enclosed('(', ')')
+                    .Token('{')
+                    .Then(lexical.Transform()
+                        .Remove("keyword")
+                        .Then(Method, referenceToken: "id"))
 
                 //properties
-                .match()
-                    .token("property")
-                    .identifier(named: "id")
-                    .token("=")
-                    .then(Property)
+                .Match()
+                    .Token("property")
+                    .Identifier(named: "id")
+                    .Token("=")
+                    .Then(Property)
 
-                .match()
-                    .token("property", named: "keyword")
-                    .identifier(named: "id")
-                    .then(lexical.transform()
-                        .remove("keyword")
-                        .then(Property, referenceToken: "id"));
+                .Match()
+                    .Token("property", named: "keyword")
+                    .Identifier(named: "id")
+                    .Then(lexical.Transform()
+                        .Remove("keyword")
+                        .Then(Property, referenceToken: "id"));
 
             syntax
                 //constructor
-                .match<MethodDeclarationSyntax>(method => method.ReturnType.IsMissing && method.Identifier.ToString() == "constructor")
-                    .then(Constructor);
+                .Match<MethodDeclarationSyntax>(method => method.ReturnType.IsMissing && method.Identifier.ToString() == "constructor")
+                    .Then(Constructor);
         }
 
         private static PropertyDeclarationSyntax _property = SyntaxFactory.ParseCompilationUnit("__1 __2 {get; set;}")
@@ -103,13 +103,13 @@ namespace Excess.Entensions.XS
 
             //schedule the field replacement
             //td: coud be done in this pass with the right info from lexical
-            document.change(field, RoslynCompiler.ReplaceNode(property));
+            document.Change(field, RoslynCompiler.ReplaceNode(property));
 
             //must be initialized
             if (initializer != null)
             {
                 var expr = (AssignmentExpressionSyntax)_assignment.Expression;
-                document.change(field.Parent, RoslynCompiler
+                document.Change(field.Parent, RoslynCompiler
                     .AddInitializers(_assignment.WithExpression(expr
                         .WithLeft(CSharp.IdentifierName(variable.Identifier))
                         .WithRight(initializer.Value))));
@@ -153,7 +153,7 @@ namespace Excess.Entensions.XS
             if (method.ReturnType.IsMissing)
             {
                 var document = scope.GetDocument<SyntaxToken, SyntaxNode, SemanticModel>();
-                document.change(method, FixReturnType);
+                document.Change(method, FixReturnType);
 
                 return method.WithReturnType(RoslynCompiler.@void);
             }

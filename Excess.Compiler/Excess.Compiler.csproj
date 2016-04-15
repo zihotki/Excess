@@ -129,9 +129,37 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Compiler.cs" />
+    <Compile Include="CompilerStage.cs" />
+    <Compile Include="Core\BaseLexicalMatchResult.cs" />
+    <Compile Include="Core\BaseSyntacticalMatch.cs" />
+    <Compile Include="Core\Connection.cs" />
+    <Compile Include="Core\Instance.cs" />
     <Compile Include="Core\InstanceAnalysisBase.cs" />
+    <Compile Include="Core\InstanceMatchBase.cs" />
     <Compile Include="Core\InstanceScope.cs" />
-    <Compile Include="InstanceAnalysis.cs" />
+    <Compile Include="Core\InstanceTransformBase.cs" />
+    <Compile Include="Core\LexicalTransform.cs" />
+    <Compile Include="ExtensionKind.cs" />
+    <Compile Include="ICompiler.cs" />
+    <Compile Include="ICompilerEnvironment.cs" />
+    <Compile Include="ICompilerInjector.cs" />
+    <Compile Include="IDocument.cs" />
+    <Compile Include="IDocumentInjector.cs" />
+    <Compile Include="IInstanceAnalisys.cs" />
+    <Compile Include="IInstanceMatch.cs" />
+    <Compile Include="IInstanceTransform.cs" />
+    <Compile Include="IInstanceDocument.cs" />
+    <Compile Include="ILexicalMatch.cs" />
+    <Compile Include="ILexicalMatchResult.cs" />
+    <Compile Include="ILexicalTransform.cs" />
+    <Compile Include="INormalizer.cs" />
+    <Compile Include="InstanceConnection.cs" />
+    <Compile Include="InstanceConnector.cs" />
+    <Compile Include="IPersistentStorage.cs" />
+    <Compile Include="ISyntacticalMatch.cs" />
+    <Compile Include="ISyntaxTransform.cs" />
+    <Compile Include="LexicalExtension.cs" />
+    <Compile Include="LexicalMatchItem.cs" />
     <Compile Include="Roslyn\AntlrErrors.cs" />
     <Compile Include="Core\CompilerBase.cs" />
     <Compile Include="Core\DocumentBase.cs" />
@@ -146,12 +174,16 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Roslyn\AntlrExpression.cs" />
     <Compile Include="Roslyn\Compilation.cs" />
-    <Compile Include="Roslyn\Compiler.cs" />
+    <Compile Include="Roslyn\RoslynCompiler.cs" />
+    <Compile Include="Roslyn\CompilerService.cs" />
     <Compile Include="Roslyn\Document.cs" />
     <Compile Include="Roslyn\Environment.cs" />
+    <Compile Include="Roslyn\ICompilationTool.cs" />
     <Compile Include="Roslyn\InstanceDocument.cs" />
     <Compile Include="Roslyn\LexicalAnalysis.cs" />
     <Compile Include="Roslyn\MappingService.cs" />
+    <Compile Include="Roslyn\RoslynSyntacticalMatch.cs" />
+    <Compile Include="Roslyn\RoslynSyntaxTransform.cs" />
     <Compile Include="Roslyn\Scope.cs" />
     <Compile Include="Roslyn\SemanticAnalysis.cs" />
     <Compile Include="Roslyn\SyntaxAnalysis.cs" />
@@ -160,7 +192,10 @@
     <Compile Include="Roslyn\Template.cs" />
     <Compile Include="Scope.cs" />
     <Compile Include="SemanticAnalysis.cs" />
+    <Compile Include="SourceSpan.cs" />
+    <Compile Include="SyntacticalExtension.cs" />
     <Compile Include="SyntaxAnalysis.cs" />
+    <Compile Include="TokenSpan.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

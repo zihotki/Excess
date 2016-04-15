@@ -86,12 +86,12 @@ namespace Excess.Compiler.Tests.TestRuntime
             {
                 new DelegateInjector<SyntaxToken, SyntaxNode, SemanticModel>(compiler => compiler
                     .Environment()
-                        .dependency<console>("Excess.Compiler.Tests.TestRuntime")
+                        .Dependency<console>("Excess.Compiler.Tests.TestRuntime")
                         //.dependency<object>(new[] {
                         //    "System",
                         //    "System.Collections",
                         //    "System.Collections.Generic" })
-                        .dependency(new[] {
+                        .Dependency(new[] {
                             "System.Threading",
                             "System.Threading.Tasks",
                             "System.Diagnostics",

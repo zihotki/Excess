@@ -23,8 +23,8 @@ namespace Excess.Compiler.Tests
         private static Injector _main = new DelegateInjector(compiler =>
         {
             compiler.Lexical()
-                .normalize()
-                .with(members: Normalize);
+                .Normalize()
+                .With(members: Normalize);
         });
 
         public static dynamic ExecuteTest(string text, Action<ICompiler<SyntaxToken, SyntaxNode, SemanticModel>> config)

@@ -1,229 +1,87 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Excess.Compiler.Core
 {
-    public class LexicalTransform<TToken, TNode, TModel> : ILexicalTransform<TToken, TNode, TModel>
-    {
-        private IEnumerable<TToken> TokensFromString(string tokenString, Scope scope)
-        {
-            var compiler = scope.GetService<TToken, TNode, TModel>();
-            return compiler.ParseTokens(tokenString);
-        }
+	public class LexicalFunctorTransform<TToken, TNode, TModel> : ILexicalTransform<TToken, TNode, TModel>
+	{
+		private readonly Func<IEnumerable<TToken>, ILexicalMatchResult<TToken, TNode, TModel>, Scope, IEnumerable<TToken>> _functor;
 
-        private IEnumerable<TToken> EmptyTokens(IEnumerable<TToken> tokens, Scope scope)
-        {
-            return new TToken[] { };
-        }
+		public LexicalFunctorTransform(Func<IEnumerable<TToken>, Scope, IEnumerable<TToken>> functor)
+		{
+			_functor = WithScope(functor);
+		}
 
-        class Transformer
-        {
-            public string Item { get; set; }
-            public Func<IEnumerable<TToken>, Scope, IEnumerable<TToken>> Handler { get; set; }
-            public int Priority { get; set; }
-        }
+		public LexicalFunctorTransform(Func<IEnumerable<TToken>, ILexicalMatchResult<TToken, TNode, TModel>, Scope, IEnumerable<TToken>> functor)
+		{
+			_functor = functor;
+		}
 
-        List<Transformer> _transformers = new List<Transformer>();
+		public ILexicalTransform<TToken, TNode, TModel> Insert(string tokens, string before = null, string after = null)
+		{
+			throw new InvalidOperationException();
+		}
 
-        public ILexicalTransform<TToken, TNode, TModel> insert(string tokenString, string before = null, string after = null)
-        {
+		public ILexicalTransform<TToken, TNode, TModel> Replace(string named, string tokens)
+		{
+			throw new InvalidOperationException();
+		}
 
-            if (before != null)
-                AddTransformer(before, (tokens, scope) => TokensFromString(tokenString, scope).Union(tokens), 0);
-            else if (after != null)
-                AddTransformer(after, (tokens, scope) => tokens.Union(TokensFromString(tokenString, scope)), 0);
-            else
-            {
-                throw new InvalidOperationException("Must specify either 'after' or 'before'");
-            }
+		public ILexicalTransform<TToken, TNode, TModel> Remove(string named)
+		{
+			throw new InvalidOperationException();
+		}
 
-            return this;
-        }
+		public ILexicalTransform<TToken, TNode, TModel> Then(Func<TNode, TNode> handler, string token)
+		{
+			throw new InvalidOperationException();
+		}
 
-        private void AddTransformer(string target, Func<IEnumerable<TToken>, Scope, IEnumerable<TToken>> handler, int priority)
-        {
-            _transformers.Add(new Transformer
-            {
-                Item = target,
-                Handler = handler,
-                Priority = priority
-            });
-        }
+		public ILexicalTransform<TToken, TNode, TModel> Then(Func<TNode, Scope, TNode> handler, string token)
+		{
+			throw new InvalidOperationException();
+		}
 
-        public ILexicalTransform<TToken, TNode, TModel> replace(string named, string tokenString)
-        {
-            if (named != null)
-                AddTransformer(named, (tokens, scope) => TokensFromString(tokenString, scope), -1);
-            else
-                throw new InvalidOperationException("Must specify 'named'");
+		public ILexicalTransform<TToken, TNode, TModel> Then(Func<TNode, TNode, TModel, Scope, TNode> handler, string token)
+		{
+			throw new InvalidOperationException();
+		}
 
-            return this;
-        }
+		public IEnumerable<TToken> Transform(IEnumerable<TToken> tokens, ILexicalMatchResult<TToken, TNode, TModel> match, Scope scope)
+		{
+			return _functor(tokens, match, scope);
+		}
 
-        public ILexicalTransform<TToken, TNode, TModel> remove(string named)
-        {
-            if (named != null)
-            {
-                AddTransformer(named, (tokens, scope) => new TToken[] { }, -1);
-            }
-            else
-                throw new InvalidOperationException("Must specify 'named'");
+		private static Func<IEnumerable<TToken>, ILexicalMatchResult<TToken, TNode, TModel>, Scope, IEnumerable<TToken>> WithScope(
+			Func<IEnumerable<TToken>, Scope, IEnumerable<TToken>> functor)
+		{
+			return (tokens, match, scope) =>
+			{
+				foreach (var item in match.Items)
+				{
+					if (item.Identifier != null && item.Span.Length > 0)
+					{
+						var idTokens = match.GetTokens(tokens, item.Span);
 
-            return this;
-        }
+						if (item.Span.Length == 1)
+						{
+							scope.set(item.Identifier, idTokens.First());
+						}
+						else
+						{
+							scope.set(item.Identifier, idTokens);
+						}
+					}
+				}
 
-        public ILexicalTransform<TToken, TNode, TModel> then(Func<TNode, TNode> handler, string referenceToken = null)
-        {
-            return then((node, scope) => handler(node), referenceToken);
-        }
+				return functor(tokens, scope);
+			};
+		}
 
-        string _refToken;
-        Func<TNode, Scope, TNode> _syntactical;
-        Func<TNode, TNode, TModel, Scope, TNode> _semantical;
-        public ILexicalTransform<TToken, TNode, TModel> then(Func<TNode, Scope, TNode> handler, string referenceToken = null)
-        {
-            Debug.Assert(_syntactical == null && _semantical == null);
-            _refToken = referenceToken;
-            _syntactical = handler;
-
-            return this;
-        }
-
-        public ILexicalTransform<TToken, TNode, TModel> then(Func<TNode, TNode, TModel, Scope, TNode> handler, string referenceToken = null)
-        {
-            Debug.Assert(_syntactical == null && _semantical == null);
-            _refToken = referenceToken;
-            _semantical = handler;
-
-            return this;
-        }
-
-        public IEnumerable<TToken> transform(IEnumerable<TToken> tokens, ILexicalMatchResult<TToken, TNode, TModel> match, Scope scope)
-        {
-            var sorted    = _transformers.OrderBy(t => t.Priority);
-            var compiler  = scope.GetService<TToken, TNode, TModel>();
-            var needsMark = _syntactical != null;
-            int id        = -1;
-
-            foreach (var item in match.Items)
-            {
-                IEnumerable<TToken> result = match.GetTokens(tokens, item.Span);
-                foreach (var transformer in sorted)
-                {
-                    if (transformer.Item == item.Identifier)
-                        result = transformer.Handler(result, scope);
-                }
-
-                if (_refToken != null)
-                    needsMark = item.Identifier == _refToken;
-
-                foreach (var token in result)
-                {
-                    if (needsMark)
-                    {
-                        TToken marked;
-                        if (id < 0)
-                        {
-                            var document = scope.GetDocument<TToken, TNode, TModel>();
-                            if (_syntactical != null)
-                                marked = document.change(token, _syntactical);
-                            else
-                            {
-                                Debug.Assert(_semantical != null);
-                                marked = document.change(token, _semantical);
-                            }
-
-                            id = compiler.GetExcessId(marked);
-                        }
-                        else
-                            marked = compiler.InitToken(token, id);
-
-                        yield return marked;
-                    }
-                    else 
-                        yield return token;
-                }
-            }
-        }
-    }
-
-    public class LexicalFunctorTransform<TToken, TNode, TModel> : ILexicalTransform<TToken, TNode, TModel>
-    {
-        Func<IEnumerable<TToken>, ILexicalMatchResult<TToken, TNode, TModel>, Scope, IEnumerable<TToken>> _functor;
-
-        public LexicalFunctorTransform(Func<IEnumerable<TToken>, Scope, IEnumerable<TToken>> functor)
-        {
-            _functor = WithScope(functor);
-        }
-
-        public LexicalFunctorTransform(Func<IEnumerable<TToken>, ILexicalMatchResult<TToken, TNode, TModel>, Scope, IEnumerable<TToken>> functor)
-        {
-            _functor = functor;
-        }
-
-        private static Func<IEnumerable<TToken>, ILexicalMatchResult<TToken, TNode, TModel>, Scope, IEnumerable<TToken>> WithScope(Func<IEnumerable<TToken>, Scope, IEnumerable<TToken>> functor)
-        {
-            return (tokens, match, scope) =>
-            {
-                foreach (var item in match.Items)
-                {
-                    if (item.Identifier != null && item.Span.Length > 0)
-                    {
-                        var idTokens = match.GetTokens(tokens, item.Span);
-
-                        if (item.Span.Length == 1)
-                            scope.set(item.Identifier, idTokens.First());
-                        else
-                            scope.set(item.Identifier, idTokens);
-                    }
-                }
-
-                return functor(tokens, scope);
-            };
-        }
-
-        public ILexicalTransform<TToken, TNode, TModel> insert(string tokens, string before = null, string after = null)
-        {
-            throw new InvalidOperationException();
-        }
-
-        public ILexicalTransform<TToken, TNode, TModel> replace(string named, string tokens)
-        {
-            throw new InvalidOperationException();
-        }
-
-        public ILexicalTransform<TToken, TNode, TModel> remove(string named)
-        {
-            throw new InvalidOperationException();
-        }
-
-        public ILexicalTransform<TToken, TNode, TModel> then(Func<TNode, TNode> handler, string token)
-        {
-            throw new InvalidOperationException();
-        }
-
-        public ILexicalTransform<TToken, TNode, TModel> then(Func<TNode, Scope , TNode> handler, string token)
-        {
-            throw new InvalidOperationException();
-        }
-
-        public ILexicalTransform<TToken, TNode, TModel> then(Func<TNode, TNode, TModel, Scope, TNode> handler, string token)
-        {
-            throw new InvalidOperationException();
-        }
-
-        public ILexicalTransform<TToken, TNode, TModel> then(ISyntaxTransform<TNode> transform, string token)
-        {
-            throw new InvalidOperationException();
-        }
-
-        public IEnumerable<TToken> transform(IEnumerable<TToken> tokens, ILexicalMatchResult<TToken, TNode, TModel> match, Scope scope)
-        {
-            return _functor(tokens, match, scope);
-        }
-    }
+		public ILexicalTransform<TToken, TNode, TModel> then(ISyntaxTransform<TNode> transform, string token)
+		{
+			throw new InvalidOperationException();
+		}
+	}
 }

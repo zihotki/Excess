@@ -19,21 +19,21 @@ namespace Excess.Compiler.Tests
             RoslynCompiler compiler = new RoslynCompiler();
             var lexical = compiler.Lexical();
             lexical
-                .match()
-                    .any('(', '=', ',')
-                    .token("function", named: "fn")
-                    .enclosed('(', ')')
-                    .token('{', named: "brace")
-                    .then(compiler.Lexical().transform()
-                        .remove("fn")
-                        .insert("=>", before: "brace"))
-                .match()
-                    .any(new[] { '(', '=', ',' }, named: "start")
-                    .enclosed('[', ']', start: "open", end: "close")
-                    .then(compiler.Lexical().transform()
-                        .insert("new []", after: "start")
-                        .replace("open", "{")
-                        .replace("close", "}"));
+                .Match()
+                    .Any('(', '=', ',')
+                    .Token("function", named: "fn")
+                    .Enclosed('(', ')')
+                    .Token('{', named: "brace")
+                    .Then(compiler.Lexical().Transform()
+                        .Remove("fn")
+                        .Insert("=>", before: "brace"))
+                .Match()
+                    .Any(new[] { '(', '=', ',' }, named: "start")
+                    .Enclosed('[', ']', start: "open", end: "close")
+                    .Then(compiler.Lexical().Transform()
+                        .Insert("new []", after: "start")
+                        .Replace("open", "{")
+                        .Replace("close", "}"));
 
             ExpressionSyntax exprFunction = compiler.CompileExpression("call(10, function(x, y) {})");
             Assert.IsTrue(exprFunction.DescendantNodes()
@@ -52,13 +52,13 @@ namespace Excess.Compiler.Tests
             RoslynCompiler compiler = new RoslynCompiler();
             var lexical = compiler.Lexical();
             lexical
-                .extension("my_ext", ExtensionKind.Code, myExtLexical);
+                .Extension("my_ext", ExtensionKind.Code, myExtLexical);
 
             string lResult = compiler.ApplyLexicalPass("my_ext(int i) { code(); }");
             Assert.IsTrue(lResult == "my_ext_replaced (int i)  = { code(); }");
 
             lexical
-                .extension("my_ext_s", ExtensionKind.Member, myExtSyntactical);
+                .Extension("my_ext_s", ExtensionKind.Member, myExtSyntactical);
 
             SyntaxNode sResult = compiler.ApplyLexicalPass("my_ext_s(int i) { code(); }", out lResult);
 
@@ -123,8 +123,8 @@ namespace Excess.Compiler.Tests
 
             //simple match
             syntax
-                .match<ClassDeclarationSyntax>(c => !c.Members.OfType<ConstructorDeclarationSyntax>().Any())
-                    .then(addConstructor);
+                .Match<ClassDeclarationSyntax>(c => !c.Members.OfType<ConstructorDeclarationSyntax>().Any())
+                    .Then(addConstructor);
 
             var tree = compiler.ApplySyntacticalPass("class foo { } class bar { bar() {} }");
 
@@ -134,15 +134,15 @@ namespace Excess.Compiler.Tests
                 .OfType<ConstructorDeclarationSyntax>()
                 .Count() == 2); //must have added a constructor to "foo"
 
-            //scope match & transform
+            //scope match & Transform
             syntax
-                .match<ClassDeclarationSyntax>(c => c.Identifier.ToString() == "foo")
-                    .descendants<MethodDeclarationSyntax>(named: "methods")
-                    .descendants<PropertyDeclarationSyntax>(prop => prop.Identifier.ToString().StartsWith("my"), named: "myProps")
-                .then(syntax.transform()
-                    .replace("methods", method => ((MethodDeclarationSyntax)method)
+                .Match<ClassDeclarationSyntax>(c => c.Identifier.ToString() == "foo")
+                    .Descendants<MethodDeclarationSyntax>(named: "methods")
+                    .Descendants<PropertyDeclarationSyntax>(prop => prop.Identifier.ToString().StartsWith("my"), named: "myProps")
+                .Then(syntax.Transform()
+                    .Replace("methods", method => ((MethodDeclarationSyntax)method)
                         .WithIdentifier(CSharp.ParseToken("my" + ((MethodDeclarationSyntax)method).Identifier.ToString())))
-                    .remove("myProps"));
+                    .Remove("myProps"));
 
 
             var scopeTree = compiler.ApplySyntacticalPass("class foo { public void Method() {} int myProp {get; set;} }");
@@ -175,7 +175,7 @@ namespace Excess.Compiler.Tests
 
             //code extension
             syntax
-                .extension("codeExtension", ExtensionKind.Code, codeExtension);
+                .Extension("codeExtension", ExtensionKind.Code, codeExtension);
 
             tree = compiler.ApplySyntacticalPass("class foo { void bar() {codeExtension() {bar();}} }");
             Assert.IsTrue(tree
@@ -206,7 +206,7 @@ namespace Excess.Compiler.Tests
 
             //member extension
             syntax
-                .extension("memberExtension", ExtensionKind.Member, memberExtension);
+                .Extension("memberExtension", ExtensionKind.Member, memberExtension);
 
             tree = compiler.ApplySyntacticalPass("class foo { memberExtension(param: \"foobar\") {int x = 3;} }");
             var method = tree
@@ -221,7 +221,7 @@ namespace Excess.Compiler.Tests
 
             //type extension
             syntax
-                .extension("typeExtension", ExtensionKind.Type, typeExtension);
+                .Extension("typeExtension", ExtensionKind.Type, typeExtension);
 
             tree = compiler.ApplySyntacticalPass("public typeExtension foo(param: \"foobar\") { bar(); }");
 

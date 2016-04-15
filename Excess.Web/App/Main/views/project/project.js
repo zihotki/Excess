@@ -131,7 +131,7 @@
                                                  { size: "md" });
 
                         dlg.result.then(function (transform) {
-                            selectFile("transform", true, function () {
+                            selectFile("Transform", true, function () {
                                 $timeout(function () {
                                     $scope.editorControl.append(transform);
                                 });

@@ -24,19 +24,19 @@ namespace Excess.Extensions.Concurrent
             var lexical = compiler.Lexical();
 
             lexical
-                .match()
-                    .token("concurrent", named: "keyword")
-                    .token("class", named: "ref")
-                    .then(lexical.transform()
-                        .remove("keyword")
-                        .then(Compile))
-                .match()
-                    .token("concurrent", named: "keyword")
-                    .token("object", named: "ref")
-                    .then(lexical.transform()
-                        .remove("keyword")
-                        .replace("ref", "class")
-                        .then(CompileObject));
+                .Match()
+                    .Token("concurrent", named: "keyword")
+                    .Token("class", named: "ref")
+                    .Then(lexical.Transform()
+                        .Remove("keyword")
+                        .Then(Compile))
+                .Match()
+                    .Token("concurrent", named: "keyword")
+                    .Token("object", named: "ref")
+                    .Then(lexical.Transform()
+                        .Remove("keyword")
+                        .Replace("ref", "class")
+                        .Then(CompileObject));
         }
 
         private static SyntaxNode Compile(SyntaxNode node, Scope scope)
@@ -65,7 +65,7 @@ namespace Excess.Extensions.Concurrent
             @class = ctx.Update(@class);
 
             var document = scope.GetDocument();
-            return document.change(@class, Link(ctx), null);
+            return document.Change(@class, Link(ctx), null);
         }
 
         private static Func<SyntaxNode, SyntaxNode, SemanticModel, Scope, SyntaxNode> Link(Class ctx)
