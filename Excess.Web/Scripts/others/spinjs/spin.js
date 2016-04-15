@@ -340,7 +340,7 @@
 
   var probe = css(createEl('group'), {behavior: 'url(#default#VML)'})
 
-  if (!vendor(probe, 'Transform') && probe.adj) initVML()
+  if (!vendor(probe, 'transform') && probe.adj) initVML()
   else useCssAnimations = vendor(probe, 'animation')
 
   return Spinner

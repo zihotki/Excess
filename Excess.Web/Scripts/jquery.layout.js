@@ -879,7 +879,7 @@ $.layout.optionsMap = {
 /**
  * Processes options passed in converts flat-format data into subkey (JSON) format
  * In flat-format, subkeys are _currently_ separated with 2 underscores, like north__optName
- * Plugins may also call this method so they can Transform their own data
+ * Plugins may also call this method so they can transform their own data
  *
  * @param  {!Object}	hash			Data/options passed by user - may be a single level or nested levels
  * @param  {boolean=}	[addKeys=false]	Should the primary layout.options keys be added if they do not exist?

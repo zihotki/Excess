@@ -98,7 +98,7 @@
     this.extensionItem = function (name, kind) {
         switch (kind)
         {
-            case "lexical-Transform":
+            case "lexical-transform":
                 return '\nprivate static IEnumerable<SyntaxToken> ' + name + '(IEnumerable<SyntaxToken> input, ILexicalMatchResult<SyntaxToken, SyntaxNode> match, Scope scope)'
                      + '\n{'
                      + '\n}\n';
@@ -113,7 +113,7 @@
                      + '\n{'
                      + '\n}\n';
 
-            case "syntax-Transform":
+            case "syntax-transform":
                 return '\nprivate static SyntaxNode ' + name + '(SyntaxNode input, Scope scope)'
                      + '\n{'
                      + '\n}\n';
@@ -123,7 +123,7 @@
                      + '\n{'
                      + '\n}\n';
 
-            case "semantical-Transform":
+            case "semantical-transform":
                 return '\nprivate static SyntaxNode ' + name + '(SyntaxNode input, SemanticModel model, Scope scope)'
                      + '\n{'
                      + '\n}\n';
