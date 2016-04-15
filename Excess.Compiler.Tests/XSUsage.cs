@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using CSharp = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System.Linq;
 using Excess.Compiler.Roslyn;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis;
 using Excess.Entensions.XS;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using CSharp = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Excess.Compiler.Tests
 {
@@ -18,18 +14,18 @@ namespace Excess.Compiler.Tests
         [TestMethod]
         public void FunctionUsage()
         {
-            RoslynCompiler compiler = new RoslynCompiler();
+            var compiler = new RoslynCompiler();
             Functions.Apply(compiler);
             //XSModule.Apply(compiler);
 
             //as lambda
-            ExpressionSyntax exprFunction = compiler.CompileExpression("call(10, function(x, y) {})");
+            var exprFunction = compiler.CompileExpression("call(10, function(x, y) {})");
             Assert.IsTrue(exprFunction.DescendantNodes()
                 .OfType<ParenthesizedLambdaExpressionSyntax>()
                 .Any());
 
             //as typed method
-            string result = compiler.ApplyLexicalPass("class foo { public int function bar(int x) {}}");
+            var result = compiler.ApplyLexicalPass("class foo { public int function bar(int x) {}}");
             Assert.IsTrue(result == "class foo { public int bar(int x) {}}");
 
             SyntaxTree tree = null;
@@ -76,7 +72,7 @@ namespace Excess.Compiler.Tests
         [TestMethod]
         public void Members()
         {
-            RoslynCompiler compiler = new RoslynCompiler();
+            var compiler = new RoslynCompiler();
             XSLang.Apply(compiler);
 
             SyntaxTree tree = null;
@@ -132,7 +128,7 @@ namespace Excess.Compiler.Tests
         [TestMethod]
         public void Events()
         {
-            RoslynCompiler compiler = new RoslynCompiler();
+            var compiler = new RoslynCompiler();
             XSLang.Apply(compiler);
 
             SyntaxTree tree = null;
@@ -193,7 +189,7 @@ namespace Excess.Compiler.Tests
         [TestMethod]
         public void TypeDef()
         {
-            RoslynCompiler compiler = new RoslynCompiler();
+            var compiler = new RoslynCompiler();
             XSLang.Apply(compiler);
 
             SyntaxTree tree = null;
@@ -236,10 +232,10 @@ namespace Excess.Compiler.Tests
         [TestMethod]
         public void Arrays()
         {
-            RoslynCompiler compiler = new RoslynCompiler();
+            var compiler = new RoslynCompiler();
             XSLang.Apply(compiler);
 
-            ExpressionSyntax exprArray = compiler.CompileExpression("x = [[1, 2, 3], [4, 5, 6]]");
+            var exprArray = compiler.CompileExpression("x = [[1, 2, 3], [4, 5, 6]]");
             Assert.IsTrue(exprArray.DescendantNodes()
                 .OfType<ImplicitArrayCreationExpressionSyntax>()
                 .Count() == 3);

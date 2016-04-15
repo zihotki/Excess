@@ -1,11 +1,9 @@
-﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Excess.Compiler.Roslyn;
-using Excess.Compiler.Core;
-using Microsoft.CodeAnalysis;
+﻿using System.Collections.Generic;
 using System.Linq;
+using Excess.Compiler.Roslyn;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.Collections.Generic;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using CSharp = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Excess.Compiler.Tests
@@ -16,31 +14,31 @@ namespace Excess.Compiler.Tests
         [TestMethod]
         public void LexicalTokenMatching()
         {
-            RoslynCompiler compiler = new RoslynCompiler();
+            var compiler = new RoslynCompiler();
             var lexical = compiler.Lexical();
             lexical
                 .Match()
-                    .Any('(', '=', ',')
-                    .Token("function", named: "fn")
-                    .Enclosed('(', ')')
-                    .Token('{', named: "brace")
-                    .Then(compiler.Lexical().Transform()
-                        .Remove("fn")
-                        .Insert("=>", before: "brace"))
+                .Any('(', '=', ',')
+                .Token("function", "fn")
+                .Enclosed('(', ')')
+                .Token('{', "brace")
+                .Then(compiler.Lexical().Transform()
+                    .Remove("fn")
+                    .Insert("=>", "brace"))
                 .Match()
-                    .Any(new[] { '(', '=', ',' }, named: "start")
-                    .Enclosed('[', ']', start: "open", end: "close")
-                    .Then(compiler.Lexical().Transform()
-                        .Insert("new []", after: "start")
-                        .Replace("open", "{")
-                        .Replace("close", "}"));
+                .Any(new[] {'(', '=', ','}, "start")
+                .Enclosed('[', ']', "open", "close")
+                .Then(compiler.Lexical().Transform()
+                    .Insert("new []", after: "start")
+                    .Replace("open", "{")
+                    .Replace("close", "}"));
 
-            ExpressionSyntax exprFunction = compiler.CompileExpression("call(10, function(x, y) {})");
+            var exprFunction = compiler.CompileExpression("call(10, function(x, y) {})");
             Assert.IsTrue(exprFunction.DescendantNodes()
                 .OfType<ParenthesizedLambdaExpressionSyntax>()
                 .Any());
 
-            ExpressionSyntax exprArray = compiler.CompileExpression("call([1, 2, 3], 4, [5, 6, 7])");
+            var exprArray = compiler.CompileExpression("call([1, 2, 3], 4, [5, 6, 7])");
             Assert.IsTrue(exprArray.DescendantNodes()
                 .OfType<ImplicitArrayCreationExpressionSyntax>()
                 .Count() == 2);
@@ -49,18 +47,18 @@ namespace Excess.Compiler.Tests
         [TestMethod]
         public void LexicalExtension()
         {
-            RoslynCompiler compiler = new RoslynCompiler();
+            var compiler = new RoslynCompiler();
             var lexical = compiler.Lexical();
             lexical
                 .Extension("my_ext", ExtensionKind.Code, myExtLexical);
 
-            string lResult = compiler.ApplyLexicalPass("my_ext(int i) { code(); }");
+            var lResult = compiler.ApplyLexicalPass("my_ext(int i) { code(); }");
             Assert.IsTrue(lResult == "my_ext_replaced (int i)  = { code(); }");
 
             lexical
                 .Extension("my_ext_s", ExtensionKind.Member, myExtSyntactical);
 
-            SyntaxNode sResult = compiler.ApplyLexicalPass("my_ext_s(int i) { code(); }", out lResult);
+            var sResult = compiler.ApplyLexicalPass("my_ext_s(int i) { code(); }", out lResult);
 
             Assert.IsTrue(lResult == "void __extension() {}");
 
@@ -83,10 +81,10 @@ namespace Excess.Compiler.Tests
 
         private IEnumerable<SyntaxToken> myExtLexical(IEnumerable<SyntaxToken> tokens, Scope scope, LexicalExtension<SyntaxToken> extension)
         {
-            string testResult = "my_ext_replaced "
-                              + RoslynCompiler.TokensToString(extension.Arguments)
-                              + " = "
-                              + RoslynCompiler.TokensToString(extension.Body);
+            var testResult = "my_ext_replaced "
+                             + RoslynCompiler.TokensToString(extension.Arguments)
+                             + " = "
+                             + RoslynCompiler.TokensToString(extension.Body);
 
             return RoslynCompiler.ParseTokens(testResult);
         }
@@ -118,13 +116,13 @@ namespace Excess.Compiler.Tests
         [TestMethod]
         public void SyntacticalMatching()
         {
-            RoslynCompiler compiler = new RoslynCompiler();
+            var compiler = new RoslynCompiler();
             var syntax = compiler.Syntax();
 
             //simple match
             syntax
                 .Match<ClassDeclarationSyntax>(c => !c.Members.OfType<ConstructorDeclarationSyntax>().Any())
-                    .Then(addConstructor);
+                .Then(addConstructor);
 
             var tree = compiler.ApplySyntacticalPass("class foo { } class bar { bar() {} }");
 
@@ -137,11 +135,11 @@ namespace Excess.Compiler.Tests
             //scope match & Transform
             syntax
                 .Match<ClassDeclarationSyntax>(c => c.Identifier.ToString() == "foo")
-                    .Descendants<MethodDeclarationSyntax>(named: "methods")
-                    .Descendants<PropertyDeclarationSyntax>(prop => prop.Identifier.ToString().StartsWith("my"), named: "myProps")
+                .Descendants<MethodDeclarationSyntax>(named: "methods")
+                .Descendants<PropertyDeclarationSyntax>(prop => prop.Identifier.ToString().StartsWith("my"), "myProps")
                 .Then(syntax.Transform()
-                    .Replace("methods", method => ((MethodDeclarationSyntax)method)
-                        .WithIdentifier(CSharp.ParseToken("my" + ((MethodDeclarationSyntax)method).Identifier.ToString())))
+                    .Replace("methods", method => ((MethodDeclarationSyntax) method)
+                        .WithIdentifier(CSharp.ParseToken("my" + ((MethodDeclarationSyntax) method).Identifier.ToString())))
                     .Remove("myProps"));
 
 
@@ -168,7 +166,7 @@ namespace Excess.Compiler.Tests
         [TestMethod]
         public void SyntacticalExtensions()
         {
-            RoslynCompiler compiler = new RoslynCompiler();
+            var compiler = new RoslynCompiler();
             var syntax = compiler.Syntax();
 
             SyntaxTree tree;
@@ -252,11 +250,7 @@ namespace Excess.Compiler.Tests
             {
                 var codeBlock = extension.Body as BlockSyntax;
                 Assert.IsNotNull(extension.Body);
-                return codeBlock.AddStatements(
-                    new[] {
-                    CSharp.ParseStatement("var myFoo = 5;"),
-                    CSharp.ParseStatement("bar(myFoo);")
-                });
+                return codeBlock.AddStatements(CSharp.ParseStatement("var myFoo = 5;"), CSharp.ParseStatement("bar(myFoo);"));
             }
 
             Assert.AreEqual(extension.Kind, ExtensionKind.Expression);
@@ -273,17 +267,16 @@ namespace Excess.Compiler.Tests
                 .WithIdentifier(CSharp.ParseToken("anotherName"))
                 .WithParameterList(CSharp.ParameterList())
                 .WithBody(memberDecl.Body
-                    .AddStatements(new[] {
-                        CSharp.ParseStatement("var myFoo = 5;"),
-                        CSharp.ParseStatement("bar(myFoo);")}));
+                    .AddStatements(CSharp.ParseStatement("var myFoo = 5;"), CSharp.ParseStatement("bar(myFoo);")));
         }
 
         private SyntaxNode typeExtension(SyntaxNode node, SyntacticalExtension<SyntaxNode> extension)
         {
             return CSharp.ClassDeclaration(extension.Identifier)
-                .WithMembers(CSharp.List<MemberDeclarationSyntax>(new[] {
-                        CSharp.MethodDeclaration(CSharp.ParseTypeName("int"), "myMethod")
-                            .WithBody((BlockSyntax)extension.Body)
+                .WithMembers(CSharp.List<MemberDeclarationSyntax>(new[]
+                {
+                    CSharp.MethodDeclaration(CSharp.ParseTypeName("int"), "myMethod")
+                        .WithBody((BlockSyntax) extension.Body)
                 }));
         }
     }

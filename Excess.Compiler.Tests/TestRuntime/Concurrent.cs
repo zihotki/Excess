@@ -1,30 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Excess.Compiler.Core;
 using Excess.Extensions.Concurrent;
+using Microsoft.CodeAnalysis;
+using Compilation = Excess.Compiler.Roslyn.Compilation;
 
 namespace Excess.Compiler.Tests.TestRuntime
 {
-    using Core;
-    using Microsoft.CodeAnalysis;
-    using System.Diagnostics;
-    using System.Reflection;
     using Spawner = Func<object[], ConcurrentObject>;
 
     public class Concurrent
     {
         private static void RunStep(ConcurrentObject @object, string methodName, Func<string> moveNext, Action<Exception> failure)
         {
-            var method = @object.GetType().GetMethod(methodName, new[] 
+            var method = @object.GetType().GetMethod(methodName, new[]
             {
                 typeof(Action<object>),
-                typeof(Action<Exception>),
+                typeof(Action<Exception>)
             });
 
-            Action<object> success = (res) =>
+            Action<object> success = res =>
             {
                 try
                 {
@@ -38,13 +38,13 @@ namespace Excess.Compiler.Tests.TestRuntime
                 }
             };
 
-            method.Invoke(@object, new object[] { success, failure });
+            method.Invoke(@object, new object[] {success, failure});
         }
 
         private static Exception RunSteps(ConcurrentObject @object, string[] steps)
         {
-            int stepCount = steps.Length;
-            int stepIdx = 0;
+            var stepCount = steps.Length;
+            var stepIdx = 0;
 
             Func<string> nextStep = () =>
             {
@@ -54,7 +54,7 @@ namespace Excess.Compiler.Tests.TestRuntime
             };
 
             var ex = null as Exception;
-            RunStep(@object, steps[0], nextStep, (__ex) => { ex = __ex; });
+            RunStep(@object, steps[0], nextStep, __ex => { ex = __ex; });
             while (ex == null && stepIdx < stepCount)
             {
                 Thread.Sleep(100);
@@ -81,37 +81,36 @@ namespace Excess.Compiler.Tests.TestRuntime
         {
             errors = null;
 
-            var compilation = new Roslyn.Compilation(null);
+            var compilation = new Compilation(null);
             var injector = new CompositeInjector<SyntaxToken, SyntaxNode, SemanticModel>(new[]
             {
                 new DelegateInjector<SyntaxToken, SyntaxNode, SemanticModel>(compiler => compiler
                     .Environment()
-                        .Dependency<console>("Excess.Compiler.Tests.TestRuntime")
-                        //.dependency<object>(new[] {
-                        //    "System",
-                        //    "System.Collections",
-                        //    "System.Collections.Generic" })
-                        .Dependency(new[] {
-                            "System.Threading",
-                            "System.Threading.Tasks",
-                            "System.Diagnostics",
-                        })),
-
+                    .Dependency<console>("Excess.Compiler.Tests.TestRuntime")
+                    //.dependency<object>(new[] {
+                    //    "System",
+                    //    "System.Collections",
+                    //    "System.Collections.Generic" })
+                    .Dependency(new[]
+                    {
+                        "System.Threading",
+                        "System.Threading.Tasks",
+                        "System.Diagnostics"
+                    })),
                 new DelegateInjector<SyntaxToken, SyntaxNode, SemanticModel>(compiler =>
-                    Extensions
-                    .Concurrent.Extension
+                    Extension
                         .Apply(compiler))
             });
 
             compilation.addDocument("concurrent-test", text, injector);
 
-            Assembly assembly = compilation.build();
+            var assembly = compilation.build();
             if (assembly == null)
             {
                 errors = compilation.errors();
 
                 //debug
-                StringBuilder errorLines = new StringBuilder();
+                var errorLines = new StringBuilder();
                 foreach (var error in errors)
                 {
                     errorLines.AppendLine(error.ToString());
@@ -129,20 +128,20 @@ namespace Excess.Compiler.Tests.TestRuntime
 
                 var useParameterLess = type.GetConstructors().Length == 0;
                 if (!useParameterLess)
-                    useParameterLess = type.GetConstructor(new Type[] { }) != null;
+                    useParameterLess = type.GetConstructor(new Type[] {}) != null;
 
                 var typeName = type.ToString();
-                exportTypes[typeName] = (args) =>
+                exportTypes[typeName] = args =>
                 {
                     if (useParameterLess)
-                        return (ConcurrentObject)Activator.CreateInstance(type);
+                        return (ConcurrentObject) Activator.CreateInstance(type);
 
                     var ctor = type.GetConstructor(args
                         .Select(arg => arg.GetType())
                         .ToArray());
 
                     if (ctor != null)
-                        return (ConcurrentObject)ctor.Invoke(args);
+                        return (ConcurrentObject) ctor.Invoke(args);
 
                     throw new InvalidOperationException("unable to find a constructor");
                 };
@@ -167,19 +166,19 @@ namespace Excess.Compiler.Tests.TestRuntime
                 .GetType()
                 .GetMethods()
                 .Where(m => m.Name == name
-                         && m
-                            .ReturnType
-                            .ToString()
-                            .Contains("Task"))
+                            && m
+                                .ReturnType
+                                .ToString()
+                                .Contains("Task"))
                 .SingleOrDefault();
 
             if (method != null)
             {
-                args = args.Union(new object[] { true }).ToArray();
+                args = args.Union(new object[] {true}).ToArray();
                 var tsk = method.Invoke(@object, args);
 
                 if (wait)
-                    ((Task)tsk).Wait();
+                    ((Task) tsk).Wait();
             }
             else
             {

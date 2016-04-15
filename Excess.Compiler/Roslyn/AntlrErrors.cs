@@ -1,17 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Antlr4.Runtime;
+﻿using Antlr4.Runtime;
 
 namespace Excess.Compiler.Roslyn
 {
-    public class AntlrErrors<TToken> : IAntlrErrorListener<TToken> where TToken : IToken
+    public class AntlrErrors<TToken> : IAntlrErrorListener<TToken>
+        where TToken : IToken
     {
-        Scope _scope;
-        int _offset;
+        private readonly int _offset;
+        private readonly Scope _scope;
 
         public AntlrErrors(Scope scope, int offset)
         {
@@ -21,7 +16,7 @@ namespace Excess.Compiler.Roslyn
 
         public void SyntaxError(IRecognizer recognizer, TToken offendingSymbol, int line, int charPositionInLine, string msg, RecognitionException e)
         {
-            _scope.AddError("grammar syntax error", msg, _offset + offendingSymbol.StartIndex, offendingSymbol.StopIndex - offendingSymbol.StartIndex); 
+            _scope.AddError("grammar syntax error", msg, _offset + offendingSymbol.StartIndex, offendingSymbol.StopIndex - offendingSymbol.StartIndex);
         }
     }
 }

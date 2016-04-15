@@ -1,14 +1,12 @@
-﻿using Excess.Compiler.Roslyn;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using Excess.Compiler.Roslyn;
 using Excess.Compiler.Tests.TestRuntime;
+using Excess.Extensions.Concurrent;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Excess.Compiler.Tests
 {
@@ -19,8 +17,7 @@ namespace Excess.Compiler.Tests
         public void DiningPhilosophers()
         {
             var errors = null as IEnumerable<Diagnostic>;
-            var node = TestRuntime
-                .Concurrent
+            var node = TestRuntime.Concurrent
                 .Build(@"
                 concurrent class philosopher 
                 {
@@ -87,7 +84,7 @@ namespace Excess.Compiler.Tests
                     }
 
                     private object _owner;
-                }", out errors, threads: 1);
+                }", out errors, 1);
 
             //must not have compilation errors
             Assert.IsNull(errors);
@@ -98,7 +95,7 @@ namespace Excess.Compiler.Tests
                 "Archimedes",
                 "Nietzche",
                 "Plato",
-                "Spinoza",
+                "Spinoza"
             };
 
             var chopsticks = names.Select(n =>
@@ -106,10 +103,12 @@ namespace Excess.Compiler.Tests
                 .ToArray();
 
             var phCount = names.Length;
-            for (int i = 0; i < phCount; i++)
+            for (var i = 0; i < phCount; i++)
             {
                 var left = chopsticks[i];
-                var right = i == phCount - 1 ? chopsticks[0] : chopsticks[i + 1];
+                var right = i == phCount - 1
+                    ? chopsticks[0]
+                    : chopsticks[i + 1];
 
                 node.Spawn("philosopher", names[i], left, right);
             }
@@ -126,8 +125,7 @@ namespace Excess.Compiler.Tests
         public void Barbers()
         {
             var errors = null as IEnumerable<Diagnostic>;
-            var node = TestRuntime
-                .Concurrent
+            var node = TestRuntime.Concurrent
                 .Build(@"
                 concurrent class barbershop
                 {
@@ -201,7 +199,7 @@ namespace Excess.Compiler.Tests
                         _tip += amount;
                         console.write($""Barber {_index}: {client} tipped {amount:C2}, for a total of {_tip:C2}"");
                     }
-                }", out errors, threads: 1);
+                }", out errors, 1);
 
             //must not have compilation errors
             Assert.IsNull(errors);
@@ -212,11 +210,10 @@ namespace Excess.Compiler.Tests
 
             var rand = new Random();
             var clients = 30;
-            for (int i = 1; i <= clients; i++)
+            for (var i = 1; i <= clients; i++)
             {
-                Thread.Sleep((int)(3000 * rand.NextDouble()));
-                TestRuntime
-                    .Concurrent
+                Thread.Sleep((int) (3000*rand.NextDouble()));
+                TestRuntime.Concurrent
                     .SendAsync(shop, "visit", i);
             }
 
@@ -231,8 +228,8 @@ namespace Excess.Compiler.Tests
         [TestMethod]
         public void DebugPrint()
         {
-            RoslynCompiler compiler = new RoslynCompiler();
-            Extensions.Concurrent.Extension.Apply(compiler);
+            var compiler = new RoslynCompiler();
+            Extension.Apply(compiler);
 
             SyntaxTree tree = null;
             string text = null;
@@ -355,6 +352,5 @@ namespace Excess.Compiler.Tests
 
             Assert.IsNotNull(text);
         }
-
     }
 }

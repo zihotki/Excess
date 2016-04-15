@@ -25,7 +25,7 @@
                 <div class="form-group"
                      ng-class="{'has-error': rc.selectProject.needsAttention(selectProject.projectName)}">
                     <label class="control-label">Name</label>
-                    <input name="projectName" class="form-control" type="text" placeholder="Project Name" ng-model="projectName" />
+                    <input name="projectName" class="form-control" type="text" placeholder="Project Name" ng-model="projectName"/>
                 </div>
                 <div class="form-group">
                     <label class="control-label">Kind</label>
@@ -41,15 +41,15 @@
                 <div ng-switch on="projectKind">
                     <div ng-switch-when="console">
                         <div class="form-group" style="padding:15px">
-                            <label class="control-label">Download As</label><br />
-                            <input type="radio" name="console-opts" ng-model="consoleConfiguration.generateLibrary" value="true" /> Generate Library <br />
-                            <input type="radio" name="console-opts" ng-model="consoleConfiguration.onlyExe" value="true" /> Only Executable <br />
+                            <label class="control-label">Download As</label><br/>
+                            <input type="radio" name="console-opts" ng-model="consoleConfiguration.generateLibrary" value="true"/> Generate Library <br/>
+                            <input type="radio" name="console-opts" ng-model="consoleConfiguration.onlyExe" value="true"/> Only Executable <br/>
                         </div>
                     </div>
                     <div ng-switch-when="dsl">
                         <div class="form-group">
                             <label class="control-label">DSL Name</label>
-                            <input name="projectName" class="form-control" type="text" placeholder="DSL Name" required ng-model="dslConfiguration.name" />
+                            <input name="projectName" class="form-control" type="text" placeholder="DSL Name" required ng-model="dslConfiguration.name"/>
                         </div>
 
                         <div class="form-group">
@@ -66,11 +66,11 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label class="control-label">Extends</label><br />
-                            <input type="checkbox" ng-model="dslConfiguration.extendsNamespaces" /> Namespaces<br />
-                            <input type="checkbox" ng-model="dslConfiguration.extendsTypes" /> Types<br />
-                            <input type="checkbox" ng-model="dslConfiguration.extendsMembers" /> Members<br />
-                            <input type="checkbox" ng-model="dslConfiguration.extendsCode" /> Code<br />
+                            <label class="control-label">Extends</label><br/>
+                            <input type="checkbox" ng-model="dslConfiguration.extendsNamespaces"/> Namespaces<br/>
+                            <input type="checkbox" ng-model="dslConfiguration.extendsTypes"/> Types<br/>
+                            <input type="checkbox" ng-model="dslConfiguration.extendsMembers"/> Members<br/>
+                            <input type="checkbox" ng-model="dslConfiguration.extendsCode"/> Code<br/>
                         </div>
                     </div>
                 </div>

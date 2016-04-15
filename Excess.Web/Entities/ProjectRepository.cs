@@ -1,35 +1,34 @@
-﻿using Excess.Web.Resources;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Web;
+using Excess.Web.Resources;
 
 namespace Excess.Web.Entities
 {
     public class ProjectRepository
     {
+        private readonly ExcessDbContext _db = new ExcessDbContext();
+
         public IEnumerable<Project> GetUserProjects(string userId)
         {
-            return from   project in _db.Projects
-                   where  project.UserID == userId
-                   select project;
+            return from project in _db.Projects
+                where project.UserID == userId
+                select project;
         }
 
         public IEnumerable<Project> GetSampleProjects()
         {
-            return from   project in _db.Projects
-                   where  project.IsSample == true && project.Name != null
-                   select project;
+            return from project in _db.Projects
+                where project.IsSample && project.Name != null
+                select project;
         }
 
         public Project LoadProject(int projectId, out dynamic config)
         {
             config = null;
             var projects = from project in _db.Projects
-                           where project.ID == projectId
-                           select project;
+                where project.ID == projectId
+                select project;
 
             var result = projects.FirstOrDefault();
             if (result != null)
@@ -76,7 +75,7 @@ namespace Excess.Web.Entities
 
             if (file == null)
             {
-                file = new FileHash { FileID = fileID, Hash = hash };
+                file = new FileHash {FileID = fileID, Hash = hash};
                 _db.FileCache.Add(file);
             }
             else
@@ -87,11 +86,11 @@ namespace Excess.Web.Entities
 
         public void LoadProject(Project project)
         {
-            var files = from   projectFile in _db.ProjectFiles
-                        where  projectFile.OwnerProject == project.ID
-                        select projectFile;
+            var files = from projectFile in _db.ProjectFiles
+                where projectFile.OwnerProject == project.ID
+                select projectFile;
 
-            project.ProjectFiles = new List<ProjectFile>(files); 
+            project.ProjectFiles = new List<ProjectFile>(files);
         }
 
         public int AddFile(Project project, string name, string contents, bool hidden)
@@ -119,8 +118,8 @@ namespace Excess.Web.Entities
         public void SaveFile(int fileId, string contents)
         {
             var files = from projectFile in _db.ProjectFiles
-                        where projectFile.ID == fileId
-                        select projectFile;
+                where projectFile.ID == fileId
+                select projectFile;
             var file = files.FirstOrDefault();
             if (file != null)
             {
@@ -133,45 +132,34 @@ namespace Excess.Web.Entities
         {
             var newFile = new ProjectFile
             {
-                Name         = fileName,
-                Contents     = contents,
+                Name = fileName,
+                Contents = contents,
                 OwnerProject = projectId
             };
 
             _db.ProjectFiles.Add(newFile);
             _db.SaveChanges();
 
-            return newFile.ID; 
-        }
-
-        private class DSLConfiguration
-        {
-            public string name { get; set; }
-            public string parser { get; set; }
-            public string linker { get; set; }
-            public bool extendsNamespaces { get; set; }
-            public bool extendsTypes { get; set; }
-            public bool extendsMembers { get; set; }
-            public bool extendsCode { get; set; }
+            return newFile.ID;
         }
 
         public Project CreateProject(string projectType, string projectName, string projectData, string userId)
         {
             var project = new Project
             {
-                IsSample    = false,
-                Name        = projectName,
+                IsSample = false,
+                Name = projectName,
                 ProjectType = projectType,
-                UserID      = userId
+                UserID = userId
             };
 
-            List<ProjectFile> files = new List<ProjectFile>();
-            
+            var files = new List<ProjectFile>();
+
             switch (projectType)
             {
                 case "console":
                 {
-                    files.Add(new ProjectFile { Name = "application", Contents = ProjectTemplates.ConsoleApplication });
+                    files.Add(new ProjectFile {Name = "application", Contents = ProjectTemplates.ConsoleApplication});
                     break;
                 }
 
@@ -187,13 +175,13 @@ namespace Excess.Web.Entities
                     files.Add(new ProjectFile
                     {
                         Name = "extension",
-                        Contents = ProjectTemplates.Extension,
+                        Contents = ProjectTemplates.Extension
                     });
 
                     files.Add(new ProjectFile
                     {
                         Name = "Transform",
-                        Contents = ProjectTemplates.Transform,
+                        Contents = ProjectTemplates.Transform
                     });
                     break;
                 }
@@ -244,7 +232,8 @@ namespace Excess.Web.Entities
                 //    break;
                 //}
 
-                default: throw new InvalidOperationException("Invalid project type: " + projectType);
+                default:
+                    throw new InvalidOperationException("Invalid project type: " + projectType);
             }
 
             _db.Projects.Add(project);
@@ -266,6 +255,15 @@ namespace Excess.Web.Entities
             return project;
         }
 
-        private ExcessDbContext _db = new ExcessDbContext();
+        private class DSLConfiguration
+        {
+            public string name { get; set; }
+            public string parser { get; set; }
+            public string linker { get; set; }
+            public bool extendsNamespaces { get; set; }
+            public bool extendsTypes { get; set; }
+            public bool extendsMembers { get; set; }
+            public bool extendsCode { get; set; }
+        }
     }
 }

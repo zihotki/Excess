@@ -1,7 +1,7 @@
 namespace Excess.Compiler
 {
-	public class InstanceConnector
-	{
-		public string Id { get; set; }
-	}
+    public class InstanceConnector
+    {
+        public string Id { get; set; }
+    }
 }

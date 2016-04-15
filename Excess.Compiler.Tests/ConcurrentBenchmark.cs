@@ -1,13 +1,9 @@
-﻿using Excess.Compiler.Tests.TestRuntime;
-using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Runtime;
-using System.Text;
-using System.Threading.Tasks;
+using Excess.Compiler.Tests.TestRuntime;
+using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Excess.Compiler.Tests
 {
@@ -18,8 +14,7 @@ namespace Excess.Compiler.Tests
         public void ThreadRing()
         {
             var errors = null as IEnumerable<Diagnostic>;
-            var node = TestRuntime
-                .Concurrent
+            var node = TestRuntime.Concurrent
                 .Build(@"
                 concurrent class ring_item
                 {
@@ -42,7 +37,7 @@ namespace Excess.Compiler.Tests
                         else
                             Next.token(value + 1);
                     }                    
-                }", out errors, threads: 1);
+                }", out errors, 1);
 
             //must not have compilation errors
             Assert.IsNull(errors);
@@ -51,18 +46,20 @@ namespace Excess.Compiler.Tests
 
             //create the ring
             var items = new ConcurrentObject[ringCount];
-            for (int i = 0; i < ringCount; i++)
+            for (var i = 0; i < ringCount; i++)
                 items[i] = node.Spawn("ring_item", i);
 
             //update connectivity
-            for (int i = 0; i < ringCount; i++)
+            for (var i = 0; i < ringCount; i++)
             {
                 var curr = items[i];
-                var next = i < ringCount - 1 ? items[i + 1] : items[0];
+                var next = i < ringCount - 1
+                    ? items[i + 1]
+                    : items[0];
                 TestRuntime.Concurrent.Send(curr, "Next", next);
             }
 
-            Stopwatch sw = new Stopwatch();
+            var sw = new Stopwatch();
             sw.Start();
             {
                 //run it by sending the first token, it will go around 50M times
@@ -71,7 +68,7 @@ namespace Excess.Compiler.Tests
             }
             sw.Stop();
 
-            TimeSpan rt = TimeSpan.FromTicks(sw.ElapsedTicks);
+            var rt = TimeSpan.FromTicks(sw.ElapsedTicks);
             var ts = rt.TotalSeconds.ToString();
             Assert.IsNotNull(ts);
         }
@@ -81,8 +78,7 @@ namespace Excess.Compiler.Tests
         {
             IEnumerable<Diagnostic> errors;
 
-            var node = TestRuntime
-                .Concurrent
+            var node = TestRuntime.Concurrent
                 .Build(@"
                 concurrent class Chameneo
                 {
@@ -197,7 +193,7 @@ namespace Excess.Compiler.Tests
                         else
                             _first = creature;
                     }
-                }", out errors, threads: 6);
+                }", out errors, 6);
 
             //must not have compilation errors
             Assert.IsNull(errors);
@@ -206,30 +202,30 @@ namespace Excess.Compiler.Tests
             const int blue = 0;
             const int red = 1;
             const int yellow = 2;
-            const int iterations = 6 * 1000 * 1000;
+            const int iterations = 6*1000*1000;
 
             Action<int, int[]> run = (meeetings, colors) =>
             {
                 var broker = node.Spawn("Broker", meeetings);
-                for (int i = 0; i < colors.Length; i++)
+                for (var i = 0; i < colors.Length; i++)
                     node.Spawn("Chameneo", broker, colors[i]);
             };
 
-            Stopwatch sw = new Stopwatch();
+            var sw = new Stopwatch();
             sw.Start();
             {
                 node.StopCount(2);
 
-                run(iterations, new[] { blue, red, yellow });
+                run(iterations, new[] {blue, red, yellow});
                 //node.WaitForCompletion();
                 //node.Restart();
-                run(iterations, new[] { blue, red, yellow, red, yellow, blue, red, yellow, red, blue });
+                run(iterations, new[] {blue, red, yellow, red, yellow, blue, red, yellow, red, blue});
 
                 node.WaitForCompletion();
             }
             sw.Stop();
 
-            TimeSpan rt = TimeSpan.FromTicks(sw.ElapsedTicks);
+            var rt = TimeSpan.FromTicks(sw.ElapsedTicks);
             var ts = rt.TotalSeconds.ToString();
             Assert.IsNotNull(ts);
         }

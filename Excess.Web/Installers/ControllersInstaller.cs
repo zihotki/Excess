@@ -2,11 +2,10 @@ using System.Web.Mvc;
 using Castle.MicroKernel.Registration;
 using Castle.MicroKernel.SubSystems.Configuration;
 using Castle.Windsor;
+using Excess.Web.Plumbing;
 
 namespace Excess.Web.Installers
 {
-    using Plumbing;
-
     public class ControllersInstaller : IWindsorInstaller
     {
         public void Install(IWindsorContainer container, IConfigurationStore store)

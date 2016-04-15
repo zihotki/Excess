@@ -1,45 +1,20 @@
-﻿using Excess.Compiler.Roslyn;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
+using Excess.Compiler;
+using Excess.Compiler.Roslyn;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Excess.Compiler;
 
 namespace Excess.RuntimeProject
 {
-    using CSharp = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
-    using Compilation = Excess.Compiler.Roslyn.Compilation;
+    using CSharp = SyntaxFactory;
 
     public class AntlrTool : ICompilationTool
     {
-        public string displayName { get { return "Antlr"; } }
-        public bool doNotCache { get { return false; } }
-        public bool compile(string file, string contents, Scope scope, Dictionary<string, string> result)
-        {
-            var environment = scope.get<ICompilerEnvironment>();
-
-            string path = environment.Path().ToolPath;
-            string grammar = Path.GetFileName(file);
-
-            CompileGrammar(grammar, path, contents, result);
-            if (result.Count != 4) //lol
-                throw new InvalidDataException("Antlr failed compiling the grammar, we'll know more later");
-
-            grammar = Path.GetFileNameWithoutExtension(grammar);
-
-            var grammarFile = grammar + "Grammar.cs";
-            result[grammarFile] = GenerateGrammarFile(grammar, result[grammar + "Parser.cs"]);
-
-            return true;
-        }
-
-        static string grammarFile = @"
+        private static readonly string grammarFile = @"
             using System;
             using System.Collections.Generic;
             using Excess.Compiler;
@@ -68,6 +43,31 @@ namespace Excess.RuntimeProject
                 }}
             }}";
 
+        private static readonly Template contextCall = Template.ParseStatement("return _ctx.notify<__0>(context);");
+
+        private static readonly string AntlrExe = "antlr-4.5-complete.exe";
+        public string DisplayName => "Antlr";
+        public bool DoNotCache => false;
+
+        public bool Compile(string file, string contents, Scope scope, Dictionary<string, string> result)
+        {
+            var environment = scope.get<ICompilerEnvironment>();
+
+            string path = environment.Path().ToolPath;
+            var grammar = Path.GetFileName(file);
+
+            CompileGrammar(grammar, path, contents, result);
+            if (result.Count != 4) //lol
+                throw new InvalidDataException("Antlr failed compiling the grammar, we'll know more later");
+
+            grammar = Path.GetFileNameWithoutExtension(grammar);
+
+            var grammarFile = grammar + "Grammar.cs";
+            result[grammarFile] = GenerateGrammarFile(grammar, result[grammar + "Parser.cs"]);
+
+            return true;
+        }
+
         private string GenerateGrammarFile(string grammar, string parserFile)
         {
             var syntaxTree = CSharp.ParseSyntaxTree(parserFile);
@@ -82,28 +82,27 @@ namespace Excess.RuntimeProject
                     .Identifier
                     .ToString() == "ruleNames")
                 .First()
-                    .DescendantNodes()
-                    .OfType<InitializerExpressionSyntax>()
-                    .First()
-                        .Expressions[0]
-                        .ToString();
-                ;
+                .DescendantNodes()
+                .OfType<InitializerExpressionSyntax>()
+                .First()
+                .Expressions[0]
+                .ToString();
+            ;
 
             return string.Format(grammarFile, grammar, ruleName.Substring(1, ruleName.Length - 2));
         }
-
-        static Template contextCall = Template.ParseStatement("return _ctx.notify<__0>(context);");
 
         private MethodDeclarationSyntax OverrideMethod(MethodDeclarationSyntax method)
         {
             return method
                 .WithModifiers(CSharp.TokenList(method
-                        .Modifiers
-                        .Where(modifier => modifier.Kind() != SyntaxKind.VirtualKeyword)
-                        .Union(new[] { CSharp.Token(SyntaxKind.OverrideKeyword) })
-                        .ToArray()))
+                    .Modifiers
+                    .Where(modifier => modifier.Kind() != SyntaxKind.VirtualKeyword)
+                    .Union(new[] {CSharp.Token(SyntaxKind.OverrideKeyword)})
+                    .ToArray()))
                 .WithBody(CSharp.Block()
-                    .WithStatements(CSharp.List(new[] {
+                    .WithStatements(CSharp.List(new[]
+                    {
                         contextCall.Get<StatementSyntax>(method
                             .ParameterList
                             .Parameters
@@ -111,8 +110,6 @@ namespace Excess.RuntimeProject
                             .Type)
                     })));
         }
-
-        private static string AntlrExe = "antlr-4.5-complete.exe";
 
         private void CompileGrammar(string grammar, string toolPath, string contents, Dictionary<string, string> result)
         {
@@ -131,9 +128,9 @@ namespace Excess.RuntimeProject
             }
 
             File.Copy(Path.Combine(exePath, "expressions.g4"),
-                      Path.Combine(tempDir, "expressions.g4"));
+                Path.Combine(tempDir, "expressions.g4"));
 
-            ProcessStartInfo start = new ProcessStartInfo();
+            var start = new ProcessStartInfo();
             start.Arguments = string.Format("-Dlanguage=CSharp -o \"{1}\" {0}", g4, tempDir);
             start.FileName = exeFile;
             start.WindowStyle = ProcessWindowStyle.Hidden;
@@ -142,7 +139,7 @@ namespace Excess.RuntimeProject
             start.RedirectStandardOutput = true;
 
             // Run the external process & wait for it to finish
-            using (Process proc = Process.Start(start))
+            using (var proc = Process.Start(start))
             {
                 //td: catch errors
                 //StringBuilder error = new StringBuilder();

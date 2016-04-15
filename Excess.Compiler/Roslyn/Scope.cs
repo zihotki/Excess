@@ -1,10 +1,7 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Excess.Compiler.Roslyn
 {
@@ -30,7 +27,7 @@ namespace Excess.Compiler.Roslyn
 
         internal static void InitDocumentScope(this Scope scope)
         {
-            scope.set("__additionalTypes", new List <TypeDeclarationSyntax>());
+            scope.set("__additionalTypes", new List<TypeDeclarationSyntax>());
         }
 
         public static void AddType(this Scope scope, TypeDeclarationSyntax type)

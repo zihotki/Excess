@@ -1,11 +1,11 @@
-﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System.Linq;
 using Excess.Compiler.Roslyn;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.Linq;
-using Microsoft.CodeAnalysis.CSharp;
 using Excess.Entensions.XS;
+using Excess.Extensions.R;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Excess.Compiler.Tests
 {
@@ -15,7 +15,7 @@ namespace Excess.Compiler.Tests
         [TestMethod]
         public void MatchExtension()
         {
-            RoslynCompiler compiler = new RoslynCompiler();
+            var compiler = new RoslynCompiler();
             Match.Apply(compiler);
 
             SyntaxTree tree = null;
@@ -71,22 +71,22 @@ namespace Excess.Compiler.Tests
                 .DescendantNodes()
                 .OfType<IfStatementSyntax>()
                 .First()
-                    .DescendantNodes()
-                    .OfType<BlockSyntax>()
-                    .Count() == 1); //must have added a block for multiple stements
+                .DescendantNodes()
+                .OfType<BlockSyntax>()
+                .Count() == 1); //must have added a block for multiple stements
 
             Assert.IsTrue(tree.GetRoot()
                 .DescendantNodes()
                 .OfType<BinaryExpressionSyntax>()
                 .Where(expr => expr.OperatorToken.Kind() == SyntaxKind.BarBarToken)
                 .Count() == 1); //must have added an or expression for multiple cases, 
-                                //but not on the case containing the default statement
+            //but not on the case containing the default statement
         }
 
         [TestMethod]
         public void AsynchUsage()
         {
-            RoslynCompiler compiler = new RoslynCompiler();
+            var compiler = new RoslynCompiler();
             Asynch.Apply(compiler);
 
             SyntaxTree tree = null;
@@ -148,8 +148,8 @@ namespace Excess.Compiler.Tests
         [TestMethod]
         public void Contract()
         {
-            RoslynCompiler compiler = new RoslynCompiler();
-            Excess.Entensions.XS.Contract.Apply(compiler);
+            var compiler = new RoslynCompiler();
+            Entensions.XS.Contract.Apply(compiler);
 
             SyntaxTree tree = null;
             string text = null;
@@ -204,8 +204,8 @@ namespace Excess.Compiler.Tests
         [TestMethod]
         public void RUsage()
         {
-            RoslynCompiler compiler = new RoslynCompiler();
-            Excess.Extensions.R.Extension.Apply(compiler);
+            var compiler = new RoslynCompiler();
+            Extension.Apply(compiler);
 
             SyntaxTree tree = null;
             string text = null;
@@ -311,8 +311,8 @@ namespace Excess.Compiler.Tests
         [TestMethod]
         public void JsonUsage()
         {
-            RoslynCompiler compiler = new RoslynCompiler();
-            Entensions.XS.Json.Apply(compiler);
+            var compiler = new RoslynCompiler();
+            Json.Apply(compiler);
 
             SyntaxTree tree = null;
             string text = null;
@@ -353,11 +353,12 @@ namespace Excess.Compiler.Tests
                 .Count() == 4); //4 arrays
         }
 
-        //[TestMethod]
-        //public void FlukeUsage()
-        //{
-        //    RoslynCompiler compiler = new RoslynCompiler();
         //    Entensions.XS.Members.Apply(compiler);
+        //    RoslynCompiler compiler = new RoslynCompiler();
+        //{
+        //public void FlukeUsage()
+
+        //[TestMethod]
         //    Extensions.Fluke.Extension.Apply(compiler);
 
         //    SyntaxTree tree = null;

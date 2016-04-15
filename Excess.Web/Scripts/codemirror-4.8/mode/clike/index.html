@@ -2,7 +2,7 @@
 
 <title>CodeMirror: C-like mode</title>
 <meta charset="utf-8"/>
-<link rel=stylesheet href="../../doc/docs.css">
+<link rel="stylesheet" href="../../doc/docs.css">
 
 <link rel="stylesheet" href="../../lib/codemirror.css">
 <script src="../../lib/codemirror.js"></script>
@@ -11,24 +11,27 @@
 <script src="../../addon/hint/show-hint.js"></script>
 <script src="clike.js"></script>
 <style>.CodeMirror {border: 2px inset #dee;}</style>
-<div id=nav>
-  <a href="http://codemirror.net"><h1>CodeMirror</h1><img id=logo src="../../doc/logo.png"></a>
+<div id="nav">
+    <a href="http://codemirror.net">
+        <h1>CodeMirror</h1><img id="logo" src="../../doc/logo.png">
+    </a>
 
-  <ul>
-    <li><a href="../../index.html">Home</a>
-    <li><a href="../../doc/manual.html">Manual</a>
-    <li><a href="https://github.com/codemirror/codemirror">Code</a>
-  </ul>
-  <ul>
-    <li><a href="../index.html">Language modes</a>
-    <li><a class=active href="#">C-like</a>
-  </ul>
+    <ul>
+        <li><a href="../../index.html">Home</a>
+        <li><a href="../../doc/manual.html">Manual</a>
+        <li><a href="https://github.com/codemirror/codemirror">Code</a>
+    </ul>
+    <ul>
+        <li><a href="../index.html">Language modes</a>
+        <li><a class="active" href="#">C-like</a>
+    </ul>
 </div>
 
 <article>
 <h2>C-like mode</h2>
 
-<div><textarea id="c-code">
+<div>
+    <textarea id="c-code">
 /* C demo code */
 
 #include <zmq.h>
@@ -94,11 +97,13 @@ void* zmq_thread_init(void* zmq_context, int signal_fd) {
   pthread_detach(thread);
   return context;
 }
-</textarea></div>
+</textarea>
+</div>
 
 <h2>C++ example</h2>
 
-<div><textarea id="cpp-code">
+<div>
+    <textarea id="cpp-code">
 #include <iostream>
 #include "mystuff/util.h"
 
@@ -137,11 +142,13 @@ void Class::Method2(MyType<T, V>* value) {
   value->Method3(member_);
   member_ = value;
 }
-</textarea></div>
+</textarea>
+</div>
 
 <h2>Objective-C example</h2>
 
-<div><textarea id="objectivec-code">
+<div>
+    <textarea id="objectivec-code">
 /*
 This is a longer comment
 That spans two lines
@@ -157,11 +164,13 @@ That spans two lines
   int test = 5;
   return YES;
 }
-</textarea></div>
+</textarea>
+</div>
 
 <h2>Java example</h2>
 
-<div><textarea id="java-code">
+<div>
+    <textarea id="java-code">
 import com.demo.util.MyType;
 import com.demo.util.MyInterface;
 
@@ -189,11 +198,13 @@ public class Class<T, V> implements MyInterface {
     member = value;
   }
 }
-</textarea></div>
+</textarea>
+</div>
 
 <h2>Scala example</h2>
 
-<div><textarea id="scala-code">
+<div>
+    <textarea id="scala-code">
 object FilterTest extends App {
   def filter(xs: List[Int], threshold: Int) = {
     def process(ys: List[Int]): List[Int] =
@@ -204,9 +215,10 @@ object FilterTest extends App {
   }
   println(filter(List(1, 9, 2, 8, 3, 7, 4), 5))
 }
-</textarea></div>
+</textarea>
+</div>
 
-    <script>
+<script>
       var cEditor = CodeMirror.fromTextArea(document.getElementById("c-code"), {
         lineNumbers: true,
         matchBrackets: true,
@@ -236,16 +248,20 @@ object FilterTest extends App {
       CodeMirror.keyMap.default[(mac ? "Cmd" : "Ctrl") + "-Space"] = "autocomplete";
     </script>
 
-    <p>Simple mode that tries to handle C-like languages as well as it
+<p>
+    Simple mode that tries to handle C-like languages as well as it
     can. Takes two configuration parameters: <code>keywords</code>, an
     object whose property names are the keywords in the language,
     and <code>useCPP</code>, which determines whether C preprocessor
-    directives are recognized.</p>
+    directives are recognized.
+</p>
 
-    <p><strong>MIME types defined:</strong> <code>text/x-csrc</code>
+<p>
+    <strong>MIME types defined:</strong> <code>text/x-csrc</code>
     (C), <code>text/x-c++src</code> (C++), <code>text/x-java</code>
     (Java), <code>text/x-csharp</code> (C#),
     <code>text/x-objectivec</code> (Objective-C),
     <code>text/x-scala</code> (Scala), <code>text/x-vertex</code>
-    and <code>x-shader/x-fragment</code> (shader programs).</p>
+    and <code>x-shader/x-fragment</code> (shader programs).
+</p>
 </article>

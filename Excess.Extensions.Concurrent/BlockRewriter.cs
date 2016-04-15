@@ -1,33 +1,34 @@
-﻿using Excess.Compiler.Roslyn;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using Excess.Compiler;
+using Excess.Compiler.Roslyn;
 using Excess.Extensions.Concurrent.Model;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Excess.Extensions.Concurrent
 {
-    using Compiler;
-    using Microsoft.CodeAnalysis.CSharp;
-    using CSharp = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+    using CSharp = SyntaxFactory;
     using Roslyn = RoslynCompiler;
 
     internal class BlockRewriter : CSharpSyntaxRewriter
     {
-        Class _class;
-        Scope _scope;
+        private static readonly Dictionary<string, int> _prefixes = new Dictionary<string, int>();
+        private readonly Class _class;
+
+        private List<Operator> _operators;
+        private readonly Scope _scope;
+
+        public bool HasConcurrent { get; internal set; }
+
         public BlockRewriter(Class @class, Scope scope)
         {
             _class = @class;
             _scope = scope;
         }
-
-        public bool HasConcurrent { get; internal set; }
 
         public override SyntaxNode VisitExpressionStatement(ExpressionStatementSyntax statement)
         {
@@ -68,7 +69,7 @@ namespace Excess.Extensions.Concurrent
 
             //in cases such as if (x) y; 
             //we standarize the blocks, if (x) {y;}
-            return CSharp.Block((StatementSyntax)result); 
+            return CSharp.Block((StatementSyntax) result);
         }
 
         public override SyntaxNode VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
@@ -96,8 +97,10 @@ namespace Excess.Extensions.Concurrent
                     //case: var a = await b();
                     extraStatement = CSharp
                         .LocalDeclarationStatement(CSharp.VariableDeclaration(
-                            node.Declaration.Type, CSharp.SeparatedList(new[] {
-                            CSharp.VariableDeclarator(variable.Identifier)})));
+                            node.Declaration.Type, CSharp.SeparatedList(new[]
+                            {
+                                CSharp.VariableDeclarator(variable.Identifier)
+                            })));
 
                     awaitExpr = CSharp.AssignmentExpression(
                         SyntaxKind.SimpleAssignmentExpression,
@@ -105,7 +108,6 @@ namespace Excess.Extensions.Concurrent
                         (value as AwaitExpressionSyntax)
                             .Expression);
                 }
-
             }
 
             if (awaitExpr != null)
@@ -189,7 +191,7 @@ namespace Excess.Extensions.Concurrent
                 (on, nn) => nn
                     .AddExpressions(_operators
                         .Where(op => !string.IsNullOrEmpty(op.StartName))
-                        .Select(op => (ExpressionSyntax)CSharp.AssignmentExpression(
+                        .Select(op => (ExpressionSyntax) CSharp.AssignmentExpression(
                             SyntaxKind.SimpleAssignmentExpression,
                             CSharp.IdentifierName(op.StartName),
                             StartFunction(op.Start, exprClassName, true)))
@@ -206,7 +208,7 @@ namespace Excess.Extensions.Concurrent
             {
                 var enterStatement = Templates
                     .StartCallbackEnter
-                        .Get<StatementSyntax>();
+                    .Get<StatementSyntax>();
 
                 statements = new[]
                 {
@@ -219,7 +221,7 @@ namespace Excess.Extensions.Concurrent
                 };
             }
 
-            
+
             return startFunc
                 .WithBody((startFunc.Body as BlockSyntax)
                     .AddStatements(
@@ -242,26 +244,6 @@ namespace Excess.Extensions.Concurrent
             //                .ToArray())));
         }
 
-        class Operator
-        {
-            public Operator Parent { get; set; }
-            public List<StatementSyntax> Start { get; set; }
-            public string StartName { get; set; }
-            public MethodDeclarationSyntax Eval { get; set; }
-            public FieldDeclarationSyntax LeftValue { get; set; }
-            public FieldDeclarationSyntax RightValue { get; set; }
-
-            public SyntaxToken Callback
-            {
-                get
-                {
-                    Debug.Assert(Eval != null);
-                    return Eval.Identifier;
-                }
-            }
-        }
-
-        List<Operator> _operators;
         private Operator build(BinaryExpressionSyntax expr, Operator parent, bool leftOfParent, List<StatementSyntax> start)
         {
             var exprOperator = new Operator();
@@ -280,13 +262,13 @@ namespace Excess.Extensions.Concurrent
                 .Get<FieldDeclarationSyntax>(rightId);
 
             //generate method to update the expression
-            ExpressionSyntax success = parent == null
+            var success = parent == null
                 ? Templates
                     .ExpressionCompleteCall
                     .Get<ExpressionSyntax>(Roslyn.@true, Roslyn.@null)
                 : CreateCallback(true, leftOfParent, parent.Callback);
 
-            ExpressionSyntax failure = parent == null
+            var failure = parent == null
                 ? Templates
                     .ExpressionCompleteCall
                     .Get<ExpressionSyntax>(Roslyn.@false, Templates.FailureParameter)
@@ -343,12 +325,16 @@ namespace Excess.Extensions.Concurrent
         private ExpressionSyntax CreateCallback(bool success, bool leftOfParent, SyntaxToken token)
         {
             var arg1 = leftOfParent
-                ? success ? Roslyn.@true : Roslyn.@false
+                ? success
+                    ? Roslyn.@true
+                    : Roslyn.@false
                 : Roslyn.@null;
 
             var arg2 = leftOfParent
                 ? Roslyn.@null
-                : success ? Roslyn.@true : Roslyn.@false;
+                : success
+                    ? Roslyn.@true
+                    : Roslyn.@false;
 
             var ex = success
                 ? Roslyn.@null
@@ -356,10 +342,12 @@ namespace Excess.Extensions.Concurrent
 
             return CSharp
                 .InvocationExpression(CSharp.IdentifierName(token))
-                .WithArgumentList(CSharp.ArgumentList(CSharp.SeparatedList(new[] {
+                .WithArgumentList(CSharp.ArgumentList(CSharp.SeparatedList(new[]
+                {
                     CSharp.Argument(arg1),
                     CSharp.Argument(arg2),
-                    CSharp.Argument(ex)})));
+                    CSharp.Argument(ex)
+                })));
         }
 
         private bool isBinaryExpressionSyntax(ExpressionSyntax expr, out BinaryExpressionSyntax result)
@@ -381,8 +369,12 @@ namespace Excess.Extensions.Concurrent
                 .Get<ExpressionSyntax>(
                     _class.Name,
                     callbackName,
-                    leftOperand ? Roslyn.@true : Roslyn.@null,
-                    leftOperand ? Roslyn.@null : Roslyn.@true,
+                    leftOperand
+                        ? Roslyn.@true
+                        : Roslyn.@null,
+                    leftOperand
+                        ? Roslyn.@null
+                        : Roslyn.@true,
                     Roslyn.@null);
 
             var failure = Templates
@@ -390,8 +382,12 @@ namespace Excess.Extensions.Concurrent
                 .Get<ExpressionSyntax>(
                     _class.Name,
                     callbackName,
-                    leftOperand ? Roslyn.@false : Roslyn.@null,
-                    leftOperand ? Roslyn.@null : Roslyn.@false,
+                    leftOperand
+                        ? Roslyn.@false
+                        : Roslyn.@null,
+                    leftOperand
+                        ? Roslyn.@null
+                        : Roslyn.@false,
                     Templates.FailureParameter);
 
             start
@@ -399,8 +395,6 @@ namespace Excess.Extensions.Concurrent
                     .StartExpression
                     .Get<ExpressionSyntax>(expr, success, failure)));
         }
-
-        static Dictionary<string, int> _prefixes = new Dictionary<string, int>();
 
         public static string uniqueId(string prefix)
         {
@@ -420,6 +414,23 @@ namespace Excess.Extensions.Concurrent
             return uniqueId("__op");
         }
 
+        private class Operator
+        {
+            public Operator Parent { get; set; }
+            public List<StatementSyntax> Start { get; set; }
+            public string StartName { get; set; }
+            public MethodDeclarationSyntax Eval { get; set; }
+            public FieldDeclarationSyntax LeftValue { get; set; }
+            public FieldDeclarationSyntax RightValue { get; set; }
+
+            public SyntaxToken Callback
+            {
+                get
+                {
+                    Debug.Assert(Eval != null);
+                    return Eval.Identifier;
+                }
+            }
+        }
     }
 }
-    

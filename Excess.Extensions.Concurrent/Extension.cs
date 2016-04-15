@@ -1,21 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Excess.Compiler;
 using Excess.Compiler.Roslyn;
+using Excess.Extensions.Concurrent.Model;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Excess.Extensions.Concurrent
 {
-    using CSharp = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+    using CSharp = SyntaxFactory;
     using Roslyn = RoslynCompiler;
     using ExcessCompiler = ICompiler<SyntaxToken, SyntaxNode, SemanticModel>;
-    using Model;
 
     public class Extension
     {
@@ -25,18 +23,18 @@ namespace Excess.Extensions.Concurrent
 
             lexical
                 .Match()
-                    .Token("concurrent", named: "keyword")
-                    .Token("class", named: "ref")
-                    .Then(lexical.Transform()
-                        .Remove("keyword")
-                        .Then(Compile))
+                .Token("concurrent", "keyword")
+                .Token("class", "ref")
+                .Then(lexical.Transform()
+                    .Remove("keyword")
+                    .Then(Compile))
                 .Match()
-                    .Token("concurrent", named: "keyword")
-                    .Token("object", named: "ref")
-                    .Then(lexical.Transform()
-                        .Remove("keyword")
-                        .Replace("ref", "class")
-                        .Then(CompileObject));
+                .Token("concurrent", "keyword")
+                .Token("object", "ref")
+                .Then(lexical.Transform()
+                    .Remove("keyword")
+                    .Replace("ref", "class")
+                    .Then(CompileObject));
         }
 
         private static SyntaxNode Compile(SyntaxNode node, Scope scope)
@@ -49,7 +47,7 @@ namespace Excess.Extensions.Concurrent
             var className = @class.Identifier.ToString();
 
             var ctx = new Class(className, scope);
-            scope.set<Class>(ctx);
+            scope.set(ctx);
 
             foreach (var member in @class.Members)
             {
@@ -87,32 +85,32 @@ namespace Excess.Extensions.Concurrent
             if (!Roslyn.IsVisible(property))
                 return;
 
-            var @get = null as AccessorDeclarationSyntax;
-            var @set = null as AccessorDeclarationSyntax;
+            var get = null as AccessorDeclarationSyntax;
+            var set = null as AccessorDeclarationSyntax;
             foreach (var accesor in property.AccessorList.Accessors)
             {
                 switch (accesor.Keyword.Kind())
                 {
                     case SyntaxKind.GetKeyword:
-                        @get = accesor;
+                        get = accesor;
                         break;
                     case SyntaxKind.SetKeyword:
-                        @set = accesor;
+                        set = accesor;
                         break;
                     default:
                         throw new NotImplementedException();
                 }
             }
 
-            bool hasCustomGet = @get != null && @get.Body != null && @get.Body.Statements.Count > 0;
-            if (hasCustomGet && @get.Body.Statements.Count == 1)
-                hasCustomGet = !(@get.Body.Statements[0] is ReturnStatementSyntax);
+            var hasCustomGet = get != null && get.Body != null && get.Body.Statements.Count > 0;
+            if (hasCustomGet && get.Body.Statements.Count == 1)
+                hasCustomGet = !(get.Body.Statements[0] is ReturnStatementSyntax);
 
-            bool hasCustomSet = @set != null && @set.Body != null && @set.Body.Statements.Count > 0;
-            if (hasCustomSet && @set.Body.Statements.Count == 1)
-                hasCustomSet = !(@set.Body.Statements[0] is ExpressionStatementSyntax)
-                            || (@set.Body.Statements[0] as ExpressionStatementSyntax)
-                                    .Expression.Kind() != SyntaxKind.SimpleAssignmentExpression;
+            var hasCustomSet = set != null && set.Body != null && set.Body.Statements.Count > 0;
+            if (hasCustomSet && set.Body.Statements.Count == 1)
+                hasCustomSet = !(set.Body.Statements[0] is ExpressionStatementSyntax)
+                               || (set.Body.Statements[0] as ExpressionStatementSyntax)
+                                   .Expression.Kind() != SyntaxKind.SimpleAssignmentExpression;
 
             if (hasCustomGet || hasCustomSet)
             {
@@ -134,12 +132,12 @@ namespace Excess.Extensions.Concurrent
             var isVisible = isProtected || Roslyn.IsVisible(method);
 
             var hasReturnType = method.ReturnType.ToString() != "void";
-            var returnType = hasReturnType 
+            var returnType = hasReturnType
                 ? method.ReturnType
                 : Roslyn.boolean;
 
-            var isEmptySignal = method.Body == null 
-                             || method.Body.IsMissing;
+            var isEmptySignal = method.Body == null
+                                || method.Body.IsMissing;
             if (isEmptySignal)
             {
                 if (method.ParameterList.Parameters.Count > 0)
@@ -182,7 +180,7 @@ namespace Excess.Extensions.Concurrent
                 var mainMethod = concurrentMethod(ctx, method);
 
                 //hook up our start method
-                int currentIndex = 0;
+                var currentIndex = 0;
                 ctx.AddMember(Templates
                     .StartObject
                     .Get<MethodDeclarationSyntax>(Templates
@@ -190,19 +188,20 @@ namespace Excess.Extensions.Concurrent
                         .Get<InvocationExpressionSyntax>()
                         .WithArgumentList(CSharp.ArgumentList(CSharp.SeparatedList(
                             mainMethod
-                            .ParameterList
-                            .Parameters
-                            .Where(param => param.Identifier.ToString() != "__success"
-                                         && param.Identifier.ToString() != "__failure")
-                            .Select(param => CSharp.Argument(Templates
-                                .StartObjectArgument
-                                .Get<ExpressionSyntax>(
-                                    param.Type,
-                                    currentIndex++)))
-                             .Union(new[] {
-                                 CSharp.Argument(Roslyn.@null),
-                                 CSharp.Argument(Roslyn.@null),
-                             }))))));
+                                .ParameterList
+                                .Parameters
+                                .Where(param => param.Identifier.ToString() != "__success"
+                                                && param.Identifier.ToString() != "__failure")
+                                .Select(param => CSharp.Argument(Templates
+                                    .StartObjectArgument
+                                    .Get<ExpressionSyntax>(
+                                        param.Type,
+                                        currentIndex++)))
+                                .Union(new[]
+                                {
+                                    CSharp.Argument(Roslyn.@null),
+                                    CSharp.Argument(Roslyn.@null)
+                                }))))));
 
                 return true;
             }
@@ -213,9 +212,11 @@ namespace Excess.Extensions.Concurrent
                     ctx.AddMember(Templates
                         .EmptySignalMethod
                         .Get<MethodDeclarationSyntax>(
-                            "__concurrent" + name, 
+                            "__concurrent" + name,
                             Roslyn.Quoted(name),
-                            isProtected ? Roslyn.@true : Roslyn.@false));
+                            isProtected
+                                ? Roslyn.@true
+                                : Roslyn.@false));
                 else
                     concurrentMethod(ctx, method);
             }
@@ -225,9 +226,11 @@ namespace Excess.Extensions.Concurrent
                 ctx.AddMember(Templates
                     .EmptySignalMethod
                     .Get<MethodDeclarationSyntax>(
-                        "__concurrent" + name, 
+                        "__concurrent" + name,
                         Roslyn.Quoted(name),
-                        isProtected? Roslyn.@true : Roslyn.@false));
+                        isProtected
+                            ? Roslyn.@true
+                            : Roslyn.@false));
             else
                 return false;
 
@@ -241,7 +244,7 @@ namespace Excess.Extensions.Concurrent
         private static BlockSyntax parseConcurrentBlock(Class ctx, BlockSyntax body, Scope scope)
         {
             var rewriter = new BlockRewriter(ctx, scope);
-            var result = (BlockSyntax)rewriter.Visit(body);
+            var result = (BlockSyntax) rewriter.Visit(body);
 
             if (rewriter.HasConcurrent)
                 return result;
@@ -262,13 +265,13 @@ namespace Excess.Extensions.Concurrent
 
             if (returnStatements.Any())
                 body = body
-                    .ReplaceNodes(returnStatements, 
-                    (on, nn) => Templates
-                        .ExpressionReturn
-                        .Get<StatementSyntax>(nn.Expression == null || nn.Expression.IsMissing
-                            ? Roslyn.@null
-                            : nn.Expression,
-                            Roslyn.Quoted(method.Identifier.ToString())));
+                    .ReplaceNodes(returnStatements,
+                        (on, nn) => Templates
+                            .ExpressionReturn
+                            .Get<StatementSyntax>(nn.Expression == null || nn.Expression.IsMissing
+                                ? Roslyn.@null
+                                : nn.Expression,
+                                Roslyn.Quoted(method.Identifier.ToString())));
 
             if (forever)
             {
@@ -301,7 +304,7 @@ namespace Excess.Extensions.Concurrent
         private static bool checkContinued(IEnumerable<StatementSyntax> statements)
         {
             var statement = statements.LastOrDefault();
-            return (statement != null && statement is ContinueStatementSyntax);
+            return statement != null && statement is ContinueStatementSyntax;
         }
 
         private static void createPublicSignals(Class ctx, MethodDeclarationSyntax method, Signal signal)
@@ -323,37 +326,37 @@ namespace Excess.Extensions.Concurrent
                     .DescendantNodes()
                     .OfType<InvocationExpressionSyntax>()
                     .Where(i => i.ArgumentList.Arguments.Count == 2),
-                (on, nn) => nn
-                    .WithArgumentList(CSharp.ArgumentList(CSharp.SeparatedList(
-                        method.ParameterList.Parameters
-                            .Select(param => CSharp.Argument(CSharp.IdentifierName(
-                                param.Identifier)))
-                        .Union(on.ArgumentList.Arguments)))));
+                    (on, nn) => nn
+                        .WithArgumentList(CSharp.ArgumentList(CSharp.SeparatedList(
+                            method.ParameterList.Parameters
+                                .Select(param => CSharp.Argument(CSharp.IdentifierName(
+                                    param.Identifier)))
+                                .Union(on.ArgumentList.Arguments)))));
 
             ctx.AddMember(AddParameters(
                 method.ParameterList,
                 Templates.TaskPublicMethod
-                .Get<MethodDeclarationSyntax>(
-                    method.Identifier.ToString(),
-                    returnType,
-                    internalCall)));
+                    .Get<MethodDeclarationSyntax>(
+                        method.Identifier.ToString(),
+                        returnType,
+                        internalCall)));
 
             ctx.AddMember(AddParameters(
                 method.ParameterList,
                 Templates.TaskCallbackMethod
-                .Get<MethodDeclarationSyntax>(
-                    method.Identifier.ToString(),
-                    internalCall)));
+                    .Get<MethodDeclarationSyntax>(
+                        method.Identifier.ToString(),
+                        internalCall)));
         }
 
         private static MemberDeclarationSyntax AddParameters(ParameterListSyntax parameterList, MethodDeclarationSyntax methodDeclarationSyntax)
         {
             return methodDeclarationSyntax
-            .WithParameterList(methodDeclarationSyntax.ParameterList
-                .WithParameters(CSharp.SeparatedList(
-                    parameterList.Parameters
-                    .Union(methodDeclarationSyntax
-                        .ParameterList.Parameters))));
+                .WithParameterList(methodDeclarationSyntax.ParameterList
+                    .WithParameters(CSharp.SeparatedList(
+                        parameterList.Parameters
+                            .Union(methodDeclarationSyntax
+                                .ParameterList.Parameters))));
         }
 
         private static SyntaxNode CompileObject(SyntaxNode node, Scope scope)

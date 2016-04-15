@@ -1,21 +1,18 @@
-﻿using Antlr4.Runtime;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using Antlr4.Runtime;
 using Excess.Compiler;
 using Excess.Compiler.Roslyn;
 using Excess.Extensions.XS.Grammars;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
 namespace Excess.Entensions.XS
 {
-    using CSharp = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+    using CSharp = SyntaxFactory;
     using ExcessCompiler = ICompiler<SyntaxToken, SyntaxNode, SemanticModel>;
     using Roslyn = RoslynCompiler;
 
@@ -24,10 +21,10 @@ namespace Excess.Entensions.XS
         public ParserRuleContext Parse(IEnumerable<SyntaxToken> tokens, Scope scope, int offset)
         {
             var text = RoslynCompiler.TokensToString(tokens);
-            AntlrInputStream stream = new AntlrInputStream(text);
+            var stream = new AntlrInputStream(text);
             ITokenSource lexer = new JSONLexer(stream);
             ITokenStream tokenStream = new CommonTokenStream(lexer);
-            JSONParser parser = new JSONParser(tokenStream);
+            var parser = new JSONParser(tokenStream);
 
             parser.AddErrorListener(new AntlrErrors<IToken>(scope, offset));
             var result = parser.json();
@@ -40,6 +37,8 @@ namespace Excess.Entensions.XS
 
     public class Json
     {
+        private static readonly Template createJson = Template.ParseExpression("JObject.FromObject(__0)");
+
         public static void Apply(ExcessCompiler compiler)
         {
             compiler.Environment()
@@ -47,18 +46,16 @@ namespace Excess.Entensions.XS
 
             compiler.Lexical()
                 .Grammar<JsonGrammar, ParserRuleContext>("json", ExtensionKind.Code)
-                    .Transform<JSONParser.ExpressionContext>(AntlrExpression.Parse)
-                    .Transform<JSONParser.JsonContext>(Main)
-                    .transform<JSONParser.ObjectContext>(JObject)
-                    .transform<JSONParser.ArrayContext>(JArray)
-                    .transform<JSONParser.PairContext>(JPair)
-                    .transform<JSONParser.ValueContext>(JValue)
-
-                    .Then(Transform);
+                .Transform<JSONParser.ExpressionContext>(AntlrExpression.Parse)
+                .Transform<JSONParser.JsonContext>(Main)
+                .Transform<JSONParser.ObjectContext>(JObject)
+                .Transform<JSONParser.ArrayContext>(JArray)
+                .Transform<JSONParser.PairContext>(JPair)
+                .Transform<JSONParser.ValueContext>(JValue)
+                .Then(Transform);
             ;
         }
 
-        static Template createJson = Template.ParseExpression("JObject.FromObject(__0)");
         private static SyntaxNode Transform(SyntaxNode oldNode, SyntaxNode newNode, Scope scope, LexicalExtension<SyntaxToken> extension)
         {
             Debug.Assert(newNode is AnonymousObjectCreationExpressionSyntax);
@@ -72,7 +69,7 @@ namespace Excess.Entensions.XS
                 return newNode;
             }
 
-            return result; 
+            return result;
         }
 
         private static SyntaxNode JValue(JSONParser.ValueContext value, Func<ParserRuleContext, Scope, SyntaxNode> continuation, Scope scope)
@@ -98,7 +95,7 @@ namespace Excess.Entensions.XS
                 identifier = identifier.Substring(1, identifier.Length - 2); //traditional jason
             }
 
-            var expr = (ExpressionSyntax)continuation(pair.value(), scope);
+            var expr = (ExpressionSyntax) continuation(pair.value(), scope);
             return CSharp
                 .AnonymousObjectMemberDeclarator(CSharp
                     .NameEquals(CSharp
@@ -113,15 +110,15 @@ namespace Excess.Entensions.XS
             {
                 Debug.Assert(value is JSONParser.ValueContext);
 
-                var expr = (ExpressionSyntax)JValue(value, continuation, scope);
+                var expr = (ExpressionSyntax) JValue(value, continuation, scope);
                 if (expr != null) //empty ok
                     values.Add(expr);
             }
 
             return CSharp
                 .ImplicitArrayCreationExpression(CSharp
-                .InitializerExpression(SyntaxKind.ArrayInitializerExpression, CSharp.SeparatedList(
-                    values)));
+                    .InitializerExpression(SyntaxKind.ArrayInitializerExpression, CSharp.SeparatedList(
+                        values)));
         }
 
         private static SyntaxNode JObject(JSONParser.ObjectContext @object, Func<ParserRuleContext, Scope, SyntaxNode> continuation, Scope scope)
@@ -134,7 +131,7 @@ namespace Excess.Entensions.XS
             var members = new List<AnonymousObjectMemberDeclaratorSyntax>();
             foreach (var pair in pairs)
             {
-                members.Add((AnonymousObjectMemberDeclaratorSyntax)continuation(pair, scope));
+                members.Add((AnonymousObjectMemberDeclaratorSyntax) continuation(pair, scope));
             }
 
             return CSharp

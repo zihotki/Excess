@@ -31,40 +31,40 @@
     @Scripts.Render("~/Bundles/App/Main/js")
 </head>
 <body>
-    <div ng-app="app">
-        <div ng-controller="app.views.layout as vm">
-            <div class="header FixedTop">
-                <div class="toolbar-left">
-                    <a class="app-title" href="#/">EXCESS</a>
-                </div>
-
-                <div class="toolbar-left">
-                    <a class="toolbar-icon fa fa-spinner fa-spin" ng-hide="loadingRequests <= 0"></a>
-                    <a ng-repeat="menu in menus" class="toolbar-icon fa {{menu.icon}}" href="{{menu.url}}" ng-click="menu.action()">
-                        <span class="toolbar-text">{{menu.caption}}</span>
-                    </a>
-                </div>
-
-                <div class="toolbar-right">
-                    <a class="toolbar-icon fa fa-user" ng-click="showLogin()" ng-if="!session"></a>
-
-                    <a ng-if="session">{{session.UserName}}</a>
-                    <a class="toolbar-icon fa fa-sign-out" ng-click="showLogout()" ng-if="session"></a>
-                </div>
+<div ng-app="app">
+    <div ng-controller="app.views.layout as vm">
+        <div class="header FixedTop">
+            <div class="toolbar-left">
+                <a class="app-title" href="#/">EXCESS</a>
             </div>
 
-            <div ui-view class="content-container">
+            <div class="toolbar-left">
+                <a class="toolbar-icon fa fa-spinner fa-spin" ng-hide="loadingRequests <= 0"></a>
+                <a ng-repeat="menu in menus" class="toolbar-icon fa {{menu.icon}}" href="{{menu.url}}" ng-click="menu.action()">
+                    <span class="toolbar-text">{{menu.caption}}</span>
+                </a>
             </div>
-            
-            <div class="footer">
-                <div class="toolbar-right">
-                    <a href="http://www.facebook.com/metaninja" class="toolbar-icon fa fa-facebook fa-fw"></a>
-                    <a href="http://twitter.com/meta_ninja" class="toolbar-icon fa fa-twitter fa-fw"></a>
-                    <a href="https://plus.google.com/u/0/b/115865877602133760249/115865877602133760249/posts" class="toolbar-icon fa fa-google-plus fa-fw"></a>
-                    <a href="https://github.com/xs-admin/Excess" class="toolbar-icon fa fa-github fa-fw"></a>
-                </div>
+
+            <div class="toolbar-right">
+                <a class="toolbar-icon fa fa-user" ng-click="showLogin()" ng-if="!session"></a>
+
+                <a ng-if="session">{{session.UserName}}</a>
+                <a class="toolbar-icon fa fa-sign-out" ng-click="showLogout()" ng-if="session"></a>
+            </div>
+        </div>
+
+        <div ui-view class="content-container">
+        </div>
+
+        <div class="footer">
+            <div class="toolbar-right">
+                <a href="http://www.facebook.com/metaninja" class="toolbar-icon fa fa-facebook fa-fw"></a>
+                <a href="http://twitter.com/meta_ninja" class="toolbar-icon fa fa-twitter fa-fw"></a>
+                <a href="https://plus.google.com/u/0/b/115865877602133760249/115865877602133760249/posts" class="toolbar-icon fa fa-google-plus fa-fw"></a>
+                <a href="https://github.com/xs-admin/Excess" class="toolbar-icon fa fa-github fa-fw"></a>
             </div>
         </div>
     </div>
+</div>
 </body>
 </html>

@@ -1,18 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Excess.Compiler.Tests.TestRuntime
 {
     public class console
     {
-        private static List<string> _items = new List<string>();
-        private static object _consoleLock = new object();
+        private static readonly List<string> _items = new List<string>();
+        private static readonly object _consoleLock = new object();
 
-        static public void write(object message)
+        public static void write(object message)
         {
             Debug.WriteLine(message);
             lock (_consoleLock)

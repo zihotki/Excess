@@ -1,23 +1,19 @@
-﻿using Excess.Compiler.Roslyn;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Excess.Compiler;
+﻿using Excess.Compiler;
 using Excess.Compiler.Core;
+using Excess.Compiler.Roslyn;
+using Excess.Entensions.XS;
+using Microsoft.CodeAnalysis;
 
 namespace Excess
 {
     using Injector = ICompilerInjector<SyntaxToken, SyntaxNode, SemanticModel>;
     using CompositeInjector = CompositeInjector<SyntaxToken, SyntaxNode, SemanticModel>;
     using DelegateInjector = DelegateInjector<SyntaxToken, SyntaxNode, SemanticModel>;
-    using Excess.Entensions.XS;
 
     public class TranslationService : ITranslationService
     {
+        private RoslynCompiler _compiler;
+
         public string translate(string text)
         {
             if (_compiler == null)
@@ -28,11 +24,10 @@ namespace Excess
             return tree.GetRoot().NormalizeWhitespace().ToString();
         }
 
-        RoslynCompiler _compiler;
         private void initCompiler()
         {
             _compiler = new RoslynCompiler();
-            Injector injector = new CompositeInjector(new[] { XSLang.Create(), demoExtensions() });
+            Injector injector = new CompositeInjector(new[] {XSLang.Create(), demoExtensions()});
             injector.Apply(_compiler);
         }
 

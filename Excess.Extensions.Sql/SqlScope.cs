@@ -1,7 +1,6 @@
 ﻿namespace Excess.Extensions.Sql
 {
-	public class SqlScope
-	{
-		 
-	}
+    public class SqlScope
+    {
+    }
 }

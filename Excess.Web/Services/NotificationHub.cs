@@ -1,9 +1,5 @@
 ﻿using Excess.RuntimeProject;
 using Microsoft.AspNet.SignalR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 
 namespace Excess.Web.Services
 {
@@ -13,8 +9,9 @@ namespace Excess.Web.Services
 
     public class HubNotifier : INotifier
     {
-        IHubContext _ctx;
-        string _connection; 
+        private readonly string _connection;
+        private readonly IHubContext _ctx;
+
         public HubNotifier(string connection)
         {
             _connection = connection;

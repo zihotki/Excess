@@ -1,21 +1,23 @@
-﻿using Excess.Compiler;
-using Excess.Compiler.Roslyn;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Excess.Compiler;
+using Excess.Compiler.Roslyn;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Excess.Entensions.XS
 {
-    using CSharp = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+    using CSharp = SyntaxFactory;
     using ExcessCompiler = ICompiler<SyntaxToken, SyntaxNode, SemanticModel>;
 
     public class Contract
     {
+        private static readonly StatementSyntax ContractCheck = CSharp.ParseStatement(@"
+            if (!(__condition)) 
+                throw new InvalidOperationException(""Breach of contract!!"");");
+
         public static void Apply(ExcessCompiler compiler)
         {
             var syntax = compiler.Syntax();
@@ -31,7 +33,7 @@ namespace Excess.Entensions.XS
                 var block = extension.Body as BlockSyntax;
                 Debug.Assert(block != null);
 
-                List<StatementSyntax> checks = new List<StatementSyntax>();
+                var checks = new List<StatementSyntax>();
                 foreach (var st in block.Statements)
                 {
                     var stExpression = st as ExpressionStatementSyntax;
@@ -46,9 +48,8 @@ namespace Excess.Entensions.XS
                             .DescendantNodes()
                             .OfType<ExpressionSyntax>()
                             .Where(expr => expr.ToString() == "__condition"),
-
-                         (oldNode, newNode) => 
-                            stExpression.Expression);
+                            (oldNode, newNode) =>
+                                stExpression.Expression);
 
                     checks.Add(contractCheck);
                 }
@@ -59,9 +60,5 @@ namespace Excess.Entensions.XS
             scope.AddError("contract02", "contract cannot return a value", node);
             return node;
         }
-
-        static private StatementSyntax ContractCheck = CSharp.ParseStatement(@"
-            if (!(__condition)) 
-                throw new InvalidOperationException(""Breach of contract!!"");");
     }
 }

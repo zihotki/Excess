@@ -1,11 +1,8 @@
 ﻿using System;
-using Castle.Facilities.Logging;
-using Castle.MicroKernel.Registration;
 using System.Web;
 using System.Web.Mvc;
-using System.Web.Routing;
 using System.Web.Optimization;
-using System.Data.Entity.Migrations;
+using System.Web.Routing;
 
 namespace Excess.Web
 {
@@ -32,14 +29,14 @@ namespace Excess.Web
         }
 
         /// <summary>
-        /// This method is called by ASP.NET system when a request starts.
+        ///     This method is called by ASP.NET system when a request starts.
         /// </summary>
         protected virtual void Application_BeginRequest(object sender, EventArgs e)
         {
         }
 
         /// <summary>
-        /// This method is called by ASP.NET system when a request ends.
+        ///     This method is called by ASP.NET system when a request ends.
         /// </summary>
         protected virtual void Application_EndRequest(object sender, EventArgs e)
         {
@@ -54,7 +51,7 @@ namespace Excess.Web
             // Code that runs when an unhandled error occurs
 
             // Get the exception object.
-            Exception exc = Server.GetLastError();
+            var exc = Server.GetLastError();
 
             // Handle HTTP errors
             if (exc.GetType() == typeof(HttpException))
@@ -79,14 +76,15 @@ namespace Excess.Web
             // Clear the error from the server
             Server.ClearError();
         }
-        //public override void Init()
-        //{
-        //    //IocManager.Instance.IocContainer.AddFacility<LoggingFacility>(f => f.UseLog4Net().WithConfig("log4net.config"));
-        //    //IocManager.Instance.IocContainer.Register(
-        //    //    Component.For<IDSLFactory>()
-        //    //        .UsingFactoryMethod(() => {
-        //    //            var ctxFactory = HttpContext.Current.Session["dsl"] as IDSLFactory;
+
         //    //            if (ctxFactory == null)
+        //    //            var ctxFactory = HttpContext.Current.Session["dsl"] as IDSLFactory;
+        //    //        .UsingFactoryMethod(() => {
+        //    //    Component.For<IDSLFactory>()
+        //    //IocManager.Instance.IocContainer.Register(
+        //    //IocManager.Instance.IocContainer.AddFacility<LoggingFacility>(f => f.UseLog4Net().WithConfig("log4net.config"));
+        //{
+        //public override void Init()
         //    //                return new SimpleFactory();
 
         //    //            return ctxFactory;

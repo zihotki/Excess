@@ -1,8 +1,7 @@
+using System.Data.Entity.Migrations;
+
 namespace Excess.Web.Migrations
 {
-    using System;
-    using System.Data.Entity.Migrations;
-    
     public partial class filehash : DbMigration
     {
         public override void Up()
@@ -10,15 +9,14 @@ namespace Excess.Web.Migrations
             CreateTable(
                 "dbo.FileHashes",
                 c => new
-                    {
-                        ID = c.Int(nullable: false, identity: true),
-                        FileID = c.Int(nullable: false),
-                        Hash = c.Int(nullable: false),
-                    })
+                {
+                    ID = c.Int(false, true),
+                    FileID = c.Int(false),
+                    Hash = c.Int(false)
+                })
                 .PrimaryKey(t => t.ID);
-            
         }
-        
+
         public override void Down()
         {
             DropTable("dbo.FileHashes");

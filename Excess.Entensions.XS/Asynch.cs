@@ -1,20 +1,30 @@
-﻿using Excess.Compiler;
+﻿using System.Linq;
+using Excess.Compiler;
 using Excess.Compiler.Roslyn;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Excess.Entensions.XS
 {
-    using CSharp = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+    using CSharp = SyntaxFactory;
     using ExcessCompiler = ICompiler<SyntaxToken, SyntaxNode, SemanticModel>;
 
     public class Asynch
     {
+        private static readonly StatementSyntax ContextVariable = CSharp.ParseStatement(@"
+            SynchronizationContext __ASynchCtx = SynchronizationContext.Current; ");
+
+        private static readonly StatementSyntax AsynchTemplate = CSharp.ParseStatement(@"
+            Task.Factory.StartNew(() =>
+            {
+            });");
+
+        private static readonly StatementSyntax SynchTemplate = CSharp.ParseStatement(@"
+            __ASynchCtx.Post(() => 
+            { 
+            });");
+
         public static void Apply(ExcessCompiler compiler)
         {
             var syntax = compiler.Syntax();
@@ -32,11 +42,11 @@ namespace Excess.Entensions.XS
                 var result = AsynchTemplate
                     .ReplaceNodes(AsynchTemplate
                         .DescendantNodes()
-                        .OfType<BlockSyntax>(), 
+                        .OfType<BlockSyntax>(),
                         (oldNode, newNode) => extension.Body);
 
                 var document = scope.GetDocument<SyntaxToken, SyntaxNode, SemanticModel>();
-                document.Change(node.Parent, RoslynCompiler.AddStatement(ContextVariable, before: node));
+                document.Change(node.Parent, RoslynCompiler.AddStatement(ContextVariable, node));
 
                 return result;
             }
@@ -60,18 +70,5 @@ namespace Excess.Entensions.XS
             scope.AddError("synch01", "synch does not return a value", node);
             return node;
         }
-
-        static private StatementSyntax ContextVariable = CSharp.ParseStatement(@"
-            SynchronizationContext __ASynchCtx = SynchronizationContext.Current; ");
-
-        static private StatementSyntax AsynchTemplate = CSharp.ParseStatement(@"
-            Task.Factory.StartNew(() =>
-            {
-            });");
-
-        static private StatementSyntax SynchTemplate = CSharp.ParseStatement(@"
-            __ASynchCtx.Post(() => 
-            { 
-            });");
     }
 }

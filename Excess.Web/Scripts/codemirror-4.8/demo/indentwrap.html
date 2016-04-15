@@ -2,7 +2,7 @@
 
 <title>CodeMirror: Indented wrapped line demo</title>
 <meta charset="utf-8"/>
-<link rel=stylesheet href="../doc/docs.css">
+<link rel="stylesheet" href="../doc/docs.css">
 
 <link rel="stylesheet" href="../lib/codemirror.css">
 <script src="../lib/codemirror.js"></script>
@@ -11,22 +11,25 @@
       .CodeMirror {border-top: 1px solid black; border-bottom: 1px solid black;}
       .CodeMirror pre > * { text-indent: 0px; }
     </style>
-<div id=nav>
-  <a href="http://codemirror.net"><h1>CodeMirror</h1><img id=logo src="../doc/logo.png"></a>
+<div id="nav">
+    <a href="http://codemirror.net">
+        <h1>CodeMirror</h1><img id="logo" src="../doc/logo.png">
+    </a>
 
-  <ul>
-    <li><a href="../index.html">Home</a>
-    <li><a href="../doc/manual.html">Manual</a>
-    <li><a href="https://github.com/codemirror/codemirror">Code</a>
-  </ul>
-  <ul>
-    <li><a class=active href="#">Indented wrapped line</a>
-  </ul>
+    <ul>
+        <li><a href="../index.html">Home</a>
+        <li><a href="../doc/manual.html">Manual</a>
+        <li><a href="https://github.com/codemirror/codemirror">Code</a>
+    </ul>
+    <ul>
+        <li><a class="active" href="#">Indented wrapped line</a>
+    </ul>
 </div>
 
 <article>
-<h2>Indented wrapped line demo</h2>
-<form><textarea id="code" name="code">
+    <h2>Indented wrapped line demo</h2>
+    <form>
+        <textarea id="code" name="code">
 <!doctype html>
 <body>
   <h2 id="overview">Overview</h2>
@@ -35,11 +38,14 @@
 
   <p>CodeMirror works with language-specific modes. Modes are JavaScript programs that help color (and optionally indent) text written in a given language. The distribution comes with a number of modes (see the <a href="../mode/"><code>mode/</code></a> directory), and it isn't hard to <a href="#modeapi">write new ones</a> for other languages.</p>
 </body>
-</textarea></form>
+</textarea>
+    </form>
 
-    <p>This page uses a hack on top of the <code>"renderLine"</code>
-    event to make wrapped text line up with the base indentation of
-    the line.</p>
+    <p>
+        This page uses a hack on top of the <code>"renderLine"</code>
+        event to make wrapped text line up with the base indentation of
+        the line.
+    </p>
 
     <script>
       var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
@@ -56,4 +62,4 @@
       editor.refresh();
     </script>
 
-  </article>
+</article>

@@ -1,20 +1,28 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 
 namespace Excess.Compiler.Tests.TestRuntime
 {
-    using System.Collections.Concurrent;
-    using System.Diagnostics;
-    using System.Threading;
     using Spawner = Func<object[], ConcurrentObject>;
 
     public class Node
     {
-        IDictionary<string, Spawner> _types;
-        int _threads;
+        //cache events to avoid allocations
+        private readonly ConcurrentQueue<Event> _cache = new ConcurrentQueue<Event>();
+        private int _cacheHits;
+        private int _cacheMisses;
+
+        private readonly ConcurrentQueue<Event> _queue = new ConcurrentQueue<Event>();
+
+        private CancellationTokenSource _stop = new CancellationTokenSource();
+        private int _stopCount = 1;
+        private readonly int _threads;
+        private readonly IDictionary<string, Spawner> _types;
+
         public Node(int threads, IDictionary<string, Spawner> types)
         {
             _threads = threads;
@@ -37,7 +45,7 @@ namespace Excess.Compiler.Tests.TestRuntime
             if (!_types.TryGetValue(type, out caller))
                 throw new InvalidOperationException(type + " is not defined");
 
-            var result = caller(args); 
+            var result = caller(args);
             result.startRunning(this, args);
             return result;
         }
@@ -47,15 +55,6 @@ namespace Excess.Compiler.Tests.TestRuntime
             @object.startRunning(this, args);
         }
 
-        private class Event
-        {
-            public int Tries { get; set; }
-            public ConcurrentObject Target { get; set; }
-            public Action What { get; set; }
-            public Action<Exception> Failure { get; set; }
-        }
-
-        ConcurrentQueue<Event> _queue = new ConcurrentQueue<Event>();
         public void Queue(ConcurrentObject who, Action what, Action<Exception> failure)
         {
             //_queue.Enqueue(new Event
@@ -68,8 +67,6 @@ namespace Excess.Compiler.Tests.TestRuntime
             _queue.Enqueue(queueEvent(0, who, what, failure));
         }
 
-        CancellationTokenSource _stop = new CancellationTokenSource();
-        int _stopCount = 1;
         public void Stop()
         {
             _stopCount--;
@@ -100,12 +97,12 @@ namespace Excess.Compiler.Tests.TestRuntime
         private void createThreads(int threads)
         {
             var cancellation = _stop.Token;
-            for (int i = 0; i < threads; i++)
+            for (var i = 0; i < threads; i++)
             {
-                var thread = new Thread(() => {
+                var thread = new Thread(() =>
+                {
                     while (true)
                     {
-
                         Event message;
                         _queue.TryDequeue(out message);
                         if (cancellation.IsCancellationRequested)
@@ -127,10 +124,6 @@ namespace Excess.Compiler.Tests.TestRuntime
             }
         }
 
-        //cache events to avoid allocations
-        ConcurrentQueue<Event> _cache = new ConcurrentQueue<Event>();
-        int _cacheHits = 0;
-        int _cacheMisses = 0;
         private Event queueEvent(int tries, ConcurrentObject target, Action action, Action<Exception> failure)
         {
             var result = null as Event;
@@ -153,11 +146,27 @@ namespace Excess.Compiler.Tests.TestRuntime
                 Failure = failure
             };
         }
+
+        private class Event
+        {
+            public int Tries { get; set; }
+            public ConcurrentObject Target { get; set; }
+            public Action What { get; set; }
+            public Action<Exception> Failure { get; set; }
+        }
     }
 
     public class ConcurrentObject
     {
+        private readonly Random __rand = new Random(); //td: test only
+
+        private int _busy;
+
+        private readonly Dictionary<string, List<Action>> _listeners = new Dictionary<string, List<Action>>();
         protected Node _node;
+
+        protected Node Node { get { return _node; } }
+
         internal void startRunning(Node node, object[] args)
         {
             Debug.Assert(_busy == 0);
@@ -165,7 +174,6 @@ namespace Excess.Compiler.Tests.TestRuntime
             __start(args);
         }
 
-        protected Node Node { get { return _node; } }
         protected virtual void __start(object[] args)
         {
         }
@@ -175,7 +183,6 @@ namespace Excess.Compiler.Tests.TestRuntime
             return _node.Spawn<T>(args);
         }
 
-        int _busy = 0;
         protected internal void __enter(Action what, Action<Exception> failure)
         {
             var was_busy = Interlocked.CompareExchange(ref _busy, 1, 0) == 1;
@@ -192,7 +199,7 @@ namespace Excess.Compiler.Tests.TestRuntime
                 catch (Exception ex)
                 {
                     if (failure != null)
-                        failure(ex); 
+                        failure(ex);
                     else
                         throw;
                 }
@@ -214,7 +221,6 @@ namespace Excess.Compiler.Tests.TestRuntime
                 expr.Start(expr);
         }
 
-        Dictionary<string, List<Action>> _listeners = new Dictionary<string, List<Action>>();
         protected void __listen(string signal, Action callback)
         {
             List<Action> actions;
@@ -251,12 +257,10 @@ namespace Excess.Compiler.Tests.TestRuntime
         {
             return _listeners
                 .Where(kvp => kvp.Key == signal
-                           && kvp.Value.Any())
+                              && kvp.Value.Any())
                 .Any();
-
         }
 
-        Random __rand = new Random(); //td: test only
         protected double rand()
         {
             return __rand.NextDouble();
@@ -270,12 +274,12 @@ namespace Excess.Compiler.Tests.TestRuntime
 
     public class Expression
     {
+        private readonly List<Exception> _exceptions = new List<Exception>();
         public Action<Expression> Start { get; set; }
         public IEnumerator<Expression> Continuator { get; set; }
         public Action<Expression> End { get; set; }
         public Exception Failure { get; set; }
 
-        List<Exception> _exceptions = new List<Exception>();
         protected void __complete(bool success, Exception failure)
         {
             Debug.Assert(Continuator != null);
@@ -283,7 +287,7 @@ namespace Excess.Compiler.Tests.TestRuntime
 
             IEnumerable<Exception> allFailures = _exceptions;
             if (failure != null)
-                allFailures = allFailures.Union(new[] { failure });
+                allFailures = allFailures.Union(new[] {failure});
 
             if (!success)
             {

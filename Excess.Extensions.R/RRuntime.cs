@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Excess.Extensions.R
 {
@@ -15,9 +13,31 @@ namespace Excess.Extensions.R
 
     public class Vector<T> : IVector
     {
+        public IEnumerable<T> data { get; }
+
+        private Vector(int len, IEnumerable<T> data)
+        {
+            length = len;
+            this.data = data;
+        }
+
+        public int length { get; }
+        public Type type { get { return typeof(T); } }
+
+        public IEnumerable<R> getEnumerable<R>()
+        {
+            var meType = typeof(T);
+            var heType = typeof(R);
+
+            if (meType == heType)
+                return (IEnumerable<R>) data;
+
+            return data.Select(d => (R) Convert.ChangeType(d, heType));
+        }
+
         public static Vector<T> create(int len, T value)
         {
-            return new Vector<T>(len, Repeat<T>(len, value));
+            return new Vector<T>(len, Repeat(len, value));
         }
 
         public static Vector<T> create(int len, IEnumerable<T> data)
@@ -27,7 +47,7 @@ namespace Excess.Extensions.R
 
         private static IEnumerable<R> Repeat<R>(int len, R value)
         {
-            for (int i = 0; i < len; i++)
+            for (var i = 0; i < len; i++)
                 yield return value;
         }
 
@@ -38,7 +58,7 @@ namespace Excess.Extensions.R
 
         private static IEnumerable<T> Transform(Vector<T> v, Func<T, T> transform)
         {
-            foreach (var data in v._data)
+            foreach (var data in v.data)
                 yield return transform(data);
         }
 
@@ -49,24 +69,24 @@ namespace Excess.Extensions.R
 
         private static IEnumerable<R> Transform<R>(Vector<T> v, Func<T, R> transform)
         {
-            foreach (var data in v._data)
+            foreach (var data in v.data)
                 yield return transform(data);
         }
 
         public static Vector<T> create<S>(Vector<S> v, Func<S, T> transform)
         {
-            return new Vector<T>(v.length, Transform<S, T>(v, transform));
+            return new Vector<T>(v.length, Transform(v, transform));
         }
 
         private static IEnumerable<R> Transform<S, R>(Vector<S> v, Func<S, R> transform)
         {
-            foreach (var data in v._data)
+            foreach (var data in v.data)
                 yield return transform(data);
         }
 
         public static Vector<T> create<S1, S2>(Vector<S1> v1, Vector<S2> v2, Func<S1, S2, T> transform)
         {
-            return new Vector<T>(v1.length, Transform<S1, S2, T>(v1, v2, transform));
+            return new Vector<T>(v1.length, Transform(v1, v2, transform));
         }
 
         private static IEnumerable<R> Transform<S1, S2, R>(Vector<S1> v1, Vector<S2> v2, Func<S1, S2, R> transform)
@@ -77,7 +97,7 @@ namespace Excess.Extensions.R
             var max = Math.Max(v1.length, v2.length);
             var enum1 = v1.data.GetEnumerator();
             var enum2 = v2.data.GetEnumerator();
-            for (int i = 0; i < max; i++)
+            for (var i = 0; i < max; i++)
             {
                 if (!enum1.MoveNext())
                 {
@@ -93,29 +113,6 @@ namespace Excess.Extensions.R
 
                 yield return transform(enum1.Current, enum2.Current);
             }
-        }
-
-        int _len;
-        IEnumerable<T> _data;
-        private Vector(int len, IEnumerable<T> data)
-        {
-            _len = len;
-            _data = data;
-        }
-
-        public IEnumerable<T> data { get { return _data; } }
-
-        public int length { get { return _len; } }
-        public Type type { get { return typeof(T); } }
-        public IEnumerable<R> getEnumerable<R>()
-        {
-            var meType = typeof(T);
-            var heType = typeof(R);
-
-            if (meType == heType)
-                return (IEnumerable<R>)_data;
-
-            return _data.Select(d => (R)Convert.ChangeType(d, heType));
         }
     }
 
@@ -208,7 +205,7 @@ namespace Excess.Extensions.R
             var len = 0;
 
             var result = new List<IVector>();
-            for (int i = 0; i < values.Length; i++)
+            for (var i = 0; i < values.Length; i++)
             {
                 var value = values[i];
                 var valueType = value.GetType();
@@ -227,12 +224,12 @@ namespace Excess.Extensions.R
                     result.Add(vector);
                     len += vector.length;
                 }
-                else 
+                else
                 {
                     if (start == stop)
                     {
                         start = i;
-                        stop  = i;
+                        stop = i;
                     }
 
                     stop++;
@@ -261,7 +258,7 @@ namespace Excess.Extensions.R
                 if (vector is Vector<T>)
                 {
                     var tvec = vector as Vector<T>;
-                    foreach(var tvalue in tvec.data)
+                    foreach (var tvalue in tvec.data)
                         yield return tvalue;
                 }
                 else
@@ -275,7 +272,7 @@ namespace Excess.Extensions.R
 
         private static IEnumerable<object> Range(object[] values, int start, int stop)
         {
-            for(int i = start; i < stop; i++)
+            for (var i = start; i < stop; i++)
                 yield return values[i];
         }
 
@@ -285,24 +282,23 @@ namespace Excess.Extensions.R
             var len = Math.Abs(to - from);
             var data = null as IEnumerable<int>;
             if (len == 0)
-                data = new int[1] { from };
+                data = new int[1] {from};
             else
                 data = LinearSequence(from, to);
 
             return Vector<int>.create(len, data);
-
         }
 
         private static IEnumerable<int> LinearSequence(int from, int to)
         {
             if (from < to)
             {
-                for (int i = from; i <= to; i++)
+                for (var i = from; i <= to; i++)
                     yield return i;
             }
             else
             {
-                for (int i = from; i >= to; i--)
+                for (var i = from; i >= to; i--)
                     yield return i;
             }
         }
@@ -324,14 +320,14 @@ namespace Excess.Extensions.R
 
         private static IEnumerable<T> Rep<T>(Vector<T> val, int len, int each)
         {
-            int curr = 0;
+            var curr = 0;
             while (true)
             {
                 foreach (var item in val.data)
                 {
                     if (each > 0)
                     {
-                        for (int i = 0; i < each; i++, curr++)
+                        for (var i = 0; i < each; i++, curr++)
                         {
                             if (curr >= len)
                                 yield break;
@@ -365,7 +361,7 @@ namespace Excess.Extensions.R
                 .data
                 .Count(v => v);
 
-            return Vector<T>.create(len, BoolIndex<T>(val, vec));
+            return Vector<T>.create(len, BoolIndex(val, vec));
         }
 
         private static IEnumerable<T> BoolIndex<T>(Vector<T> val, Vector<bool> vec)
@@ -392,11 +388,11 @@ namespace Excess.Extensions.R
             if (!vec.data.Any())
                 return Vector<T>.create(0, default(T));
 
-            bool isNegative = vec.data.First() < 0;
+            var isNegative = vec.data.First() < 0;
 
             return isNegative
-                ? Vector<T>.create(val.length - vec.length, NegIndex<T>(val, vec))
-                : Vector<T>.create(vec.length, IntIndex<T>(val, vec));
+                ? Vector<T>.create(val.length - vec.length, NegIndex(val, vec))
+                : Vector<T>.create(vec.length, IntIndex(val, vec));
         }
 
         private static IEnumerable<T> IntIndex<T>(Vector<T> val, Vector<int> vec)
@@ -414,7 +410,7 @@ namespace Excess.Extensions.R
             if (set.Count != vec.length)
                 throw new InvalidOperationException("duplicate exclusion indices");
 
-            int current = 0;
+            var current = 0;
             foreach (var value in val.data)
             {
                 if (!set.Contains(current++))

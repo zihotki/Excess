@@ -1,50 +1,20 @@
 ﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Generic;
+using System.Linq;
+using Excess.Compiler.Core;
 using Excess.Compiler.Roslyn;
 using Microsoft.CodeAnalysis;
-using System.Collections.Generic;
-using Excess.Compiler.Core;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.Linq;
-using CSharp = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using CSharp = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Excess.Compiler.Tests
 {
     [TestClass]
     public class Instance
     {
-        [TestMethod]
-        public void InstanceUsage()
-        {
-            RoslynCompiler compiler = new RoslynCompiler();
-            var instance = compiler.Instance();
-
-            //code extension
-            instance
-                .match<InstanceFoo>()
-                    .Input (new InstanceConnector { Id = "input" }, dt: FooInput)
-                    .Output(new InstanceConnector { Id = "output" })
-                    .Then(TransformFoo)
-                .match<InstanceBar>()
-                    .Input(new InstanceConnector { Id = "input" })
-                    .Output(new InstanceConnector { Id = "output" }, transform:  BarOutput)
-                    .Then(TransformBar)
-
-                .then(TransformInstances);
-
-            SyntaxTree tree;
-            string text;
-            RoslynInstanceDocument doc = new RoslynInstanceDocument(InstanceTestParser);
-            tree = compiler.CompileInstance(doc, out text);
-            Assert.IsTrue(tree
-                .GetRoot()
-                .DescendantNodes()
-                .OfType<ParenthesizedLambdaExpressionSyntax>()
-                .Count() == 2); //must have added a PropertyChanged handler
-        }
-
-        static CompilationUnitSyntax UsageApp = CSharp.ParseCompilationUnit(@"
+        private static readonly CompilationUnitSyntax UsageApp = CSharp.ParseCompilationUnit(@"
             internal class BaseRuntime : INotifyPropertyChanged
             {
                 public event PropertyChangedEventHandler PropertyChanged;
@@ -108,6 +78,47 @@ namespace Excess.Compiler.Tests
             }
         ");
 
+        private static readonly Template FooInputInit = Template.ParseStatement(@"
+            _0.PropertyChanged += (sender, args) => 
+            {
+                if (args.PropertyName == __1)
+                    __2;
+            }
+        ");
+
+        private static readonly Template instanceCreation = Template.ParseStatement(@"
+            var _0 = new _1();
+        ");
+
+        [TestMethod]
+        public void InstanceUsage()
+        {
+            var compiler = new RoslynCompiler();
+            var instance = compiler.Instance();
+
+            //code extension
+            instance
+                .match<InstanceFoo>()
+                .Input(new InstanceConnector {Id = "input"}, FooInput)
+                .Output(new InstanceConnector {Id = "output"})
+                .Then(TransformFoo)
+                .match<InstanceBar>()
+                .Input(new InstanceConnector {Id = "input"})
+                .Output(new InstanceConnector {Id = "output"}, transform: BarOutput)
+                .Then(TransformBar)
+                .then(TransformInstances);
+
+            SyntaxTree tree;
+            string text;
+            var doc = new RoslynInstanceDocument(InstanceTestParser);
+            tree = compiler.CompileInstance(doc, out text);
+            Assert.IsTrue(tree
+                .GetRoot()
+                .DescendantNodes()
+                .OfType<ParenthesizedLambdaExpressionSyntax>()
+                .Count() == 2); //must have added a PropertyChanged handler
+        }
+
         private static SyntaxNode TransformInstances(IDictionary<string, Tuple<object, SyntaxNode>> instances, Scope scope)
         {
             var main = UsageApp
@@ -117,49 +128,41 @@ namespace Excess.Compiler.Tests
                 .First();
 
             var result = UsageApp
-                .ReplaceNodes(new[] { main },
-                (on, nn) =>
-                {
-                    var newStatements = scope
-                        .GetInstanceDeclarations()
-                        .Select(instance => (StatementSyntax)instance);
+                .ReplaceNodes(new[] {main},
+                    (on, nn) =>
+                    {
+                        var newStatements = scope
+                            .GetInstanceDeclarations()
+                            .Select(instance => (StatementSyntax) instance);
 
-                    var initStatements = scope
-                        .GetInstanceInitializers()
-                        .Select(instance => (StatementSyntax)instance);
+                        var initStatements = scope
+                            .GetInstanceInitializers()
+                            .Select(instance => (StatementSyntax) instance);
 
-                    return nn
-                        .WithBody(nn.Body
-                            .WithStatements(CSharp.List(
-                                newStatements
-                                    .Union(
-                                initStatements)
-                                    .Union(
-                                nn.Body.Statements))));
-                });
+                        return nn
+                            .WithBody(nn.Body
+                                .WithStatements(CSharp.List(
+                                    newStatements
+                                        .Union(
+                                            initStatements)
+                                        .Union(
+                                            nn.Body.Statements))));
+                    });
 
             return result
                 .ReplaceNodes(result
                     .DescendantNodes()
                     .OfType<ImplicitArrayCreationExpressionSyntax>(),
-                (on, nn) =>
-                {
-                    return nn
-                        .WithInitializer(nn.Initializer
-                            .WithExpressions(CSharp.SeparatedList(
-                                instances
-                                .Keys
-                                .Select(key => CSharp.IdentifierName(key) as ExpressionSyntax))));
-                });
+                    (on, nn) =>
+                    {
+                        return nn
+                            .WithInitializer(nn.Initializer
+                                .WithExpressions(CSharp.SeparatedList(
+                                    instances
+                                        .Keys
+                                        .Select(key => CSharp.IdentifierName(key) as ExpressionSyntax))));
+                    });
         }
-
-        static Template FooInputInit = Template.ParseStatement(@"
-            _0.PropertyChanged += (sender, args) => 
-            {
-                if (args.PropertyName == __1)
-                    __2;
-            }
-        ");
 
         private static void FooInput(InstanceConnector input, object source, object target, Scope scope)
         {
@@ -183,13 +186,10 @@ namespace Excess.Compiler.Tests
                 connection.Source,
                 CSharp.ParseExpression('"' + connection.Input.Id + '"'),
                 CSharp.BinaryExpression(SyntaxKind.EqualsExpression,
-                    (ExpressionSyntax)connection.InputNode,
-                    (ExpressionSyntax)connection.OutputNode)));
+                    (ExpressionSyntax) connection.InputNode,
+                    (ExpressionSyntax) connection.OutputNode)));
         }
 
-        static Template instanceCreation = Template.ParseStatement(@"
-            var _0 = new _1();
-        ");
         private static SyntaxNode TransformBar(string id, object value, IEnumerable<InstanceConnection<SyntaxNode>> connections, Scope scope)
         {
             var decl = instanceCreation.Get(id, "RuntimeBar");
@@ -197,13 +197,13 @@ namespace Excess.Compiler.Tests
                 .ReplaceNodes(decl
                     .DescendantNodes()
                     .OfType<ParameterListSyntax>(),
-                (on, nn) =>
-                {
-                    var values = (value as InstanceFoo).Values;
-                    return nn
-                        .WithParameters(CSharp.SeparatedList(
-                            values.Select(val => CSharp.Parameter(CSharp.Literal(val)))));
-                }));
+                    (on, nn) =>
+                    {
+                        var values = (value as InstanceFoo).Values;
+                        return nn
+                            .WithParameters(CSharp.SeparatedList(
+                                values.Select(val => CSharp.Parameter(CSharp.Literal(val)))));
+                    }));
 
             foreach (var connection in connections)
             {
@@ -214,7 +214,6 @@ namespace Excess.Compiler.Tests
                     Assert.IsTrue(connection.Target == id);
                     connection.InputNode = CSharp.ParseExpression(id + "." + connection.Input.Id);
                 }
-
             }
 
             return null;
@@ -227,13 +226,13 @@ namespace Excess.Compiler.Tests
                 .ReplaceNodes(decl
                     .DescendantNodes()
                     .OfType<ParameterListSyntax>(),
-                (on, nn) =>
-                {
-                    var values = (value as InstanceFoo).Values;
-                    return nn
-                        .WithParameters(CSharp.SeparatedList(
-                            values.Select(val => CSharp.Parameter(CSharp.Literal(val)))));
-                }));
+                    (on, nn) =>
+                    {
+                        var values = (value as InstanceFoo).Values;
+                        return nn
+                            .WithParameters(CSharp.SeparatedList(
+                                values.Select(val => CSharp.Parameter(CSharp.Literal(val)))));
+                    }));
 
             foreach (var connection in connections)
             {
@@ -256,38 +255,37 @@ namespace Excess.Compiler.Tests
                     Assert.IsTrue(connection.Target == id);
                     connection.InputNode = CSharp.ParseExpression(id + "." + connection.Input.Id);
                 }
-
             }
 
             return null;
         }
 
+        private static bool InstanceTestParser(string text, IDictionary<string, object> instances, ICollection<Connection> connections, Scope scope)
+        {
+            instances["foo"] = new InstanceFoo {Id = "foo", Values = new[] {1, 2, 3}};
+            instances["bar"] = new InstanceBar {Id = "bar", Values = new[] {"1", "2", "3"}};
+
+            connections.Add(new Connection {Source = "foo", Target = "bar", InputConnector = "input", OutputConnector = "output"});
+            connections.Add(new Connection {Source = "bar", Target = "foo", InputConnector = "input", OutputConnector = "output"});
+            return true;
+        }
+
         private class InstanceFoo
         {
+            public string Id { get; set; }
+            public int[] Values { get; set; }
+            public List<InstanceBar> Callers { get; }
+
             public InstanceFoo()
             {
                 Callers = new List<InstanceBar>();
             }
-
-            public string Id { get; set; }
-            public int[] Values { get; set; }
-            public List<InstanceBar> Callers { get; set; }
         }
 
         private class InstanceBar
         {
             public string Id { get; set; }
             public string[] Values { get; set; }
-        }
-
-        private static bool InstanceTestParser(string text, IDictionary<string, object> instances, ICollection<Connection> connections, Scope scope)
-        {
-            instances["foo"] = new InstanceFoo { Id = "foo", Values = new[] { 1, 2, 3 } };
-            instances["bar"] = new InstanceBar { Id = "bar", Values = new[] { "1", "2", "3" } };
-
-            connections.Add(new Connection { Source = "foo", Target = "bar", InputConnector = "input", OutputConnector = "output" });
-            connections.Add(new Connection { Source = "bar", Target = "foo", InputConnector = "input", OutputConnector = "output" });
-            return true;
         }
     }
 }

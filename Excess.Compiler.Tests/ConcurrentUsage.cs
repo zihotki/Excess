@@ -1,23 +1,21 @@
-﻿using Excess.Compiler.Roslyn;
-using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Collections.Generic;
+using Excess.Compiler.Roslyn;
+using Excess.Extensions.Concurrent;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Excess.Compiler.Tests
 {
-    using TestRuntime;
-    using System;
-
     [TestClass]
     public class ConcurrentUsage
     {
         [TestMethod]
         public void BasicOperators()
         {
-            RoslynCompiler compiler = new RoslynCompiler();
-            Extensions.Concurrent.Extension.Apply(compiler);
+            var compiler = new RoslynCompiler();
+            Extension.Apply(compiler);
 
             SyntaxTree tree = null;
             string text = null;
@@ -57,30 +55,32 @@ namespace Excess.Compiler.Tests
                 .DescendantNodes()
                 .OfType<MethodDeclarationSyntax>()
                 .Count(method =>
-                    new[] {
-                      "__concurrentmain",
-                      "__concurrentA",
-                      "__concurrentB",
-                      "__concurrentC",
-                      "__concurrentF",
-                      "__concurrentG",}
-                    .Contains(method
-                        .Identifier
-                        .ToString())) == 6); //must have created concurrent methods
+                    new[]
+                    {
+                        "__concurrentmain",
+                        "__concurrentA",
+                        "__concurrentB",
+                        "__concurrentC",
+                        "__concurrentF",
+                        "__concurrentG"
+                    }
+                        .Contains(method
+                            .Identifier
+                            .ToString())) == 6); //must have created concurrent methods
 
             Assert.IsFalse(tree.GetRoot()
                 .DescendantNodes()
                 .OfType<MethodDeclarationSyntax>()
                 .Any(method => method
-                        .Identifier
-                        .ToString() == "__concurrentD")); //but not for D
+                    .Identifier
+                    .ToString() == "__concurrentD")); //but not for D
         }
 
         [TestMethod]
         public void BasicAssigment()
         {
-            RoslynCompiler compiler = new RoslynCompiler();
-            Extensions.Concurrent.Extension.Apply(compiler);
+            var compiler = new RoslynCompiler();
+            Extension.Apply(compiler);
 
             SyntaxTree tree = null;
             string text = null;
@@ -128,7 +128,7 @@ namespace Excess.Compiler.Tests
             Assert.IsTrue(tree.GetRoot()
                 .DescendantNodes()
                 .OfType<AssignmentExpressionSyntax>()
-                .Count(assignment => new[] { "B", "E" }
+                .Count(assignment => new[] {"B", "E"}
                     .Contains(assignment
                         .Left
                         .ToString())) == 2); //must have added assignments from fields to the expression object
@@ -137,8 +137,8 @@ namespace Excess.Compiler.Tests
         [TestMethod]
         public void BasicTryCatch()
         {
-            RoslynCompiler compiler = new RoslynCompiler();
-            Extensions.Concurrent.Extension.Apply(compiler);
+            var compiler = new RoslynCompiler();
+            Extension.Apply(compiler);
 
             SyntaxTree tree = null;
             string text = null;
@@ -179,8 +179,8 @@ namespace Excess.Compiler.Tests
         [TestMethod]
         public void BasicProtection()
         {
-            RoslynCompiler compiler = new RoslynCompiler();
-            Extensions.Concurrent.Extension.Apply(compiler);
+            var compiler = new RoslynCompiler();
+            Extension.Apply(compiler);
 
             SyntaxTree tree = null;
             string text = null;
@@ -205,18 +205,18 @@ namespace Excess.Compiler.Tests
                 .DescendantNodes()
                 .OfType<ThrowStatementSyntax>()
                 .SelectMany(thrw => thrw
-                        .DescendantNodes()
-                        .OfType<LiteralExpressionSyntax>())
+                    .DescendantNodes()
+                    .OfType<LiteralExpressionSyntax>())
                 .Select(s => s.ToString())
-                .Count(s => new[] { "\"choc\"", "\"toffee\"" }
+                .Count(s => new[] {"\"choc\"", "\"toffee\""}
                     .Contains(s)) == 2); //must have added checks for choc and toffee
         }
 
         [TestMethod]
         public void BasicAwait()
         {
-            RoslynCompiler compiler = new RoslynCompiler();
-            Extensions.Concurrent.Extension.Apply(compiler);
+            var compiler = new RoslynCompiler();
+            Extension.Apply(compiler);
 
             SyntaxTree tree = null;
             string text = null;
@@ -245,9 +245,9 @@ namespace Excess.Compiler.Tests
                 .DescendantNodes()
                 .OfType<InvocationExpressionSyntax>()
                 .Where(invocation => invocation
-                    .Expression    
+                    .Expression
                     .ToString() == "__listen")
-                .Count(invocation => new[] { "\"A\"", "\"B\"" }
+                .Count(invocation => new[] {"\"A\"", "\"B\""}
                     .Contains(invocation
                         .ArgumentList
                         .Arguments[0]
@@ -258,8 +258,7 @@ namespace Excess.Compiler.Tests
         public void BasicProtectionRuntime()
         {
             var errors = null as IEnumerable<Diagnostic>;
-            var node = TestRuntime
-                .Concurrent
+            var node = TestRuntime.Concurrent
                 .Build(@"
                     concurrent class VendingMachine 
                     { 

@@ -2,7 +2,7 @@
 
 <title>CodeMirror: Match Highlighter Demo</title>
 <meta charset="utf-8"/>
-<link rel=stylesheet href="../doc/docs.css">
+<link rel="stylesheet" href="../doc/docs.css">
 
 <link rel="stylesheet" href="../lib/codemirror.css">
 <script src="../lib/codemirror.js"></script>
@@ -16,24 +16,28 @@
         background-repeat: repeat-x;
       }
     </style>
-<div id=nav>
-  <a href="http://codemirror.net"><h1>CodeMirror</h1><img id=logo src="../doc/logo.png"></a>
+<div id="nav">
+    <a href="http://codemirror.net">
+        <h1>CodeMirror</h1><img id="logo" src="../doc/logo.png">
+    </a>
 
-  <ul>
-    <li><a href="../index.html">Home</a>
-    <li><a href="../doc/manual.html">Manual</a>
-    <li><a href="https://github.com/codemirror/codemirror">Code</a>
-  </ul>
-  <ul>
-    <li><a class=active href="#">Match Highlighter</a>
-  </ul>
+    <ul>
+        <li><a href="../index.html">Home</a>
+        <li><a href="../doc/manual.html">Manual</a>
+        <li><a href="https://github.com/codemirror/codemirror">Code</a>
+    </ul>
+    <ul>
+        <li><a class="active" href="#">Match Highlighter</a>
+    </ul>
 </div>
 
 <article>
-<h2>Match Highlighter Demo</h2>
-<form><textarea id="code" name="code">Select this text: hardToSpotVar
+    <h2>Match Highlighter Demo</h2>
+    <form>
+        <textarea id="code" name="code">Select this text: hardToSpotVar
 	And everywhere else in your code where hardToSpotVar appears will automatically illuminate.
-Give it a try!  No more hardToSpotVars.</textarea></form>
+Give it a try!  No more hardToSpotVars.</textarea>
+    </form>
 
     <script>
 var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
@@ -44,4 +48,4 @@ var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
 
     <p>Search and highlight occurences of the selected text.</p>
 
-  </article>
+</article>

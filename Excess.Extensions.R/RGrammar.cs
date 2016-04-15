@@ -1,13 +1,8 @@
-﻿using Antlr4.Runtime;
-using Antlr4.Runtime.Tree;
+﻿using System.Collections.Generic;
+using Antlr4.Runtime;
 using Excess.Compiler;
 using Excess.Compiler.Roslyn;
 using Microsoft.CodeAnalysis;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Excess.Extensions.R
 {
@@ -16,10 +11,10 @@ namespace Excess.Extensions.R
         public ParserRuleContext Parse(IEnumerable<SyntaxToken> tokens, Scope scope, int offset)
         {
             var text = RoslynCompiler.TokensToString(tokens);
-            AntlrInputStream stream = new AntlrInputStream(text);
+            var stream = new AntlrInputStream(text);
             ITokenSource lexer = new RLexer(stream);
             ITokenStream tokenStream = new CommonTokenStream(lexer);
-            RParser parser = new RParser(tokenStream);
+            var parser = new RParser(tokenStream);
             return parser.prog();
         }
     }

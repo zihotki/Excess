@@ -3,6 +3,7 @@ using System.Linq;
 using Excess.Compiler.Core;
 using Microsoft.CodeAnalysis;
 using Xunit;
+using Compilation = Excess.Compiler.Roslyn.Compilation;
 
 namespace Excess.Extensions.Sql.Tests
 {
@@ -12,18 +13,18 @@ namespace Excess.Extensions.Sql.Tests
         {
             var errors = new List<string>();
 
-            var compilation = new Compiler.Roslyn.Compilation(null);
+            var compilation = new Compilation(null);
             var injector = new CompositeInjector<SyntaxToken, SyntaxNode, SemanticModel>(new[]
             {
                 new DelegateInjector<SyntaxToken, SyntaxNode, SemanticModel>(compiler => compiler
                     .Environment()
-                        .Dependency(new[] {
-                            "System",
-                            "System.Collections",
-                            "System.Collections.Generic",
-                            "System.Diagnostics",
-                        })),
-
+                    .Dependency(new[]
+                    {
+                        "System",
+                        "System.Collections",
+                        "System.Collections.Generic",
+                        "System.Diagnostics"
+                    })),
                 new DelegateInjector<SyntaxToken, SyntaxNode, SemanticModel>(compiler =>
                     SqlExtension.Apply(compiler))
             });
@@ -117,6 +118,5 @@ public class Query
 
             Assert.Empty(errors);
         }
-
     }
 }

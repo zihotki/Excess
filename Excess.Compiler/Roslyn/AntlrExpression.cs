@@ -1,25 +1,20 @@
-﻿using Antlr4.Runtime;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using Antlr4.Runtime;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Excess.Compiler.Roslyn
 {
-    using CSharp = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+    using CSharp = SyntaxFactory;
+
     public static class AntlrExpression
     {
-        public static SyntaxNode Parse(ParserRuleContext node, Func<ParserRuleContext, Scope, SyntaxNode> continuation, Scope scope)
-        {
-            return VisitNode((ParserRuleContext)node); //td: scope needed?
-        }
+        private static readonly Dictionary<string, Func<ParserRuleContext, ExpressionSyntax>> _handlers =
+            new Dictionary<string, Func<ParserRuleContext, ExpressionSyntax>>();
 
-        static Dictionary<string, Func<ParserRuleContext, ExpressionSyntax>> _handlers = new Dictionary<string, Func<ParserRuleContext, ExpressionSyntax>>();
         static AntlrExpression()
         {
             _handlers["ExpressionContext"] = Expression;
@@ -52,6 +47,11 @@ namespace Excess.Compiler.Roslyn
             _handlers["UnaryOperatorContext"] = Hidden;
             _handlers["AssignmentOperatorContext"] = Hidden;
             _handlers["ConstantExpressionContext"] = Hidden;
+        }
+
+        public static SyntaxNode Parse(ParserRuleContext node, Func<ParserRuleContext, Scope, SyntaxNode> continuation, Scope scope)
+        {
+            return VisitNode(node); //td: scope needed?
         }
 
         private static ExpressionSyntax StringLiteral(ParserRuleContext arg)
@@ -189,7 +189,7 @@ namespace Excess.Compiler.Roslyn
 
             return CSharp
                 .ArgumentList(CSharp
-                .SeparatedList(new[] { arg }));
+                    .SeparatedList(new[] {arg}));
         }
 
         private static ExpressionSyntax Constant(ParserRuleContext node)
@@ -256,11 +256,11 @@ namespace Excess.Compiler.Roslyn
 
             Debug.Assert(node.ChildCount == 4);
             var expr = VisitNode(node.GetRuleContext<ParserRuleContext>(0));
-            var index = (ArgumentListSyntax)Arguments(node.GetRuleContext<ParserRuleContext>(2));
+            var index = Arguments(node.GetRuleContext<ParserRuleContext>(2));
 
             return CSharp.ElementAccessExpression(
                 expr, CSharp
-                .BracketedArgumentList(index.Arguments));
+                    .BracketedArgumentList(index.Arguments));
         }
 
         private static ExpressionSyntax Call(ParserRuleContext node)

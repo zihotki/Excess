@@ -1,10 +1,6 @@
-﻿using Excess.Compiler;
+﻿using System;
+using Excess.Compiler;
 using Excess.RuntimeProject;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Excess.Services
 {
@@ -15,9 +11,15 @@ namespace Excess.Services
             var result = null as IRuntimeProject;
             switch (projectType)
             {
-                case "console": result = new ConsoleRuntime(storage); break;
-                case "extension": result = new ExtensionRuntime(storage); break;
-                case "concurrent": result = new ConcurrentRuntime(storage); break;
+                case "console":
+                    result = new ConsoleRuntime(storage);
+                    break;
+                case "extension":
+                    result = new ExtensionRuntime(storage);
+                    break;
+                case "concurrent":
+                    result = new ConcurrentRuntime(storage);
+                    break;
             }
 
             if (result == null)

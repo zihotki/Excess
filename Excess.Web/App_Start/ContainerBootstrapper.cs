@@ -6,16 +6,16 @@ namespace Excess.Web.App_Start
 {
     public class ContainerBootstrapper : IContainerAccessor, IDisposable
     {
-        readonly IWindsorContainer container;
-
-        ContainerBootstrapper(IWindsorContainer container)
+        private ContainerBootstrapper(IWindsorContainer container)
         {
-            this.container = container;
+            Container = container;
         }
 
-        public IWindsorContainer Container
+        public IWindsorContainer Container { get; }
+
+        public void Dispose()
         {
-            get { return container; }
+            Container.Dispose();
         }
 
         public static ContainerBootstrapper Bootstrap()
@@ -24,11 +24,6 @@ namespace Excess.Web.App_Start
                 Install(FromAssembly.This()).
                 Install(FromAssembly.Containing(typeof(ITranslationService)));
             return new ContainerBootstrapper(container);
-        }
-
-        public void Dispose()
-        {
-            Container.Dispose();
         }
     }
 }

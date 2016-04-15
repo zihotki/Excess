@@ -2,7 +2,7 @@
 
 <title>CodeMirror: Test Suite</title>
 <meta charset="utf-8"/>
-<link rel=stylesheet href="../doc/docs.css">
+<link rel="stylesheet" href="../doc/docs.css">
 
 <link rel="stylesheet" href="../lib/codemirror.css">
 <link rel="stylesheet" href="mode_test.css">
@@ -46,31 +46,36 @@
   .CodeMirror { border: 1px solid black; }
 </style>
 
-<div id=nav>
-  <a href="http://codemirror.net"><h1>CodeMirror</h1><img id=logo src="../doc/logo.png"></a>
+<div id="nav">
+    <a href="http://codemirror.net">
+        <h1>CodeMirror</h1><img id="logo" src="../doc/logo.png">
+    </a>
 
-  <ul>
-    <li><a href="../index.html">Home</a>
-    <li><a href="../doc/manual.html">Manual</a>
-    <li><a href="https://github.com/codemirror/codemirror">Code</a>
-  </ul>
-  <ul>
-    <li><a class=active href="#">Test suite</a>
-  </ul>
+    <ul>
+        <li><a href="../index.html">Home</a>
+        <li><a href="../doc/manual.html">Manual</a>
+        <li><a href="https://github.com/codemirror/codemirror">Code</a>
+    </ul>
+    <ul>
+        <li><a class="active" href="#">Test suite</a>
+    </ul>
 </div>
 
 <article>
-  <h2>Test Suite</h2>
+    <h2>Test Suite</h2>
 
     <p>A limited set of programmatic sanity tests for CodeMirror.</p>
 
     <div style="border: 1px solid black; padding: 1px; max-width: 700px;">
-      <div style="width: 0px;" id=progress><div style="padding: 3px;">Ran <span id="progress_ran">0</span><span id="progress_total"> of 0</span> tests</div></div>
+        <div style="width: 0px;" id="progress">
+            <div style="padding: 3px;">Ran <span id="progress_ran">0</span><span id="progress_total"> of 0</span> tests
+            </div>
+        </div>
     </div>
-    <p id=status>Please enable JavaScript...</p>
-    <div id=output></div>
+    <p id="status">Please enable JavaScript...</p>
+    <div id="output"></div>
 
-    <div id=testground></div>
+    <div id="testground"></div>
 
     <script src="driver.js"></script>
     <script src="test.js"></script>

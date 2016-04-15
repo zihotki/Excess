@@ -1,40 +1,37 @@
-﻿using Excess.Compiler;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using Excess.Compiler;
 using Excess.Compiler.Roslyn;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Excess.Entensions.XS
 {
-    using CSharp = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+    using CSharp = SyntaxFactory;
     using ExcessCompiler = ICompiler<SyntaxToken, SyntaxNode, SemanticModel>;
 
-    class TypeDef
+    internal class TypeDef
     {
-        static public void Apply(ExcessCompiler compiler)
+        public static void Apply(ExcessCompiler compiler)
         {
-            var lexical   = compiler.Lexical();
+            var lexical = compiler.Lexical();
             var semantics = compiler.Semantics();
 
             lexical
                 .Match()
-                    .Token("typedef")
-                    .Identifier(named: "id")
-                    .Token("=")
-                    .Until(';', named: "definition")
-                    .Then(TypedefAssignment)
-                .Match() 
-                    .Token("typedef", named: "keyword")
-                    .Until(';', named: "definition")
-                    .Then(compiler.Lexical().Transform()
-                        .Remove("keyword")
-                        .Then(Typedef));
+                .Token("typedef")
+                .Identifier("id")
+                .Token("=")
+                .Until(';', "definition")
+                .Then(TypedefAssignment)
+                .Match()
+                .Token("typedef", "keyword")
+                .Until(';', "definition")
+                .Then(compiler.Lexical().Transform()
+                    .Remove("keyword")
+                    .Then(Typedef));
 
             semantics
                 .Error("CS0246", FixMissingType);
@@ -46,7 +43,7 @@ namespace Excess.Entensions.XS
 
             SyntaxToken identifier = context.id;
 
-            bool found = false;
+            var found = false;
             foreach (var token in tokens)
             {
                 if (found)
@@ -99,7 +96,7 @@ namespace Excess.Entensions.XS
             var parentScope = scope.CreateScope<SyntaxToken, SyntaxNode, SemanticModel>(field.Parent);
             Debug.Assert(parentScope != null);
 
-            parentScope.set("__tdef" + identifier.ToString(), type);
+            parentScope.set("__tdef" + identifier, type);
 
             //schedule deletion
             var document = scope.GetDocument<SyntaxToken, SyntaxNode, SemanticModel>();
@@ -121,7 +118,7 @@ namespace Excess.Entensions.XS
                 var typeScope = scope.GetScope<SyntaxToken, SyntaxNode, SemanticModel>(type);
                 if (typeScope != null)
                 {
-                    SyntaxNode realType = typeScope.get<SyntaxNode>("__tdef" + node.ToString());
+                    var realType = typeScope.get<SyntaxNode>("__tdef" + node);
                     if (realType != null)
                     {
                         realType = RoslynCompiler.Mark(realType); //make sure not to duplicate nodes

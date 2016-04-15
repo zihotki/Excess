@@ -1,21 +1,35 @@
-﻿using Excess.Compiler.Roslyn;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Excess.Compiler;
+using Excess.Compiler.Roslyn;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Excess.Extensions.Concurrent.Model
 {
-    using Compiler;
-    using System.Diagnostics;
-    using CSharp = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+    using CSharp = SyntaxFactory;
     using Roslyn = RoslynCompiler;
 
     internal class Class
     {
+        private readonly List<MemberDeclarationSyntax> _add = new List<MemberDeclarationSyntax>();
+
+        private readonly List<MemberDeclarationSyntax> _remove = new List<MemberDeclarationSyntax>();
+
+        private Dictionary<SyntaxNode, SyntaxNode> _replace = new Dictionary<SyntaxNode, SyntaxNode>();
+
+        private readonly Dictionary<string, int> _signals = new Dictionary<string, int>();
+
+        private readonly List<TypeDeclarationSyntax> _types = new List<TypeDeclarationSyntax>();
+
+        public string Name { get; set; }
+        public bool HasMain { get; set; }
+        public IDictionary<int, Signal> Signals { get; }
+        public Scope Scope { get; private set; }
+
         public Class(string name, Scope scope)
         {
             Scope = scope;
@@ -23,12 +37,6 @@ namespace Excess.Extensions.Concurrent.Model
             Name = name;
         }
 
-        public string Name { get; set; }
-        public bool HasMain { get; set; }
-        public IDictionary<int, Signal> Signals { get; private set; }
-        public Scope Scope { get; private set; }
-
-        List<MemberDeclarationSyntax> _add = new List<MemberDeclarationSyntax>();
         public void AddMember(MemberDeclarationSyntax member)
         {
             _add.Add(member);
@@ -51,19 +59,16 @@ namespace Excess.Extensions.Concurrent.Model
                 .Any(s => s.Key == name);
         }
 
-        List<MemberDeclarationSyntax> _remove = new List<MemberDeclarationSyntax>();
         public void RemoveMember(MemberDeclarationSyntax member)
         {
             _remove.Add(member);
         }
 
-        Dictionary<SyntaxNode, SyntaxNode> _replace = new Dictionary<SyntaxNode, SyntaxNode>();
         public void Replace(SyntaxNode oldNode, SyntaxNode newNode)
         {
             _replace[oldNode] = newNode;
         }
 
-        Dictionary<string, int> _signals = new Dictionary<string, int>();
         public Signal AddSignal(string name, bool isPublic)
         {
             if (_signals.ContainsKey(name))
@@ -99,7 +104,6 @@ namespace Excess.Extensions.Concurrent.Model
             return null;
         }
 
-        List<TypeDeclarationSyntax> _types = new List<TypeDeclarationSyntax>();
         public void AddType(TypeDeclarationSyntax type)
         {
             _types.Add(type);
@@ -114,7 +118,7 @@ namespace Excess.Extensions.Concurrent.Model
                 .RemoveNodes(_remove, SyntaxRemoveOptions.KeepNoTrivia)
                 .AddMembers(_add
                     .Union(_types)
-                    .Select(add => (MemberDeclarationSyntax)RoslynCompiler.TrackNode(add))
+                    .Select(add => (MemberDeclarationSyntax) RoslynCompiler.TrackNode(add))
                     .ToArray());
 
             _remove.Clear();
@@ -131,9 +135,9 @@ namespace Excess.Extensions.Concurrent.Model
                 {
                     if (member is MethodDeclarationSyntax)
                         return (member as MethodDeclarationSyntax).Identifier.ToString() == name;
-                    else if (member is PropertyDeclarationSyntax)
+                    if (member is PropertyDeclarationSyntax)
                         return (member as PropertyDeclarationSyntax).Identifier.ToString() == name;
-                    else if (member is FieldDeclarationSyntax)
+                    if (member is FieldDeclarationSyntax)
                         return (member as FieldDeclarationSyntax)
                             .Declaration
                             .Variables[0]

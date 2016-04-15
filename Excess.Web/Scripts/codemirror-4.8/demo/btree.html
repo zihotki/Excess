@@ -2,7 +2,7 @@
 
 <title>CodeMirror: B-Tree visualization</title>
 <meta charset="utf-8"/>
-<link rel=stylesheet href="../doc/docs.css">
+<link rel="stylesheet" href="../doc/docs.css">
 
 <link rel="stylesheet" href="../lib/codemirror.css">
 <script src="../lib/codemirror.js"></script>
@@ -10,24 +10,28 @@
       .lineblock { display: inline-block; margin: 1px; height: 5px; }
       .CodeMirror {border: 1px solid #aaa; height: 400px}
     </style>
-<div id=nav>
-  <a href="http://codemirror.net"><h1>CodeMirror</h1><img id=logo src="../doc/logo.png"></a>
+<div id="nav">
+    <a href="http://codemirror.net">
+        <h1>CodeMirror</h1><img id="logo" src="../doc/logo.png">
+    </a>
 
-  <ul>
-    <li><a href="../index.html">Home</a>
-    <li><a href="../doc/manual.html">Manual</a>
-    <li><a href="https://github.com/codemirror/codemirror">Code</a>
-  </ul>
-  <ul>
-    <li><a class=active href="#">B-Tree visualization</a>
-  </ul>
+    <ul>
+        <li><a href="../index.html">Home</a>
+        <li><a href="../doc/manual.html">Manual</a>
+        <li><a href="https://github.com/codemirror/codemirror">Code</a>
+    </ul>
+    <ul>
+        <li><a class="active" href="#">B-Tree visualization</a>
+    </ul>
 </div>
 
 <article>
-<h2>B-Tree visualization</h2>
-<form><textarea id="code" name="code">type here, see a summary of the document b-tree below</textarea></form>
-      </div>
-      <div style="display: inline-block; height: 402px; overflow-y: auto" id="output"></div>
+    <h2>B-Tree visualization</h2>
+    <form>
+        <textarea id="code" name="code">type here, see a summary of the document b-tree below</textarea>
+    </form>
+    </div>
+    <div style="display: inline-block; height: 402px; overflow-y: auto" id="output"></div>
     </div>
 
     <script id="me">
@@ -80,6 +84,8 @@ function fillEditor() {
 }
     </script>
 
-<p><button onclick="fillEditor()">Add a lot of content</button></p>
+    <p>
+        <button onclick="fillEditor()">Add a lot of content</button>
+    </p>
 
-  </article>
+</article>

@@ -2,7 +2,7 @@
 
 <title>CodeMirror: Variable Height Demo</title>
 <meta charset="utf-8"/>
-<link rel=stylesheet href="../doc/docs.css">
+<link rel="stylesheet" href="../doc/docs.css">
 
 <link rel="stylesheet" href="../lib/codemirror.css">
 <script src="../lib/codemirror.js"></script>
@@ -19,22 +19,25 @@
       .cm-header-6 { font-size: 90%; }
       .cm-strong { font-size: 140%; }
     </style>
-<div id=nav>
-  <a href="http://codemirror.net"><h1>CodeMirror</h1><img id=logo src="../doc/logo.png"></a>
+<div id="nav">
+    <a href="http://codemirror.net">
+        <h1>CodeMirror</h1><img id="logo" src="../doc/logo.png">
+    </a>
 
-  <ul>
-    <li><a href="../index.html">Home</a>
-    <li><a href="../doc/manual.html">Manual</a>
-    <li><a href="https://github.com/codemirror/codemirror">Code</a>
-  </ul>
-  <ul>
-    <li><a class=active href="#">Variable Height</a>
-  </ul>
+    <ul>
+        <li><a href="../index.html">Home</a>
+        <li><a href="../doc/manual.html">Manual</a>
+        <li><a href="https://github.com/codemirror/codemirror">Code</a>
+    </ul>
+    <ul>
+        <li><a class="active" href="#">Variable Height</a>
+    </ul>
 </div>
 
 <article>
-<h2>Variable Height Demo</h2>
-<form><textarea id="code" name="code"># A First Level Header
+    <h2>Variable Height Demo</h2>
+    <form>
+        <textarea id="code" name="code"># A First Level Header
 
 **Bold** text in a normal-size paragraph.
 
@@ -56,7 +59,8 @@ dog's back.
 > This is the second paragraph in the blockquote.
 >
 > ## This is an H2 in a blockquote       
-</textarea></form>
+</textarea>
+    </form>
     <script id="script">
       var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
         lineNumbers: true,
@@ -64,4 +68,4 @@ dog's back.
         mode: "markdown"
       });
     </script>
-  </article>
+</article>

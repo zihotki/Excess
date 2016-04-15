@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace Excess.Compiler
 {
-	public interface ICompilerService<TToken, TNode, TModel>
+    public interface ICompilerService<TToken, TNode, TModel>
     {
         string TokenToString(TToken token, out string xsId);
         string TokenToString(TToken token, out int xsId);

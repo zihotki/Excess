@@ -1,14 +1,10 @@
 ﻿using Excess.Compiler.Roslyn;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Excess.Extensions.Concurrent
 {
-    using CSharp = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+    using CSharp = SyntaxFactory;
 
     internal static class Templates
     {
@@ -209,6 +205,5 @@ namespace Excess.Extensions.Concurrent
 
         public static Template SignalQueueMember = Template.Parse(@"
             private Queue<Action> _0 = new Queue<Action>();");
-
     }
 }

@@ -1,43 +1,26 @@
-﻿using Excess.Compiler.Tests.TestRuntime;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
+using Excess.Compiler.Tests.TestRuntime;
 
 namespace Excess.Compiler.Tests.Demos
 {
-    class Chameneo : ConcurrentObject
+    internal class Chameneo : ConcurrentObject
     {
         public enum Color
         {
             blue,
             red,
-            yellow,
+            yellow
         }
 
-        public Color Colour
-        {
-            get;
-            private set;
-        }
+        public Color Colour { get; private set; }
 
-        public int Meetings
-        {
-            get;
-            private set;
-        }
+        public int Meetings { get; private set; }
 
-        public int MeetingsWithSelf
-        {
-            get;
-            private set;
-        }
+        public int MeetingsWithSelf { get; private set; }
 
-        public Broker MeetingPlace
-        {
-            get;
-            private set;
-        }
+        public Broker MeetingPlace { get; }
 
         public Chameneo(Broker meetingPlace, Color color)
         {
@@ -106,23 +89,15 @@ namespace Excess.Compiler.Tests.Demos
                 {
                     var __expr1_var = new __expr1
                     {
-                        Start = (___expr) =>
+                        Start = ___expr =>
                         {
-                            var __expr = (__expr1)___expr;
-                            __listen("meet", () =>
-                            {
-                                __expr.__op1(true, null, null);
-                            }
-
-                            );
+                            var __expr = (__expr1) ___expr;
+                            __listen("meet", () => { __expr.__op1(true, null, null); }
+                                );
                             __expr.__op1(null, false, null);
                         }
-
-                    ,
-                        End = (__expr) =>
-                        {
-                            __enter(() => __advance(__expr.Continuator), __failure);
-                        }
+                        ,
+                        End = __expr => { __enter(() => __advance(__expr.Continuator), __failure); }
                     };
                     yield return __expr1_var;
                     if (__expr1_var.Failure != null)
@@ -163,8 +138,8 @@ namespace Excess.Compiler.Tests.Demos
             if (!async)
                 throw new InvalidOperationException("use async: true");
             var completion = new TaskCompletionSource<object>();
-            Action<object> __success = (__res) => completion.SetResult((object)__res);
-            Action<Exception> __failure = (__ex) => completion.SetException(__ex);
+            Action<object> __success = __res => completion.SetResult(__res);
+            Action<Exception> __failure = __ex => completion.SetException(__ex);
             __enter(() => __advance(__concurrentmeet(other, color, __success, __failure).GetEnumerator()), __failure);
             return completion.Task;
         }
@@ -192,8 +167,8 @@ namespace Excess.Compiler.Tests.Demos
             if (!async)
                 throw new InvalidOperationException("use async: true");
             var completion = new TaskCompletionSource<object>();
-            Action<object> __success = (__res) => completion.SetResult((object)__res);
-            Action<Exception> __failure = (__ex) => completion.SetException(__ex);
+            Action<object> __success = __res => completion.SetResult(__res);
+            Action<Exception> __failure = __ex => completion.SetException(__ex);
             __enter(() => __advance(__concurrentprint(__success, __failure).GetEnumerator()), __failure);
             return completion.Task;
         }
@@ -207,6 +182,9 @@ namespace Excess.Compiler.Tests.Demos
 
         private class __expr1 : Expression
         {
+            private bool? __op1_Left;
+            private bool? __op1_Right;
+
             public void __op1(bool? v1, bool? v2, Exception __ex)
             {
                 if (!tryUpdate(v1, v2, ref __op1_Left, ref __op1_Right, __ex))
@@ -226,21 +204,19 @@ namespace Excess.Compiler.Tests.Demos
                         __complete(false, __ex);
                 }
             }
-
-            private bool? __op1_Left;
-            private bool? __op1_Right;
         }
     }
 
-    class Broker : ConcurrentObject
+    internal class Broker : ConcurrentObject
     {
-        int _meetings = 0;
+        private Chameneo _first;
+        private int _meetings;
+
         public Broker(int meetings)
         {
             _meetings = meetings;
         }
 
-        Chameneo _first = null;
         private IEnumerable<Expression> __concurrentrequest(Chameneo creature, Action<object> __success, Action<Exception> __failure)
         {
             if (_first != null)
@@ -271,8 +247,8 @@ namespace Excess.Compiler.Tests.Demos
             if (!async)
                 throw new InvalidOperationException("use async: true");
             var completion = new TaskCompletionSource<object>();
-            Action<object> __success = (__res) => completion.SetResult((object)__res);
-            Action<Exception> __failure = (__ex) => completion.SetException(__ex);
+            Action<object> __success = __res => completion.SetResult(__res);
+            Action<Exception> __failure = __ex => completion.SetException(__ex);
             __enter(() => __advance(__concurrentrequest(creature, __success, __failure).GetEnumerator()), __failure);
             return completion.Task;
         }

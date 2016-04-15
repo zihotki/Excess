@@ -1,23 +1,23 @@
-﻿using Excess.Compiler;
+﻿using System.Linq;
+using Excess.Compiler;
 using Excess.Compiler.Roslyn;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Excess.Entensions.XS
 {
-    using CSharp = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+    using CSharp = SyntaxFactory;
     using ExcessCompiler = ICompiler<SyntaxToken, SyntaxNode, SemanticModel>;
 
     public class Members
     {
-        static public void Apply(ExcessCompiler compiler)
+        private static readonly PropertyDeclarationSyntax _property = SyntaxFactory.ParseCompilationUnit("__1 __2 {get; set;}")
+            .DescendantNodes().OfType<PropertyDeclarationSyntax>().First();
+
+        private static readonly ExpressionStatementSyntax _assignment = (ExpressionStatementSyntax) SyntaxFactory.ParseStatement("__1 = __2;");
+
+        public static void Apply(ExcessCompiler compiler)
         {
             var lexical = compiler.Lexical();
             var syntax = compiler.Syntax();
@@ -25,38 +25,32 @@ namespace Excess.Entensions.XS
             lexical
                 //methods 
                 .Match()
-                    .Token("method", named: "keyword")
-                    .Identifier(named: "id")
-                    .Enclosed('(', ')')
-                    .Token('{')
-                    .Then(lexical.Transform()
-                        .Remove("keyword")
-                        .Then(Method, referenceToken: "id"))
+                .Token("method", "keyword")
+                .Identifier("id")
+                .Enclosed('(', ')')
+                .Token('{')
+                .Then(lexical.Transform()
+                    .Remove("keyword")
+                    .Then(Method, "id"))
 
                 //properties
                 .Match()
-                    .Token("property")
-                    .Identifier(named: "id")
-                    .Token("=")
-                    .Then(Property)
-
+                .Token("property")
+                .Identifier("id")
+                .Token("=")
+                .Then(Property)
                 .Match()
-                    .Token("property", named: "keyword")
-                    .Identifier(named: "id")
-                    .Then(lexical.Transform()
-                        .Remove("keyword")
-                        .Then(Property, referenceToken: "id"));
+                .Token("property", "keyword")
+                .Identifier("id")
+                .Then(lexical.Transform()
+                    .Remove("keyword")
+                    .Then(Property, "id"));
 
             syntax
                 //constructor
                 .Match<MethodDeclarationSyntax>(method => method.ReturnType.IsMissing && method.Identifier.ToString() == "constructor")
-                    .Then(Constructor);
+                .Then(Constructor);
         }
-
-        private static PropertyDeclarationSyntax _property = SyntaxFactory.ParseCompilationUnit("__1 __2 {get; set;}")
-            .DescendantNodes().OfType<PropertyDeclarationSyntax>().First();
-
-        private static ExpressionStatementSyntax _assignment = (ExpressionStatementSyntax)SyntaxFactory.ParseStatement("__1 = __2;");
 
         private static SyntaxNode Property(SyntaxNode node, Scope scope)
         {
@@ -90,7 +84,7 @@ namespace Excess.Entensions.XS
             }
 
             if (type == null)
-                type = RoslynCompiler.@dynamic;
+                type = RoslynCompiler.dynamic;
 
             var property = _property
                 .WithIdentifier(variable.Identifier)
@@ -108,7 +102,7 @@ namespace Excess.Entensions.XS
             //must be initialized
             if (initializer != null)
             {
-                var expr = (AssignmentExpressionSyntax)_assignment.Expression;
+                var expr = (AssignmentExpressionSyntax) _assignment.Expression;
                 document.Change(field.Parent, RoslynCompiler
                     .AddInitializers(_assignment.WithExpression(expr
                         .WithLeft(CSharp.IdentifierName(variable.Identifier))
@@ -120,21 +114,23 @@ namespace Excess.Entensions.XS
 
         private static SyntaxNode Constructor(SyntaxNode node, Scope scope)
         {
-            var method = (MethodDeclarationSyntax)node;
+            var method = (MethodDeclarationSyntax) node;
 
-            string name = "__xs_constructor";
+            var name = "__xs_constructor";
 
-            ClassDeclarationSyntax parent = method.Parent as ClassDeclarationSyntax;
+            var parent = method.Parent as ClassDeclarationSyntax;
             if (parent != null)
             {
                 name = parent.Identifier.ToString();
             }
 
-            var modifiers = method.Modifiers.Any() ? method.Modifiers : RoslynCompiler.@public;
+            var modifiers = method.Modifiers.Any()
+                ? method.Modifiers
+                : RoslynCompiler.@public;
             return SyntaxFactory.ConstructorDeclaration(name).
-                                    WithModifiers(modifiers).
-                                    WithParameterList(method.ParameterList).
-                                    WithBody(method.Body);
+                WithModifiers(modifiers).
+                WithParameterList(method.ParameterList).
+                WithBody(method.Body);
         }
 
         private static SyntaxNode Method(SyntaxNode node, Scope scope)
@@ -163,7 +159,7 @@ namespace Excess.Entensions.XS
 
         private static SyntaxNode FixReturnType(SyntaxNode node, SyntaxNode newNode, SemanticModel model, Scope scope)
         {
-            var method = (MethodDeclarationSyntax)node;
+            var method = (MethodDeclarationSyntax) node;
             var type = RoslynCompiler.GetReturnType(method.Body, model);
 
             return (newNode as MethodDeclarationSyntax)

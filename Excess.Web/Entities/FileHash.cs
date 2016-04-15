@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-
-namespace Excess.Web.Entities
+﻿namespace Excess.Web.Entities
 {
     public class FileHash
     {

@@ -1,18 +1,18 @@
 ﻿namespace Excess.Compiler
 {
-	public class SourceSpan
-	{
-		public SourceSpan()
-		{
-		}
+    public class SourceSpan
+    {
+        public int Start { get; internal set; }
+        public int Length { get; internal set; }
 
-		public SourceSpan(int start, int length)
-		{
-			Start = start;
-			Length = length;
-		}
+        public SourceSpan()
+        {
+        }
 
-		public int Start { get; internal set; }
-		public int Length { get; internal set; }
-	}
+        public SourceSpan(int start, int length)
+        {
+            Start = start;
+            Length = length;
+        }
+    }
 }

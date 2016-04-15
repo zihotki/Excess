@@ -1,40 +1,37 @@
-﻿using Excess.Compiler;
-using Excess.Compiler.Core;
-using Microsoft.CodeAnalysis;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Linq.Expressions;
+using Excess.Compiler;
+using Excess.Compiler.Core;
+using Excess.Entensions.XS;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Excess.RuntimeProject
 {
-    using CSharp = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+    using CSharp = SyntaxFactory;
     using Injector = ICompilerInjector<SyntaxToken, SyntaxNode, SemanticModel>;
     using DelegateInjector = DelegateInjector<SyntaxToken, SyntaxNode, SemanticModel>;
     using CompositeInjector = CompositeInjector<SyntaxToken, SyntaxNode, SemanticModel>;
-    using Excess.Entensions.XS;
 
-    class ConcurrentRuntime : ConsoleRuntime
+    internal class ConcurrentRuntime : ConsoleRuntime
     {
-        public ConcurrentRuntime(IPersistentStorage storage) : base(storage) { }
+        private static readonly Injector _concurrent = new DelegateInjector(compiler => XSLang.Apply(compiler));
 
-        private static Injector _concurrent = new DelegateInjector(compiler => XSLang.Apply(compiler));
-
-        private static Injector _main = new DelegateInjector(compiler =>
+        private static readonly Injector _main = new DelegateInjector(compiler =>
         {
             compiler
                 .Lexical()
-                    .Normalize()
-                    .With(statements: MoveToRun);
+                .Normalize()
+                .With(MoveToRun);
 
             compiler
                 .Environment()
-                    .Dependency<System.Linq.Expressions.Expression>("System.Linq");
+                .Dependency<Expression>("System.Linq");
         });
 
-        static CompilationUnitSyntax _app = CSharp.ParseCompilationUnit(@"
+        private static readonly CompilationUnitSyntax _app = CSharp.ParseCompilationUnit(@"
             public class application
             {
                 Node _node;
@@ -85,6 +82,10 @@ namespace Excess.RuntimeProject
                 }
             }");
 
+        public ConcurrentRuntime(IPersistentStorage storage) : base(storage)
+        {
+        }
+
         private static SyntaxNode MoveToRun(SyntaxNode root, IEnumerable<SyntaxNode> statements, Scope scope)
         {
             return _app
@@ -93,16 +94,16 @@ namespace Excess.RuntimeProject
                     .OfType<MethodDeclarationSyntax>()
                     .Where(m => m.Identifier.ToString() == "run"),
                     (on, nn) => nn.WithBody(CSharp.Block(
-                        statements.Select(sn => (StatementSyntax)sn))));
+                        statements.Select(sn => (StatementSyntax) sn))));
         }
 
         protected override ICompilerInjector<SyntaxToken, SyntaxNode, SemanticModel> GetInjector(string file)
         {
             var xs = XSLang.Create();
             if (file == "application")
-                return new CompositeInjector(new[] { _main, _concurrent, xs });
+                return new CompositeInjector(new[] {_main, _concurrent, xs});
 
-            return new CompositeInjector(new[] { _concurrent, xs });
+            return new CompositeInjector(new[] {_concurrent, xs});
         }
     }
 }

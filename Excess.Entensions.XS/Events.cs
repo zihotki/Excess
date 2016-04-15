@@ -1,41 +1,41 @@
-﻿using Excess.Compiler;
-using Excess.Compiler.Roslyn;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Excess.Compiler;
+using Excess.Compiler.Roslyn;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Excess.Entensions.XS
 {
-    using CSharp = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+    using CSharp = SyntaxFactory;
     using ExcessCompiler = ICompiler<SyntaxToken, SyntaxNode, SemanticModel>;
 
-    class Events
+    internal class Events
     {
-        static public void Apply(ExcessCompiler compiler)
+        private static readonly StatementSyntax _EventInitializer = CSharp.ParseStatement("__1 += __2;");
+
+        public static void Apply(ExcessCompiler compiler)
         {
             var lexical = compiler.Lexical();
             var syntax = compiler.Syntax();
 
             lexical
                 .Match()
-                    .Token("event", named: "ev")
-                    .Identifier(named: "id")
-                    .Enclosed('(', ')', contents: "args")
-                    .Then(LexicalEventDeclaration);
+                .Token("event", "ev")
+                .Identifier("id")
+                .Enclosed('(', ')', contents: "args")
+                .Then(LexicalEventDeclaration);
 
             syntax
                 .Match<MethodDeclarationSyntax>(method => method.ReturnType.ToString() == "on")
-                    .Then(EventHandler);
+                .Then(EventHandler);
         }
 
         private static SyntaxNode EventHandler(SyntaxNode node, Scope scope)
         {
-            MethodDeclarationSyntax method = (MethodDeclarationSyntax)node;
+            var method = (MethodDeclarationSyntax) node;
             if (method.Modifiers.Any())
             {
                 //td: error, no modifiers allowed 
@@ -63,16 +63,16 @@ namespace Excess.Entensions.XS
 
         private static SyntaxNode SemanticEventHandler(SyntaxNode oldNode, SyntaxNode node, SemanticModel model, Scope scope)
         {
-            var mthd       = (MethodDeclarationSyntax)node;
-            var methdArgs  = mthd.ParameterList;
-            var methodName = "on_" + mthd.Identifier.ToString();
+            var mthd = (MethodDeclarationSyntax) node;
+            var methdArgs = mthd.ParameterList;
+            var methodName = "on_" + mthd.Identifier;
 
-            ISymbol     self = model.GetDeclaredSymbol(oldNode);
-            ITypeSymbol type = (ITypeSymbol)self.ContainingSymbol;
+            var self = model.GetDeclaredSymbol(oldNode);
+            var type = (ITypeSymbol) self.ContainingSymbol;
 
-            string evName = mthd.Identifier.ToString();
-            string typeName = type.Name;
-            bool found = false;
+            var evName = mthd.Identifier.ToString();
+            var typeName = type.Name;
+            var found = false;
             while (type != null && !found)
             {
                 foreach (var ev in type.GetMembers().OfType<IEventSymbol>())
@@ -82,11 +82,11 @@ namespace Excess.Entensions.XS
                         //arguments
                         foreach (var syntax in ev.Type.DeclaringSyntaxReferences)
                         {
-                            var refNode = (DelegateDeclarationSyntax)syntax.GetSyntax();
+                            var refNode = (DelegateDeclarationSyntax) syntax.GetSyntax();
 
-                            int pCount = methdArgs.Parameters.Count;
-                            int idx = 0;
-                            bool match = true;
+                            var pCount = methdArgs.Parameters.Count;
+                            var idx = 0;
+                            var match = true;
                             methdArgs = refNode.ParameterList.ReplaceNodes(refNode.ParameterList.Parameters, (oldArg, newArg) =>
                             {
                                 if (match)
@@ -94,8 +94,8 @@ namespace Excess.Entensions.XS
                                     if (idx >= pCount && match)
                                         return newArg;
 
-                                    ParameterSyntax arg = methdArgs.Parameters[idx++];
-                                    string argName = arg.Identifier.ToString();
+                                    var arg = methdArgs.Parameters[idx++];
+                                    var argName = arg.Identifier.ToString();
                                     if (argName == oldArg.Identifier.ToString())
                                     {
                                         //coincident parameters, fix missing type or return same
@@ -104,17 +104,14 @@ namespace Excess.Entensions.XS
 
                                         return arg;
                                     }
-                                    else
+                                    match = false;
+                                    if (!refNode.ParameterList.Parameters.Any(p => p.Identifier.ToString().Equals(arg.Identifier.ToString())))
                                     {
-                                        match = false;
-                                        if (!refNode.ParameterList.Parameters.Any(p => p.Identifier.ToString().Equals(arg.Identifier.ToString())))
-                                        {
-                                            //name change?
-                                            if (oldArg.Identifier.IsMissing)
-                                                return newArg.WithIdentifier(CSharp.Identifier(arg.Type.ToString()));
+                                        //name change?
+                                        if (oldArg.Identifier.IsMissing)
+                                            return newArg.WithIdentifier(CSharp.Identifier(arg.Type.ToString()));
 
-                                            return arg;
-                                        }
+                                        return arg;
                                     }
                                 }
 
@@ -139,15 +136,16 @@ namespace Excess.Entensions.XS
             }
 
             return mthd.WithIdentifier(CSharp.Identifier(methodName)).
-                          WithParameterList(methdArgs);
+                WithParameterList(methdArgs);
         }
 
-        private static StatementSyntax _EventInitializer = CSharp.ParseStatement("__1 += __2;");
         public static StatementSyntax EventInitializer(string addMethod, string implementor)
         {
             return _EventInitializer.ReplaceNodes(_EventInitializer.DescendantNodes().OfType<IdentifierNameSyntax>(), (oldNode, newNode) =>
             {
-                var id = oldNode.Identifier.ToString() == "__1" ? addMethod : implementor;
+                var id = oldNode.Identifier.ToString() == "__1"
+                    ? addMethod
+                    : implementor;
                 return newNode.WithIdentifier(CSharp.Identifier(id));
             });
         }
@@ -156,9 +154,9 @@ namespace Excess.Entensions.XS
         {
             dynamic context = scope;
 
-            SyntaxToken              keyword    = context.ev;
-            SyntaxToken              identifier = context.id;
-            IEnumerable<SyntaxToken> args       = context.args;
+            SyntaxToken keyword = context.ev;
+            SyntaxToken identifier = context.id;
+            IEnumerable<SyntaxToken> args = context.args;
 
             var document = scope.GetDocument<SyntaxToken, SyntaxNode, SemanticModel>();
 
@@ -171,8 +169,8 @@ namespace Excess.Entensions.XS
         {
             return (node, scope) =>
             {
-                EventFieldDeclarationSyntax @event  = (EventFieldDeclarationSyntax)node;
-                ParameterListSyntax         @params = CSharp.ParseParameterList(RoslynCompiler.TokensToString(args));
+                var @event = (EventFieldDeclarationSyntax) node;
+                var @params = CSharp.ParseParameterList(RoslynCompiler.TokensToString(args));
 
                 var variable = @event
                     .Declaration

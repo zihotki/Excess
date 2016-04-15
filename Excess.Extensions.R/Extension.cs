@@ -1,20 +1,16 @@
-﻿using Antlr4.Runtime;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using Antlr4.Runtime;
 using Excess.Compiler;
 using Excess.Compiler.Roslyn;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Excess.Extensions.R
 {
-    using Antlr4.Runtime.Tree;
-    using CSharp = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+    using CSharp = SyntaxFactory;
 
     public static class RScope
     {
@@ -34,11 +30,13 @@ namespace Excess.Extensions.R
         public static bool hasVariable(this Scope scope, string varName)
         {
             var result = scope.find<List<string>>("rVariables");
-            if (result != null && result.Contains(varName)) 
+            if (result != null && result.Contains(varName))
                 return true;
 
             var parent = scope.parent();
-            return parent == null ? false : parent.hasVariable(varName);
+            return parent == null
+                ? false
+                : parent.hasVariable(varName);
         }
 
         public static void addVariable(this Scope scope, string varName)
@@ -51,6 +49,59 @@ namespace Excess.Extensions.R
 
     public class Extension
     {
+        private static readonly Template binaryOperatorCall = Template.ParseExpression("__0(__1, __2)");
+
+        private static readonly Template unaryOperatorCall = Template.ParseExpression("__0(__1)");
+
+        private static readonly Dictionary<string, ExpressionSyntax> _binaryOperators = new Dictionary<string, ExpressionSyntax>();
+        private static readonly Dictionary<string, ExpressionSyntax> _unaryOperators = new Dictionary<string, ExpressionSyntax>();
+
+        private static readonly Template linearSequenceCall = Template.ParseExpression("RR.lseq(__0, __1)");
+
+        private static readonly Template indexCall = Template.ParseExpression("RR.index(__0, __1)");
+
+        private static readonly ExpressionSyntax Nan = CSharp.ParseExpression("Double.NaN");
+
+        private static readonly ExpressionSyntax Inf = CSharp.ParseExpression("Double.PositiveInfinity");
+
+        private static readonly WhileStatementSyntax repeat = (WhileStatementSyntax) CSharp.ParseStatement("while(true) {}");
+
+        private static readonly Template @while = Template.ParseStatement("while(__0) {}");
+
+        private static readonly Template @foreach = Template.ParseStatement("foreach(var _0 in __1) {}");
+
+        private static readonly Template ifelse = Template.ParseStatement("if(__0) {} else {}");
+
+        private static readonly Template @if = Template.ParseStatement("if(__0) {}");
+
+        private static readonly Template preVariable = Template.ParseStatement("object _0 = null;");
+        private static readonly Template preAssignment = Template.ParseExpression("(_0 = __1)");
+
+        private static readonly Template assignment = Template.ParseStatement("__0 = __1;");
+        private static readonly Template declaration = Template.ParseStatement("var _0 = __1;");
+
+        static Extension()
+        {
+            _binaryOperators["+"] = CSharp.ParseExpression("RR.add");
+            _binaryOperators["-"] = CSharp.ParseExpression("RR.sub");
+            _binaryOperators["*"] = CSharp.ParseExpression("RR.mul");
+            _binaryOperators["/"] = CSharp.ParseExpression("RR.div");
+            _binaryOperators[">"] = CSharp.ParseExpression("RR.gt");
+            _binaryOperators[">="] = CSharp.ParseExpression("RR.ge");
+            _binaryOperators["<"] = CSharp.ParseExpression("RR.lt");
+            _binaryOperators["<="] = CSharp.ParseExpression("RR.le");
+            _binaryOperators["=="] = CSharp.ParseExpression("RR.eq");
+            _binaryOperators["!="] = CSharp.ParseExpression("RR.neq");
+            _binaryOperators["&&"] = CSharp.ParseExpression("RR.and");
+            _binaryOperators["&"] = CSharp.ParseExpression("RR.bnd");
+            _binaryOperators["||"] = CSharp.ParseExpression("RR.or");
+            _binaryOperators["|"] = CSharp.ParseExpression("RR.bor");
+
+            _unaryOperators["+"] = CSharp.ParseExpression("RR.ps");
+            _unaryOperators["-"] = CSharp.ParseExpression("RR.ns");
+            _unaryOperators["!"] = CSharp.ParseExpression("RR.neg");
+        }
+
         public static void Apply(ICompiler<SyntaxToken, SyntaxNode, SemanticModel> compiler)
         {
             compiler.Environment()
@@ -58,46 +109,45 @@ namespace Excess.Extensions.R
 
             compiler.Lexical()
                 .Grammar<RGrammar, ParserRuleContext>("R", ExtensionKind.Code)
-                    .Transform<RParser.ProgContext>(Program)
-                    .Transform<RParser.Expr_or_assignContext>(EitherOr)
-                    .Transform<RParser.ExpressionStatementContext>(ExpressionStatement)
-                    .Transform<RParser.AssignmentContext>(AssignmentStatement)
-                    .Transform<RParser.RightAssignmentContext>(RightAssignment)
-                    .Transform<RParser.SignContext>(UnaryOperator)
-                    .Transform<RParser.NegationContext>(UnaryOperator)
-                    .Transform<RParser.MultiplicationContext>(BinaryOperator)
-                    .Transform<RParser.AdditionContext>(BinaryOperator)
-                    .Transform<RParser.ComparisonContext>(BinaryOperator)
-                    .Transform<RParser.LogicalAndContext>(BinaryOperator)
-                    .Transform<RParser.LogicalOrContext>(BinaryOperator)
-                    .Transform<RParser.FunctionContext>(Function)
-                    .Transform<RParser.FunctionCallContext>(FunctionCall)
-                    .Transform<RParser.CompoundContext>(Compound)
-                    .Transform<RParser.IfStatementContext>(IfStatement)
-                    .Transform<RParser.IfElseStatementContext>(IfElseStatement)
-                    .Transform<RParser.ForEachStatementContext>(ForEachStatement)
-                    .Transform<RParser.WhileStatementContext>(WhileStatement)
-                    .Transform<RParser.RepeatStatementContext>(RepeatStatement)
-                    .Transform<RParser.BreakStatementContext>(BreakStatement)
-                    .Transform<RParser.ParenthesizedContext>(Parenthesized)
-                    .Transform<RParser.IdentifierContext>(Identifier)
-                    .Transform<RParser.StringLiteralContext>(StringLiteral)
-                    .Transform<RParser.HexLiteralContext>(HexLiteral)
-                    .Transform<RParser.IntLiteralContext>(IntLiteral)
-                    .Transform<RParser.FloatLiteralContext>(FloatLiteral)
-                    .Transform<RParser.ComplexLiteralContext>(ComplexLiteral)
-                    .Transform<RParser.NullLiteralContext>(NullLiteral)
-                    .Transform<RParser.NAContext>(NA)
-                    .Transform<RParser.InfLiteralContext>(InfLiteral)
-                    .Transform<RParser.NanLiteralContext>(NanLiteral)
-                    .Transform<RParser.TrueLiteralContext>(TrueLiteral)
-                    .Transform<RParser.FalseLiteralContext>(FalseLiteral)
-                    .Transform<RParser.SublistContext>(ArgumentList)
-                    .Transform<RParser.IndexContext>(Index)
-                    .Transform<RParser.SequenceContext>(LinearSequence)
-                    
-                    .Then(Transform)
-            ;
+                .Transform<RParser.ProgContext>(Program)
+                .Transform<RParser.Expr_or_assignContext>(EitherOr)
+                .Transform<RParser.ExpressionStatementContext>(ExpressionStatement)
+                .Transform<RParser.AssignmentContext>(AssignmentStatement)
+                .Transform<RParser.RightAssignmentContext>(RightAssignment)
+                .Transform<RParser.SignContext>(UnaryOperator)
+                .Transform<RParser.NegationContext>(UnaryOperator)
+                .Transform<RParser.MultiplicationContext>(BinaryOperator)
+                .Transform<RParser.AdditionContext>(BinaryOperator)
+                .Transform<RParser.ComparisonContext>(BinaryOperator)
+                .Transform<RParser.LogicalAndContext>(BinaryOperator)
+                .Transform<RParser.LogicalOrContext>(BinaryOperator)
+                .Transform<RParser.FunctionContext>(Function)
+                .Transform<RParser.FunctionCallContext>(FunctionCall)
+                .Transform<RParser.CompoundContext>(Compound)
+                .Transform<RParser.IfStatementContext>(IfStatement)
+                .Transform<RParser.IfElseStatementContext>(IfElseStatement)
+                .Transform<RParser.ForEachStatementContext>(ForEachStatement)
+                .Transform<RParser.WhileStatementContext>(WhileStatement)
+                .Transform<RParser.RepeatStatementContext>(RepeatStatement)
+                .Transform<RParser.BreakStatementContext>(BreakStatement)
+                .Transform<RParser.ParenthesizedContext>(Parenthesized)
+                .Transform<RParser.IdentifierContext>(Identifier)
+                .Transform<RParser.StringLiteralContext>(StringLiteral)
+                .Transform<RParser.HexLiteralContext>(HexLiteral)
+                .Transform<RParser.IntLiteralContext>(IntLiteral)
+                .Transform<RParser.FloatLiteralContext>(FloatLiteral)
+                .Transform<RParser.ComplexLiteralContext>(ComplexLiteral)
+                .Transform<RParser.NullLiteralContext>(NullLiteral)
+                .Transform<RParser.NAContext>(NA)
+                .Transform<RParser.InfLiteralContext>(InfLiteral)
+                .Transform<RParser.NanLiteralContext>(NanLiteral)
+                .Transform<RParser.TrueLiteralContext>(TrueLiteral)
+                .Transform<RParser.FalseLiteralContext>(FalseLiteral)
+                .Transform<RParser.SublistContext>(ArgumentList)
+                .Transform<RParser.IndexContext>(Index)
+                .Transform<RParser.SequenceContext>(LinearSequence)
+                .Then(Transform)
+                ;
         }
 
         private static SyntaxNode Transform(SyntaxNode oldNode, SyntaxNode newNode, Scope scope, LexicalExtension<SyntaxToken> extension)
@@ -122,7 +172,6 @@ namespace Excess.Extensions.R
             return newNode;
         }
 
-        static Template binaryOperatorCall = Template.ParseExpression("__0(__1, __2)");
         private static SyntaxNode BinaryOperator(RParser.ExprContext expr, Func<ParserRuleContext, Scope, SyntaxNode> transform, Scope scope)
         {
             var left = transform(expr.GetRuleContext<RParser.ExprContext>(0), scope) as ExpressionSyntax;
@@ -135,7 +184,6 @@ namespace Excess.Extensions.R
             return binaryOperatorCall.Get(_binaryOperators[op], left, right);
         }
 
-        static Template unaryOperatorCall = Template.ParseExpression("__0(__1)");
         private static SyntaxNode UnaryOperator(RParser.ExprContext expr, Func<ParserRuleContext, Scope, SyntaxNode> transform, Scope scope)
         {
             Debug.Assert(expr.children.Count == 2);
@@ -143,7 +191,7 @@ namespace Excess.Extensions.R
 
             var value = transform(expr.GetRuleContext<RParser.ExprContext>(0), scope) as ExpressionSyntax;
             if (isConstant(value))
-                return CSharp.ParseExpression(op + value.ToString());
+                return CSharp.ParseExpression(op + value);
 
             Debug.Assert(value != null);
 
@@ -152,7 +200,7 @@ namespace Excess.Extensions.R
 
         private static bool isConstant(ExpressionSyntax value)
         {
-            switch ((SyntaxKind)value.RawKind)
+            switch ((SyntaxKind) value.RawKind)
             {
                 case SyntaxKind.NumericLiteralExpression:
                 case SyntaxKind.TrueLiteralExpression:
@@ -163,32 +211,6 @@ namespace Excess.Extensions.R
             return false;
         }
 
-        static Dictionary<string, ExpressionSyntax> _binaryOperators = new Dictionary<string, ExpressionSyntax>();
-        static Dictionary<string, ExpressionSyntax> _unaryOperators = new Dictionary<string, ExpressionSyntax>();
-        
-        static Extension()
-        {
-            _binaryOperators["+"] = CSharp.ParseExpression("RR.add");
-            _binaryOperators["-"] = CSharp.ParseExpression("RR.sub");
-            _binaryOperators["*"] = CSharp.ParseExpression("RR.mul");
-            _binaryOperators["/"] = CSharp.ParseExpression("RR.div");
-            _binaryOperators[">"] = CSharp.ParseExpression("RR.gt");
-            _binaryOperators[">="] = CSharp.ParseExpression("RR.ge");
-            _binaryOperators["<"] = CSharp.ParseExpression("RR.lt");
-            _binaryOperators["<="] = CSharp.ParseExpression("RR.le");
-            _binaryOperators["=="] = CSharp.ParseExpression("RR.eq");
-            _binaryOperators["!="] = CSharp.ParseExpression("RR.neq");
-            _binaryOperators["&&"] = CSharp.ParseExpression("RR.and");
-            _binaryOperators["&"] = CSharp.ParseExpression("RR.bnd");
-            _binaryOperators["||"] = CSharp.ParseExpression("RR.or");
-            _binaryOperators["|"] = CSharp.ParseExpression("RR.bor");
-
-            _unaryOperators["+"] = CSharp.ParseExpression("RR.ps");
-            _unaryOperators["-"] = CSharp.ParseExpression("RR.ns");
-            _unaryOperators["!"] = CSharp.ParseExpression("RR.neg");
-        }
-
-        static Template linearSequenceCall = Template.ParseExpression("RR.lseq(__0, __1)");
         private static SyntaxNode LinearSequence(RParser.SequenceContext sequence, Func<ParserRuleContext, Scope, SyntaxNode> transform, Scope scope)
         {
             var exprs = sequence.expr();
@@ -201,7 +223,6 @@ namespace Excess.Extensions.R
             return linearSequenceCall.Get(left, right);
         }
 
-        static Template indexCall = Template.ParseExpression("RR.index(__0, __1)");
         private static SyntaxNode Index(RParser.IndexContext index, Func<ParserRuleContext, Scope, SyntaxNode> transform, Scope scope)
         {
             var indexExprs = index.sublist().sub();
@@ -229,18 +250,18 @@ namespace Excess.Extensions.R
                 var argName = null as string;
                 var value = null as ExpressionSyntax;
                 if (arg is RParser.SubExpressionContext)
-                    value = (ExpressionSyntax)transform((arg as RParser.SubExpressionContext).expr(), scope);
+                    value = (ExpressionSyntax) transform((arg as RParser.SubExpressionContext).expr(), scope);
                 else if (arg is RParser.SubAssignmentContext)
                 {
-                    var paramName = (arg as RParser.SubAssignmentContext);
+                    var paramName = arg as RParser.SubAssignmentContext;
                     argName = paramName.ID().ToString();
-                    value = (ExpressionSyntax)transform(paramName.expr(), scope);
+                    value = (ExpressionSyntax) transform(paramName.expr(), scope);
                 }
                 else if (arg is RParser.SubStringAssignmentContext)
                 {
-                    var paramName = (arg as RParser.SubStringAssignmentContext);
+                    var paramName = arg as RParser.SubStringAssignmentContext;
                     argName = paramName.STRING().ToString();
-                    value = (ExpressionSyntax)transform(paramName.expr(), scope);
+                    value = (ExpressionSyntax) transform(paramName.expr(), scope);
                 }
                 else if (arg is RParser.SubIncompleteNullContext || arg is RParser.SubNullAssignmentContext)
                 {
@@ -287,13 +308,11 @@ namespace Excess.Extensions.R
             return CSharp.ParseExpression("true");
         }
 
-        static ExpressionSyntax Nan = CSharp.ParseExpression("Double.NaN");
         private static SyntaxNode NanLiteral(RParser.NanLiteralContext ctx, Func<ParserRuleContext, Scope, SyntaxNode> transform, Scope scope)
         {
             return Nan;
         }
 
-        static ExpressionSyntax Inf = CSharp.ParseExpression("Double.PositiveInfinity");
         private static SyntaxNode InfLiteral(RParser.InfLiteralContext inf, Func<ParserRuleContext, Scope, SyntaxNode> transform, Scope scope)
         {
             return Inf;
@@ -357,13 +376,13 @@ namespace Excess.Extensions.R
             return CSharp.BreakStatement();
         }
 
-        static WhileStatementSyntax repeat = (WhileStatementSyntax)CSharp.ParseStatement("while(true) {}");
-        private static SyntaxNode RepeatStatement(RParser.RepeatStatementContext repeatStatement, Func<ParserRuleContext, Scope, SyntaxNode> transform, Scope scope)
+        private static SyntaxNode RepeatStatement(RParser.RepeatStatementContext repeatStatement, Func<ParserRuleContext, Scope, SyntaxNode> transform,
+            Scope scope)
         {
             if (!topLevel(repeatStatement))
                 throw new NotImplementedException();
 
-            BlockSyntax body = parseBlock(repeatStatement.expr(), transform, scope);
+            var body = parseBlock(repeatStatement.expr(), transform, scope);
             return repeat
                 .WithStatement(body);
         }
@@ -372,25 +391,26 @@ namespace Excess.Extensions.R
         {
             var node = transform(expr, scope);
             if (expr is RParser.CompoundContext)
-                return (BlockSyntax)node;
+                return (BlockSyntax) node;
 
             if (node is ExpressionSyntax)
                 node = CSharp.ExpressionStatement(node as ExpressionSyntax);
 
             return CSharp
                 .Block()
-                .WithStatements(CSharp.List(new StatementSyntax[] {
-                    (StatementSyntax)node}));
+                .WithStatements(CSharp.List(new[]
+                {
+                    (StatementSyntax) node
+                }));
         }
 
-        static Template @while = Template.ParseStatement("while(__0) {}");
         private static SyntaxNode WhileStatement(RParser.WhileStatementContext whileStatement, Func<ParserRuleContext, Scope, SyntaxNode> transform, Scope scope)
         {
             if (!topLevel(whileStatement))
                 throw new NotImplementedException();
 
             var exprs = whileStatement.expr();
-            var cond = (ExpressionSyntax)transform(exprs[0], scope);
+            var cond = (ExpressionSyntax) transform(exprs[0], scope);
             var body = parseBlock(exprs[1], transform, scope);
 
             return @while.Get<WhileStatementSyntax>(cond)
@@ -399,51 +419,49 @@ namespace Excess.Extensions.R
 
         private static bool topLevel(RuleContext ctx)
         {
-            return ctx.Parent is RParser.ProgContext 
-                || ctx.Parent is RParser.CompoundContext
-                || ctx.Parent is RParser.ExpressionStatementContext
+            return ctx.Parent is RParser.ProgContext
+                   || ctx.Parent is RParser.CompoundContext
+                   || ctx.Parent is RParser.ExpressionStatementContext
                 ;
         }
 
-        static Template @foreach = Template.ParseStatement("foreach(var _0 in __1) {}");
-        private static SyntaxNode ForEachStatement(RParser.ForEachStatementContext forStatement, Func<ParserRuleContext, Scope, SyntaxNode> transform, Scope scope)
+        private static SyntaxNode ForEachStatement(RParser.ForEachStatementContext forStatement, Func<ParserRuleContext, Scope, SyntaxNode> transform,
+            Scope scope)
         {
             if (!topLevel(forStatement))
                 throw new NotImplementedException();
 
             var exprs = forStatement.expr();
-            var array = (ExpressionSyntax)transform(exprs[0], scope);
+            var array = (ExpressionSyntax) transform(exprs[0], scope);
             var body = parseBlock(exprs[1], transform, scope);
 
             return @foreach.Get<ForEachStatementSyntax>(forStatement.ID().ToString(), array)
                 .WithStatement(body);
         }
 
-        static Template @ifelse = Template.ParseStatement("if(__0) {} else {}");
         private static SyntaxNode IfElseStatement(RParser.IfElseStatementContext ifStatement, Func<ParserRuleContext, Scope, SyntaxNode> transform, Scope scope)
         {
             if (!topLevel(ifStatement))
                 throw new NotImplementedException();
 
             var exprs = ifStatement.expr();
-            var cond = (ExpressionSyntax)transform(exprs[0], scope);
+            var cond = (ExpressionSyntax) transform(exprs[0], scope);
             var @if = parseBlock(exprs[1], transform, scope);
             var @else = parseBlock(exprs[2], transform, scope);
 
-            return @ifelse.Get<IfStatementSyntax>(cond)
+            return ifelse.Get<IfStatementSyntax>(cond)
                 .WithStatement(@if)
                 .WithElse(CSharp.ElseClause(
                     @else));
         }
 
-        static Template @if = Template.ParseStatement("if(__0) {}");
         private static SyntaxNode IfStatement(RParser.IfStatementContext ifStatement, Func<ParserRuleContext, Scope, SyntaxNode> transform, Scope scope)
         {
             if (!topLevel(ifStatement))
                 throw new NotImplementedException();
 
             var exprs = ifStatement.expr();
-            var cond = (ExpressionSyntax)transform(exprs[0], scope);
+            var cond = (ExpressionSyntax) transform(exprs[0], scope);
             var code = parseBlock(exprs[1], transform, scope);
 
             return @if.Get<IfStatementSyntax>(cond)
@@ -507,7 +525,8 @@ namespace Excess.Extensions.R
             throw new NotImplementedException();
         }
 
-        private static SyntaxNode ExpressionStatement(RParser.ExpressionStatementContext exprStatement, Func<ParserRuleContext, Scope, SyntaxNode> transform, Scope scope)
+        private static SyntaxNode ExpressionStatement(RParser.ExpressionStatementContext exprStatement, Func<ParserRuleContext, Scope, SyntaxNode> transform,
+            Scope scope)
         {
             var expr = transform(exprStatement.expr(), scope);
             Debug.Assert(expr != null);
@@ -515,7 +534,7 @@ namespace Excess.Extensions.R
             if (expr is ExpressionSyntax)
                 return CSharp.ExpressionStatement(expr as ExpressionSyntax);
 
-            return (StatementSyntax)expr;
+            return (StatementSyntax) expr;
         }
 
         private static SyntaxNode AssignmentStatement(RParser.AssignmentContext assignment, Func<ParserRuleContext, Scope, SyntaxNode> transform, Scope scope)
@@ -527,8 +546,6 @@ namespace Excess.Extensions.R
             return assigmentStatement(left, right.Expression, scope);
         }
 
-        static Template preVariable = Template.ParseStatement("object _0 = null;");
-        static Template preAssignment = Template.ParseExpression("(_0 = __1)");
         private static SyntaxNode RightAssignment(RParser.RightAssignmentContext assignment, Func<ParserRuleContext, Scope, SyntaxNode> transform, Scope scope)
         {
             var left = transform(assignment.expr()[1], scope) as ExpressionSyntax;
@@ -549,8 +566,6 @@ namespace Excess.Extensions.R
             return preAssignment.Get(left, right);
         }
 
-        static Template assignment = Template.ParseStatement("__0 = __1;");
-        static Template declaration = Template.ParseStatement("var _0 = __1;");
         private static StatementSyntax assigmentStatement(ExpressionSyntax left, ExpressionSyntax right, Scope scope)
         {
             if (left is IdentifierNameSyntax)
@@ -558,11 +573,8 @@ namespace Excess.Extensions.R
                 var varName = left.ToString();
                 if (scope.hasVariable(varName))
                     return assignment.Get<StatementSyntax>(left, right);
-                else
-                {
-                    scope.addVariable(varName);
-                    return declaration.Get<StatementSyntax>(varName, right);
-                }
+                scope.addVariable(varName);
+                return declaration.Get<StatementSyntax>(varName, right);
             }
 
             throw new NotImplementedException();

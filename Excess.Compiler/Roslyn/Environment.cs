@@ -4,126 +4,126 @@ using Microsoft.CodeAnalysis;
 
 namespace Excess.Compiler.Roslyn
 {
-	public class RoslynEnvironment : ICompilerEnvironment
-	{
-		private readonly List<string> _keywords = new List<string>();
-		private readonly List<string> _modules = new List<string>();
-
-		private dynamic _path;
+    public class RoslynEnvironment : ICompilerEnvironment
+    {
+        private readonly List<string> _keywords = new List<string>();
+        private readonly List<string> _modules = new List<string>();
 
 
-		private readonly List<MetadataReference> _references = new List<MetadataReference>();
-		private readonly Scope _root;
+        private readonly List<MetadataReference> _references = new List<MetadataReference>();
+        private readonly Scope _root;
 
-		private readonly IPersistentStorage _storage;
+        private readonly IPersistentStorage _storage;
 
-		public RoslynEnvironment(Scope root, IPersistentStorage storage)
-		{
-			_root = root;
-			_storage = storage;
-		}
+        private dynamic _path;
 
-		public ICompilerEnvironment Dependency<T>(string module)
-		{
-			return Dependency<T>(
-				string.IsNullOrEmpty(module)
-					? null
-					: new[] {module});
-		}
+        public RoslynEnvironment(Scope root, IPersistentStorage storage)
+        {
+            _root = root;
+            _storage = storage;
+        }
 
-		public ICompilerEnvironment Dependency<T>(IEnumerable<string> modules)
-		{
-			MetadataReference reference = MetadataReference.CreateFromFile(typeof (T).Assembly.Location);
-			Debug.Assert(reference != null);
+        public ICompilerEnvironment Dependency<T>(string module)
+        {
+            return Dependency<T>(
+                string.IsNullOrEmpty(module)
+                    ? null
+                    : new[] {module});
+        }
 
-			_references.Add(reference);
+        public ICompilerEnvironment Dependency<T>(IEnumerable<string> modules)
+        {
+            MetadataReference reference = MetadataReference.CreateFromFile(typeof(T).Assembly.Location);
+            Debug.Assert(reference != null);
 
-			if (modules != null)
-			{
-				AddModules(modules);
-			}
+            _references.Add(reference);
 
-			return this;
-		}
+            if (modules != null)
+            {
+                AddModules(modules);
+            }
 
-		public ICompilerEnvironment Dependency(string module, string path = null)
-		{
-			return Dependency(
-				string.IsNullOrEmpty(module)
-					? null
-					: new[] {module},
-				path);
-		}
+            return this;
+        }
 
-		public ICompilerEnvironment Dependency(IEnumerable<string> modules, string path = null)
-		{
-			if (path != null)
-			{
-				MetadataReference reference = MetadataReference.CreateFromFile(path);
-				Debug.Assert(reference != null);
+        public ICompilerEnvironment Dependency(string module, string path = null)
+        {
+            return Dependency(
+                string.IsNullOrEmpty(module)
+                    ? null
+                    : new[] {module},
+                path);
+        }
 
-				_references.Add(reference);
-			}
+        public ICompilerEnvironment Dependency(IEnumerable<string> modules, string path = null)
+        {
+            if (path != null)
+            {
+                MetadataReference reference = MetadataReference.CreateFromFile(path);
+                Debug.Assert(reference != null);
 
-			if (modules != null)
-			{
-				AddModules(modules);
-			}
+                _references.Add(reference);
+            }
 
-			return this;
-		}
+            if (modules != null)
+            {
+                AddModules(modules);
+            }
 
-		public ICompilerEnvironment Keyword(string word)
-		{
-			_keywords.Add(word);
-			return this;
-		}
+            return this;
+        }
 
-		public ICompilerEnvironment Global<T>() where T : class, new()
-		{
-			_root.set(new T());
-			return this;
-		}
+        public ICompilerEnvironment Keyword(string word)
+        {
+            _keywords.Add(word);
+            return this;
+        }
 
-		public IEnumerable<string> Modules()
-		{
-			return _modules;
-		}
+        public ICompilerEnvironment Global<T>() where T : class, new()
+        {
+            _root.set(new T());
+            return this;
+        }
 
-		public IEnumerable<string> Keywords()
-		{
-			return _keywords;
-		}
+        public IEnumerable<string> Modules()
+        {
+            return _modules;
+        }
 
-		public dynamic Path()
-		{
-			return _path;
-		}
+        public IEnumerable<string> Keywords()
+        {
+            return _keywords;
+        }
 
-		public IPersistentStorage Storage()
-		{
-			return _storage;
-		}
+        public dynamic Path()
+        {
+            return _path;
+        }
 
-		public void SetPath(dynamic path)
-		{
-			_path = path;
-		}
+        public IPersistentStorage Storage()
+        {
+            return _storage;
+        }
 
-		private void AddModules(IEnumerable<string> modules)
-		{
-			foreach (var module in modules)
-			{
-				if (!_modules.Contains(module))
-				{
-					_modules.Add(module);
-				}
-			}
-		}
+        public void SetPath(dynamic path)
+        {
+            _path = path;
+        }
 
-		internal IEnumerable<MetadataReference> GetReferences()
-		{
-			return _references;
-		}
-	}
+        private void AddModules(IEnumerable<string> modules)
+        {
+            foreach (var module in modules)
+            {
+                if (!_modules.Contains(module))
+                {
+                    _modules.Add(module);
+                }
+            }
+        }
+
+        internal IEnumerable<MetadataReference> GetReferences()
+        {
+            return _references;
+        }
+    }
 }

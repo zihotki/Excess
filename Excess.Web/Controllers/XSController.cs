@@ -1,15 +1,15 @@
-﻿using Excess.Web.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Text;
-using System.Web;
 using System.Web.Mvc;
+using Excess.Web.Entities;
 
 namespace Excess.Web.Controllers
 {
     public class XSController : ExcessControllerBase
     {
+        private readonly ExcessDbContext _db = new ExcessDbContext();
+        private readonly ITranslationService _translator;
+
         public XSController(ITranslationService translator)
         {
             _translator = translator;
@@ -18,20 +18,20 @@ namespace Excess.Web.Controllers
         public ActionResult GetSamples()
         {
             var samples = from sample in _db.Samples
-                          select new
-                          {
-                              id   = sample.ID,
-                              desc = sample.Name
-                          };
+                select new
+                {
+                    id = sample.ID,
+                    desc = sample.Name
+                };
 
             return Json(samples, JsonRequestBehavior.AllowGet);
         }
 
         public ActionResult GetSample(int id)
         {
-            var content = from   sample in _db.Samples
-                          where  sample.ID == id
-                          select sample.Contents;
+            var content = from sample in _db.Samples
+                where sample.ID == id
+                select sample.Contents;
 
             return Content(content.First());
         }
@@ -39,13 +39,13 @@ namespace Excess.Web.Controllers
         [ValidateInput(false)]
         public ActionResult Translate(string text)
         {
-            var result = _translator.translate(text); 
+            var result = _translator.translate(text);
             return Content(result);
         }
 
         public ActionResult GetKeywords()
         {
-            StringBuilder result = new StringBuilder();
+            var result = new StringBuilder();
 
             //td: !!!
             //foreach (string kw in factory.supported())
@@ -59,11 +59,8 @@ namespace Excess.Web.Controllers
 
         public ActionResult GetSampleProjects()
         {
-            ProjectRepository repo = new ProjectRepository();
+            var repo = new ProjectRepository();
             return Json(repo.GetSampleProjects(), JsonRequestBehavior.AllowGet);
         }
-        
-        private ExcessDbContext     _db = new ExcessDbContext();
-        private ITranslationService _translator;
     }
 }

@@ -1,32 +1,40 @@
-﻿using Excess.Compiler.Roslyn;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using Excess.Compiler.Roslyn;
 using Excess.Extensions.Concurrent.Model;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Excess.Extensions.Concurrent
 {
-    using Microsoft.CodeAnalysis.CSharp;
-    using System.Diagnostics;
-    using CSharp = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+    using CSharp = SyntaxFactory;
     using Roslyn = RoslynCompiler;
 
     internal class ClassLinker : CSharpSyntaxRewriter
     {
-        Class _class;
-        SemanticModel _model;
+        private readonly Class _class;
+
+        private bool _first = true;
+        private readonly SemanticModel _model;
+        private bool _tryConcurrent;
+
+        //the issue at hand, we cannot have "yield return"s inside a try catch (thanks, Obama)
+        //So we will split the try catch(es) around the requisition of the (proverbial) cheese.
+        private int _trysInStack;
+        private readonly List<string> _tryVariables = new List<string>();
+
+        //concurrent expressions, must remember all assignents
+        private readonly Dictionary<string, Dictionary<string, TypeSyntax>> _typeAssignments = new Dictionary<string, Dictionary<string, TypeSyntax>>();
+
         public ClassLinker(Class @class, SemanticModel model)
         {
             _class = @class;
             _model = model;
         }
 
-        bool _first = true;
         public override SyntaxNode VisitClassDeclaration(ClassDeclarationSyntax node)
         {
             if (_first)
@@ -41,8 +49,8 @@ namespace Excess.Extensions.Concurrent
             if (_typeAssignments.TryGetValue(node.Identifier.ToString(), out fields))
                 return node.AddMembers(fields
                     .Select(f => Templates
-                    .AssignmentField
-                    .Get<MemberDeclarationSyntax>(f.Key, f.Value))
+                        .AssignmentField
+                        .Get<MemberDeclarationSyntax>(f.Key, f.Value))
                     .ToArray());
 
             return node; //let it go unmodified
@@ -60,22 +68,17 @@ namespace Excess.Extensions.Concurrent
         {
             return node.WithStatements(CSharp.List(
                 node
-                .Statements
-                .SelectMany(st => LinkExpressionStatement(st))
-                .ToArray()));
+                    .Statements
+                    .SelectMany(st => LinkExpressionStatement(st))
+                    .ToArray()));
         }
 
-        //the issue at hand, we cannot have "yield return"s inside a try catch (thanks, Obama)
-        //So we will split the try catch(es) around the requisition of the (proverbial) cheese.
-        int _trysInStack = 0;
-        bool _tryConcurrent = false;
-        List<string> _tryVariables = new List<string>();
         public override SyntaxNode VisitTryStatement(TryStatementSyntax node)
         {
             _trysInStack++;
             try
             {
-                var newNode = (TryStatementSyntax)base.VisitTryStatement(node);
+                var newNode = (TryStatementSyntax) base.VisitTryStatement(node);
 
                 if (_tryConcurrent)
                 {
@@ -97,7 +100,7 @@ namespace Excess.Extensions.Concurrent
                     while (currentIndex < statements.Count)
                     {
                         var oldIndex = currentIndex;
-                        for (int i = oldIndex; i < statements.Count; i++, currentIndex++)
+                        for (var i = oldIndex; i < statements.Count; i++, currentIndex++)
                         {
                             var statement = statements[i];
 
@@ -106,8 +109,8 @@ namespace Excess.Extensions.Concurrent
                                 newStatements.Add(newNode
                                     .WithBlock(CSharp.Block(
                                         statements
-                                        .Skip(oldIndex)
-                                        .Take(currentIndex - oldIndex - 1))));
+                                            .Skip(oldIndex)
+                                            .Take(currentIndex - oldIndex - 1))));
 
                                 //variable and return yield
                                 //td: assert
@@ -135,25 +138,25 @@ namespace Excess.Extensions.Concurrent
                                 var assignmentStatements = new List<StatementSyntax>();
                                 newStatements.Add(decl
                                     .WithDeclaration(decl.Declaration
-                                    .WithType(varType)
-                                    .WithVariables(CSharp.SeparatedList(
-                                        decl
-                                        .Declaration
-                                        .Variables
-                                        .Select(v =>
-                                        {
-                                            assignmentStatements.Add(CSharp.ExpressionStatement(
-                                                CSharp.AssignmentExpression(
-                                                    SyntaxKind.SimpleAssignmentExpression,
-                                                    CSharp.IdentifierName(v.Identifier),
-                                                    v.Initializer.Value)));
+                                        .WithType(varType)
+                                        .WithVariables(CSharp.SeparatedList(
+                                            decl
+                                                .Declaration
+                                                .Variables
+                                                .Select(v =>
+                                                {
+                                                    assignmentStatements.Add(CSharp.ExpressionStatement(
+                                                        CSharp.AssignmentExpression(
+                                                            SyntaxKind.SimpleAssignmentExpression,
+                                                            CSharp.IdentifierName(v.Identifier),
+                                                            v.Initializer.Value)));
 
-                                            return v.WithInitializer(v
-                                                .Initializer
-                                                .WithValue(Templates
-                                                    .DefaultValue
-                                                    .Get<ExpressionSyntax>(varType)));
-                                        })))));
+                                                    return v.WithInitializer(v
+                                                        .Initializer
+                                                        .WithValue(Templates
+                                                            .DefaultValue
+                                                            .Get<ExpressionSyntax>(varType)));
+                                                })))));
 
                                 //once moved the variables "up" scope
                                 //we must keep the assignments
@@ -193,13 +196,13 @@ namespace Excess.Extensions.Concurrent
 
             return CSharp.Block(
                 newStatements.Union(
-                CreateTrySplit(statements, 0, variable)));
+                    CreateTrySplit(statements, 0, variable)));
         }
 
         private IEnumerable<StatementSyntax> CreateTrySplit(List<StatementSyntax> statements, int index, string variable)
         {
-            bool foundTry = false;
-            for (int i = index; i < statements.Count; i++, index++)
+            var foundTry = false;
+            for (var i = index; i < statements.Count; i++, index++)
             {
                 if (foundTry)
                 {
@@ -218,25 +221,25 @@ namespace Excess.Extensions.Concurrent
                     yield return @try
                         .WithCatches(CSharp.List(
                             @try
-                            .Catches
-                            .Select(c => c.WithBlock(CSharp.Block(new [] {
-                                Templates
-                                .SetTryVariable
-                                .Get<StatementSyntax>(variable)}.Union(
-                                c.Block.Statements))))));
+                                .Catches
+                                .Select(c => c.WithBlock(CSharp.Block(new[]
+                                {
+                                    Templates
+                                        .SetTryVariable
+                                        .Get<StatementSyntax>(variable)
+                                }.Union(
+                                    c.Block.Statements))))));
                 }
                 else
                     yield return statement;
             }
         }
 
-        //concurrent expressions, must remember all assignents
-        Dictionary<string, Dictionary<string, TypeSyntax>> _typeAssignments = new Dictionary<string, Dictionary<string, TypeSyntax>>();
         private IEnumerable<StatementSyntax> LinkExpressionStatement(StatementSyntax statement)
         {
             var yieldStatement = statement as YieldStatementSyntax;
             if (yieldStatement == null)
-                yield return (StatementSyntax)Visit(statement);
+                yield return (StatementSyntax) Visit(statement);
             else
             {
                 var expression = yieldStatement
@@ -244,7 +247,7 @@ namespace Excess.Extensions.Concurrent
                     as ObjectCreationExpressionSyntax;
 
                 if (expression == null)
-                    yield return (StatementSyntax)Visit(statement);
+                    yield return (StatementSyntax) Visit(statement);
                 else
                 {
                     //check for try/catch statements 
@@ -322,9 +325,9 @@ namespace Excess.Extensions.Concurrent
                 return statement; //td: error checking
 
             var invocation = exprStatement.Expression as InvocationExpressionSyntax;
-            if (    invocation == null
-                ||  invocation.Expression.ToString() != "__marker__"
-                ||  invocation.ArgumentList.Arguments.Count != 3)
+            if (invocation == null
+                || invocation.Expression.ToString() != "__marker__"
+                || invocation.ArgumentList.Arguments.Count != 3)
                 return statement; //td: error checking
 
 
@@ -335,7 +338,8 @@ namespace Excess.Extensions.Concurrent
             return LinkOperand(operand, success, failure, assignments);
         }
 
-        private StatementSyntax LinkOperand(ExpressionSyntax operand, InvocationExpressionSyntax success, InvocationExpressionSyntax failure, Dictionary<string, TypeSyntax> assignments)
+        private StatementSyntax LinkOperand(ExpressionSyntax operand, InvocationExpressionSyntax success, InvocationExpressionSyntax failure,
+            Dictionary<string, TypeSyntax> assignments)
         {
             if (operand is InvocationExpressionSyntax)
                 return LinkProcessInvocation(operand as InvocationExpressionSyntax, success, failure);
@@ -358,18 +362,19 @@ namespace Excess.Extensions.Concurrent
                     case SyntaxKind.FalseLiteralExpression:
                         return CSharp.ExpressionStatement(success
                             .ReplaceNodes(success
-                            .DescendantNodes()
-                            .OfType<LiteralExpressionSyntax>()
-                            .Where(l => l.Kind() == SyntaxKind.TrueLiteralExpression
-                                     || l.Kind() == SyntaxKind.FalseLiteralExpression),
-                            (on, nn) => literal));
+                                .DescendantNodes()
+                                .OfType<LiteralExpressionSyntax>()
+                                .Where(l => l.Kind() == SyntaxKind.TrueLiteralExpression
+                                            || l.Kind() == SyntaxKind.FalseLiteralExpression),
+                                (on, nn) => literal));
                 }
             }
 
             throw new NotImplementedException(); //td:
         }
 
-        private StatementSyntax LinkAssignment(AssignmentExpressionSyntax assignment, InvocationExpressionSyntax success, InvocationExpressionSyntax failure, Dictionary<string, TypeSyntax> assignments)
+        private StatementSyntax LinkAssignment(AssignmentExpressionSyntax assignment, InvocationExpressionSyntax success, InvocationExpressionSyntax failure,
+            Dictionary<string, TypeSyntax> assignments)
         {
             var leftString = assignment.Left.ToString();
             var leftType = Roslyn.SymbolTypeSyntax(_model, assignment.Left);
@@ -399,15 +404,17 @@ namespace Excess.Extensions.Concurrent
 
             if (successFunc != null)
                 return right.ReplaceNode(successFunc, successFunc
-                    .WithBody(CSharp.Block( new[] {
+                    .WithBody(CSharp.Block(new[]
+                    {
                         Templates
                             .ExpressionAssigment
-                            .Get<StatementSyntax>(assignment.Left, leftType) }
+                            .Get<StatementSyntax>(assignment.Left, leftType)
+                    }
                         .Union(successFunc.Body is BlockSyntax
                             ? (successFunc.Body as BlockSyntax)
                                 .Statements
                                 .AsEnumerable()
-                            : new[] { successFunc.Body as StatementSyntax })
+                            : new[] {successFunc.Body as StatementSyntax})
                         .ToArray())));
 
             //else, we need to substitute the actual Right expr by 
@@ -418,7 +425,7 @@ namespace Excess.Extensions.Concurrent
                 .OfType<ExpressionSyntax>()
                 .Where(node => node.ToString().Equals(rightString)),
                 (on, nn) => CSharp.AssignmentExpression(
-                    assignment.Kind(), 
+                    assignment.Kind(),
                     Templates
                         .ExpressionProperty
                         .Get<ExpressionSyntax>(assignment.Left),
@@ -451,7 +458,8 @@ namespace Excess.Extensions.Concurrent
                     WrapInLambda(success));
         }
 
-        private StatementSyntax LinkProcessInvocation(InvocationExpressionSyntax invocation, InvocationExpressionSyntax success, InvocationExpressionSyntax failure)
+        private StatementSyntax LinkProcessInvocation(InvocationExpressionSyntax invocation, InvocationExpressionSyntax success,
+            InvocationExpressionSyntax failure)
         {
             var call = invocation.Expression;
             if (call is IdentifierNameSyntax)
@@ -468,35 +476,33 @@ namespace Excess.Extensions.Concurrent
             StatementSyntax result;
             if (syntaxOperation(invocation, success, failure, out result))
                 return result;
-            else
+            var identifier = (invocation.Expression as IdentifierNameSyntax)
+                .ToString();
+            var signal = _class.GetSignal(identifier);
+            if (signal != null)
             {
-                var identifier = (invocation.Expression as IdentifierNameSyntax)
-                    .ToString();
-                Signal signal = _class.GetSignal(identifier);
-                if (signal != null)
-                {
-                    var expr = invocation
-                        .WithExpression(CSharp.IdentifierName("__concurrent" + identifier))
-                        .WithArgumentList(invocation
-                            .ArgumentList
-                            .AddArguments(
-                                CSharp.Argument(WrapInLambda(success)
-                                    .AddParameterListParameters(CSharp.Parameter(CSharp.ParseToken(
-                                        "__res")))),
-                                CSharp.Argument(WrapInLambda(failure)
-                                    .AddParameterListParameters(CSharp.Parameter(CSharp.ParseToken(
-                                        "__ex"))))));
+                var expr = invocation
+                    .WithExpression(CSharp.IdentifierName("__concurrent" + identifier))
+                    .WithArgumentList(invocation
+                        .ArgumentList
+                        .AddArguments(
+                            CSharp.Argument(WrapInLambda(success)
+                                .AddParameterListParameters(CSharp.Parameter(CSharp.ParseToken(
+                                    "__res")))),
+                            CSharp.Argument(WrapInLambda(failure)
+                                .AddParameterListParameters(CSharp.Parameter(CSharp.ParseToken(
+                                    "__ex"))))));
 
-                    return CSharp.ExpressionStatement(Templates
-                        .Advance
-                        .Get<ExpressionSyntax>(expr));
-                }
-
-                return CSharp.ExpressionStatement(invocation);
+                return CSharp.ExpressionStatement(Templates
+                    .Advance
+                    .Get<ExpressionSyntax>(expr));
             }
+
+            return CSharp.ExpressionStatement(invocation);
         }
 
-        private StatementSyntax LinkExternalInvocation(InvocationExpressionSyntax invocation, InvocationExpressionSyntax success, InvocationExpressionSyntax failure)
+        private StatementSyntax LinkExternalInvocation(InvocationExpressionSyntax invocation, InvocationExpressionSyntax success,
+            InvocationExpressionSyntax failure)
         {
             var queueStatement = null as StatementSyntax;
             if (_class.isQueueInvocation(invocation, true, success, out queueStatement))
@@ -515,15 +521,15 @@ namespace Excess.Extensions.Concurrent
             if (isConcurrent(symbol))
                 return CSharp.ExpressionStatement(
                     invocation
-                    .WithArgumentList(invocation
-                        .ArgumentList
-                        .AddArguments(
-                            CSharp.Argument(Templates
-                                .SuccessFunction
-                                .Get<ExpressionSyntax>(success)),
-                            CSharp.Argument(Templates
-                                .FailureFunction
-                                .Get<ExpressionSyntax>(failure)))));
+                        .WithArgumentList(invocation
+                            .ArgumentList
+                            .AddArguments(
+                                CSharp.Argument(Templates
+                                    .SuccessFunction
+                                    .Get<ExpressionSyntax>(success)),
+                                CSharp.Argument(Templates
+                                    .FailureFunction
+                                    .Get<ExpressionSyntax>(failure)))));
 
             return CSharp.ExpressionStatement(invocation);
         }
@@ -532,10 +538,10 @@ namespace Excess.Extensions.Concurrent
         {
             var type = symbol.ContainingType;
             return type != null && type.MemberNames.Contains("__concurrent" + symbol.Name);
-
         }
 
-        private bool syntaxOperation(InvocationExpressionSyntax invocation, InvocationExpressionSyntax success, InvocationExpressionSyntax failure, out StatementSyntax result)
+        private bool syntaxOperation(InvocationExpressionSyntax invocation, InvocationExpressionSyntax success, InvocationExpressionSyntax failure,
+            out StatementSyntax result)
         {
             result = null;
             switch (invocation.Expression.ToString())
@@ -554,7 +560,7 @@ namespace Excess.Extensions.Concurrent
                 case "parallel":
                     throw new NotImplementedException();
                 default:
-                    return false;            
+                    return false;
             }
 
             return true;

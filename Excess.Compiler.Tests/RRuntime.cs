@@ -1,8 +1,7 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Collections.Generic;
 using Excess.Extensions.R;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Excess.Compiler.Tests
 {
@@ -24,15 +23,15 @@ namespace Excess.Compiler.Tests
                     }
 
                     result[""z""] = z;
-                }", compiler => Excess.Extensions.R.Extension.Apply(compiler));
+                }", compiler => Extension.Apply(compiler));
 
             //must have executed
             Assert.IsNotNull(result);
 
             //must have return doubles
-            Assert.IsInstanceOfType(result.z, typeof(Vector<Double>));
+            Assert.IsInstanceOfType(result.z, typeof(Vector<double>));
 
-            IEnumerable<Double> values = result.z.getEnumerable<Double>();
+            IEnumerable<double> values = result.z.getEnumerable<double>();
 
             //must have returned 9 values, with -1 in between x and y
             Assert.IsNotNull(values);

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace Excess.RuntimeProject
 {
@@ -12,7 +8,7 @@ namespace Excess.RuntimeProject
         System,
         Application,
         Error,
-        Finished,
+        Finished
     }
 
     public class Notification
@@ -50,7 +46,7 @@ namespace Excess.RuntimeProject
 
     public interface IExtensionRuntime
     {
-        string debugExtension(string text);
-        bool generateGrammar(out string extension, out string transform);
+        string DebugExtension(string text);
+        bool GenerateGrammar(out string extension, out string transform);
     }
 }

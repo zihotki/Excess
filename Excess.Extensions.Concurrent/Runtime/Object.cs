@@ -3,9 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Concurrent.Runtime
 {
@@ -13,13 +11,19 @@ namespace Concurrent.Runtime
 
     public class Node
     {
+        private readonly ConcurrentQueue<Event> _queue = new ConcurrentQueue<Event>();
+
+        private readonly CancellationTokenSource _stop = new CancellationTokenSource();
+
+        private readonly Dictionary<string, Func<object[], Object>> _types = new Dictionary<string, Func<object[], Object>>();
+
         public Node(int threads, IDictionary<string, Spawner> types)
         {
             Debug.Assert(threads > 0);
             createThreads(threads);
         }
 
-        public T Spawn<T>(params object[] args) where T : Object, new ()
+        public T Spawn<T>(params object[] args) where T : Object, new()
         {
             var result = new T();
             result._node = this;
@@ -27,11 +31,10 @@ namespace Concurrent.Runtime
             return result;
         }
 
-        Dictionary<string, Func<object[], Object>> _types = new Dictionary<string, Func<object[], Object>>();
         public Object Spawn(string type, params object[] args)
         {
             var caller = null as Func<object[], Object>;
-            lock(_types)
+            lock (_types)
             {
                 _types.TryGetValue(type, out caller);
             }
@@ -41,17 +44,6 @@ namespace Concurrent.Runtime
 
             return caller(args);
         }
-
-        private class Event
-        {
-            public int Tries { get; set; }
-            public Object Target { get; set; }
-            public Func<object> What { get; set; }
-            public Action<object> Success { get; set; }
-            public Action<Exception> Failure { get; set; }
-        }
-
-        ConcurrentQueue<Event> _queue = new ConcurrentQueue<Event>();
 
         public void Queue(Object who, Func<object> what, Action<object> success, Action<Exception> failure)
         {
@@ -65,16 +57,15 @@ namespace Concurrent.Runtime
             });
         }
 
-        CancellationTokenSource _stop = new CancellationTokenSource();
         private void createThreads(int threads)
         {
             var cancellation = _stop.Token;
-            for (int i = 0; i < threads; i++)
+            for (var i = 0; i < threads; i++)
             {
-                var thread = new Thread(() => {
+                var thread = new Thread(() =>
+                {
                     while (true)
                     {
-
                         Event message;
                         _queue.TryDequeue(out message);
                         if (cancellation.IsCancellationRequested)
@@ -94,22 +85,35 @@ namespace Concurrent.Runtime
                 thread.Start();
             }
         }
+
+        private class Event
+        {
+            public int Tries { get; set; }
+            public Object Target { get; set; }
+            public Func<object> What { get; set; }
+            public Action<object> Success { get; set; }
+            public Action<Exception> Failure { get; set; }
+        }
     }
 
     public class Object
     {
-        protected virtual internal void __start(params object[] args)
+        private int _busy;
+
+        private readonly Dictionary<string, List<Action>> _listeners = new Dictionary<string, List<Action>>();
+
+        internal Node _node;
+
+        protected internal virtual void __start(params object[] args)
         {
             Debug.Assert(_busy == 0);
         }
 
-        internal Node _node;
         protected T spawn<T>(params object[] args) where T : Object, new()
         {
             return _node.Spawn<T>(args);
         }
 
-        int _busy = 0;
         internal void __run(Action what, Action<object> success, Action<Exception> failure)
         {
             __run(() =>
@@ -132,12 +136,24 @@ namespace Concurrent.Runtime
                 {
                     var result = what();
                     if (success != null)
-                        try { success(result); } catch { }
+                        try
+                        {
+                            success(result);
+                        }
+                        catch
+                        {
+                        }
                 }
                 catch (Exception ex)
                 {
                     if (failure != null)
-                        try { failure(ex); } catch { }
+                        try
+                        {
+                            failure(ex);
+                        }
+                        catch
+                        {
+                        }
                 }
 
                 Interlocked.CompareExchange(ref _busy, 0, 1);
@@ -155,7 +171,6 @@ namespace Concurrent.Runtime
                 expr.Start(expr);
         }
 
-        Dictionary<string, List<Action>> _listeners = new Dictionary<string, List<Action>>();
         protected void __listen(string signal, Action callback)
         {
             List<Action> actions;
@@ -192,20 +207,19 @@ namespace Concurrent.Runtime
         {
             return _listeners
                 .Where(kvp => kvp.Key == signal
-                           && kvp.Value.Any())
+                              && kvp.Value.Any())
                 .Any();
-
         }
     }
 
     public class Expression
     {
-        public Action<Expression>      Start        { get; set; }
-        public IEnumerator<Expression> Continuator  { get; set; }
-        public Action<Expression>      End          { get; set; }
-        public Exception               Failure      { get; set; }
+        private readonly List<Exception> _exceptions = new List<Exception>();
+        public Action<Expression> Start { get; set; }
+        public IEnumerator<Expression> Continuator { get; set; }
+        public Action<Expression> End { get; set; }
+        public Exception Failure { get; set; }
 
-        List<Exception> _exceptions = new List<Exception>();
         protected void __complete(bool success, Exception failure)
         {
             Debug.Assert(Continuator != null);
@@ -213,7 +227,7 @@ namespace Concurrent.Runtime
 
             IEnumerable<Exception> allFailures = _exceptions;
             if (failure != null)
-                allFailures = allFailures.Union(new[] { failure });
+                allFailures = allFailures.Union(new[] {failure});
 
             if (!success)
             {

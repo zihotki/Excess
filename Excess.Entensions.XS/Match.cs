@@ -1,18 +1,14 @@
-﻿using Excess.Compiler;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
+using Excess.Compiler;
 using Excess.Compiler.Roslyn;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Excess.Entensions.XS
 {
-    using CSharp = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+    using CSharp = SyntaxFactory;
     using ExcessCompiler = ICompiler<SyntaxToken, SyntaxNode, SemanticModel>;
 
     public class Match
@@ -23,12 +19,12 @@ namespace Excess.Entensions.XS
 
             lexical
                 .Match()
-                    .Token("match", named: "keyword")
-                    .Enclosed('(', ')')
-                    .Token('{')
-                    .Then(lexical.Transform()
-                        .Replace("keyword", "switch")
-                        .Then(ProcessMatch, referenceToken: "keyword"));
+                .Token("match", "keyword")
+                .Enclosed('(', ')')
+                .Token('{')
+                .Then(lexical.Transform()
+                    .Replace("keyword", "switch")
+                    .Then(ProcessMatch, "keyword"));
         }
 
         private static SyntaxNode ProcessMatch(SyntaxNode node, Scope scope)
@@ -50,7 +46,7 @@ namespace Excess.Entensions.XS
                 bool isDefault;
                 var expr = caseExpression(section.Labels, switchExpr.Expression, out isDefault);
 
-                StatementSyntax statement = caseStatement(section.Statements);
+                var statement = caseStatement(section.Statements);
                 if (isDefault && section.Labels.Count == 1)
                 {
                     defaultStatement = statement;
@@ -68,13 +64,13 @@ namespace Excess.Entensions.XS
             //convert cases to ifs
             Debug.Assert(cases.Count == statements.Count);
             var last = cases.Count - 1;
-            IfStatementSyntax result = CSharp.IfStatement(cases[last], statements[last]);
+            var result = CSharp.IfStatement(cases[last], statements[last]);
 
             if (defaultStatement != null)
                 result = result.WithElse(CSharp.ElseClause(defaultStatement));
 
 
-            for (int i = last - 1; i >= 0; i--)
+            for (var i = last - 1; i >= 0; i--)
             {
                 result = CSharp.IfStatement(cases[i], statements[i])
                     .WithElse(CSharp.ElseClause(result));
@@ -96,7 +92,7 @@ namespace Excess.Entensions.XS
         private static ExpressionSyntax caseExpression(SyntaxList<SwitchLabelSyntax> labels, ExpressionSyntax control, out bool isDefault)
         {
             isDefault = false;
-            List<ExpressionSyntax> cases = new List<ExpressionSyntax>();
+            var cases = new List<ExpressionSyntax>();
             foreach (var label in labels)
             {
                 bool thisDefault;
@@ -109,9 +105,12 @@ namespace Excess.Entensions.XS
 
             switch (cases.Count)
             {
-                case 0: return null;
-                case 1: return cases[0];
-                default: return CreateOrExpression(cases);
+                case 0:
+                    return null;
+                case 1:
+                    return cases[0];
+                default:
+                    return CreateOrExpression(cases);
             }
         }
 
@@ -119,7 +118,7 @@ namespace Excess.Entensions.XS
         {
             Debug.Assert(cases.Count >= 2);
             var result = CSharp.BinaryExpression(SyntaxKind.LogicalOrExpression, cases[0], cases[1]);
-            for(int i = 2; i < cases.Count; i++)
+            for (var i = 2; i < cases.Count; i++)
                 result = CSharp.BinaryExpression(SyntaxKind.LogicalOrExpression, result, cases[i]);
 
             return result;

@@ -2,15 +2,15 @@
 
 <title>CodeMirror: HTML5 preview</title>
 <meta charset="utf-8"/>
-<link rel=stylesheet href="../doc/docs.css">
+<link rel="stylesheet" href="../doc/docs.css">
 
-<link rel=stylesheet href=../lib/codemirror.css>
-<script src=../lib/codemirror.js></script>
-<script src=../mode/xml/xml.js></script>
-<script src=../mode/javascript/javascript.js></script>
-<script src=../mode/css/css.js></script>
-<script src=../mode/htmlmixed/htmlmixed.js></script>
-<style type=text/css>
+<link rel="stylesheet" href="../lib/codemirror.css">
+<script src="../lib/codemirror.js"></script>
+<script src="../mode/xml/xml.js"></script>
+<script src="../mode/javascript/javascript.js"></script>
+<script src="../mode/css/css.js"></script>
+<script src="../mode/htmlmixed/htmlmixed.js"></script>
+<style type="text/css">
       .CodeMirror {
         float: left;
         width: 50%;
@@ -24,23 +24,25 @@
         border-left: 0px;
       }
     </style>
-<div id=nav>
-  <a href="http://codemirror.net"><h1>CodeMirror</h1><img id=logo src="../doc/logo.png"></a>
+<div id="nav">
+    <a href="http://codemirror.net">
+        <h1>CodeMirror</h1><img id="logo" src="../doc/logo.png">
+    </a>
 
-  <ul>
-    <li><a href="../index.html">Home</a>
-    <li><a href="../doc/manual.html">Manual</a>
-    <li><a href="https://github.com/codemirror/codemirror">Code</a>
-  </ul>
-  <ul>
-    <li><a class=active href="#">HTML5 preview</a>
-  </ul>
+    <ul>
+        <li><a href="../index.html">Home</a>
+        <li><a href="../doc/manual.html">Manual</a>
+        <li><a href="https://github.com/codemirror/codemirror">Code</a>
+    </ul>
+    <ul>
+        <li><a class="active" href="#">HTML5 preview</a>
+    </ul>
 </div>
 
 <article>
-<h2>HTML5 preview</h2>
+    <h2>HTML5 preview</h2>
 
-    <textarea id=code name=code>
+    <textarea id="code" name="code">
 <!doctype html>
 <html>
   <head>
@@ -63,7 +65,7 @@
     </script>
   </body>
 </html></textarea>
-    <iframe id=preview></iframe>
+    <iframe id="preview"></iframe>
     <script>
       var delay;
       // Initialize CodeMirror editor with a nice html5 canvas demo.
@@ -84,4 +86,4 @@
       }
       setTimeout(updatePreview, 300);
     </script>
-  </article>
+</article>

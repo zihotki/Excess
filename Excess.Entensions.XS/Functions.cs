@@ -1,44 +1,42 @@
-﻿using Excess.Compiler;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using Excess.Compiler;
 using Excess.Compiler.Roslyn;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Excess.Entensions.XS
 {
-    using CSharp = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+    using CSharp = SyntaxFactory;
     using ExcessCompiler = ICompiler<SyntaxToken, SyntaxNode, SemanticModel>;
 
     public class Functions
     {
-        static public void Apply(ExcessCompiler compiler)
+        public static void Apply(ExcessCompiler compiler)
         {
-            var lexical   = compiler.Lexical();
+            var lexical = compiler.Lexical();
             var semantics = compiler.Semantics();
 
             lexical
                 .Match() //lambda
-                    .Any('(', '=', ',')
-                    .Token("function", named: "fn")
-                    .Enclosed('(', ')')
-                    .Token('{', named: "brace")
-                    .Then(compiler.Lexical().Transform()
-                        .Remove("fn")
-                        .Insert("=>", before: "brace"))
+                .Any('(', '=', ',')
+                .Token("function", "fn")
+                .Enclosed('(', ')')
+                .Token('{', "brace")
+                .Then(compiler.Lexical().Transform()
+                    .Remove("fn")
+                    .Insert("=>", "brace"))
                 .Match()
-                    .Token("function", named: "fn") //declarations
-                    .Identifier(named: "id")
-                    .Enclosed('(', ')')
-                    .Token('{')
-                    .Then(lexical.Transform()
-                        .Remove("fn")
-                        .Then(ProcessMemberFunction, referenceToken: "id"));
+                .Token("function", "fn") //declarations
+                .Identifier("id")
+                .Enclosed('(', ')')
+                .Token('{')
+                .Then(lexical.Transform()
+                    .Remove("fn")
+                    .Then(ProcessMemberFunction, "id"));
             semantics
                 .Error("CS0246", FunctionType);
         }
@@ -53,7 +51,7 @@ namespace Excess.Entensions.XS
                 if (method.ReturnType.IsMissing)
                 {
                     document.Change(method, ReturnType);
-                    return method.WithReturnType(RoslynCompiler.@void); 
+                    return method.WithReturnType(RoslynCompiler.@void);
                 }
 
                 return node;
@@ -75,7 +73,7 @@ namespace Excess.Entensions.XS
             var function = invocation.Expression as IdentifierNameSyntax;
             Debug.Assert(function != null);
 
-            BlockSyntax parent = statement.Parent as BlockSyntax;
+            var parent = statement.Parent as BlockSyntax;
             Debug.Assert(parent != null); //td: error, maybe?
 
             var body = RoslynCompiler.NextStatement(parent, statement) as BlockSyntax;
@@ -94,7 +92,7 @@ namespace Excess.Entensions.XS
 
         private static SyntaxNode ReturnType(SyntaxNode node, SyntaxNode newNode, SemanticModel model, Scope scope)
         {
-            var method = (MethodDeclarationSyntax)node;
+            var method = (MethodDeclarationSyntax) node;
             var type = RoslynCompiler.GetReturnType(method.Body, model);
 
             return (newNode as MethodDeclarationSyntax)
@@ -109,10 +107,10 @@ namespace Excess.Entensions.XS
                 var generic = node as GenericNameSyntax;
                 if (generic.Identifier.ToString() == "function")
                 {
-                    List<TypeSyntax> arguments  = new List<TypeSyntax>();
-                    TypeSyntax       returnType = null;
+                    var arguments = new List<TypeSyntax>();
+                    TypeSyntax returnType = null;
 
-                    bool first = true;
+                    var first = true;
                     foreach (var arg in generic.TypeArgumentList.Arguments)
                     {
                         if (first)
@@ -135,7 +133,7 @@ namespace Excess.Entensions.XS
                             .WithIdentifier(CSharp.Identifier("Func"))
                             .WithTypeArgumentList(CSharp.TypeArgumentList(CSharp.SeparatedList(
                                 arguments
-                                    .Union(new[] { returnType}))));
+                                    .Union(new[] {returnType}))));
                 }
             }
             else if (node.ToString() == "function")
@@ -154,7 +152,7 @@ namespace Excess.Entensions.XS
         {
             return (node, scope) =>
             {
-                LocalDeclarationStatementSyntax localDeclaration = (LocalDeclarationStatementSyntax)CSharp.ParseStatement("var id = () => {}");
+                var localDeclaration = (LocalDeclarationStatementSyntax) CSharp.ParseStatement("var id = () => {}");
                 var variable = localDeclaration.Declaration.Variables[0];
                 var lambda = variable.Initializer.Value as ParenthesizedLambdaExpressionSyntax;
                 Debug.Assert(lambda != null);
@@ -162,13 +160,15 @@ namespace Excess.Entensions.XS
                 return localDeclaration
                     .WithDeclaration(localDeclaration
                         .Declaration
-                        .WithVariables(CSharp.SeparatedList(new[] {
-                                variable
-                                    .WithIdentifier(name.Identifier)
-                                    .WithInitializer(variable.Initializer
-                                        .WithValue(lambda
-                                            //.WithParameterList(invocation.ArgumentList) //td: extension arguments
-                                            .WithBody(body)))})));
+                        .WithVariables(CSharp.SeparatedList(new[]
+                        {
+                            variable
+                                .WithIdentifier(name.Identifier)
+                                .WithInitializer(variable.Initializer
+                                    .WithValue(lambda
+                                        //.WithParameterList(invocation.ArgumentList) //td: extension arguments
+                                        .WithBody(body)))
+                        })));
             };
         }
     }

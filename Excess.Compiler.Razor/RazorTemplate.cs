@@ -1,15 +1,13 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System;
+using System.Linq;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using RazorEngine;
 using RazorEngine.Templating;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Excess.Compiler.Razor
 {
-    using CSharp = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+    using CSharp = SyntaxFactory;
 
     internal enum TemplateKind
     {
@@ -21,6 +19,16 @@ namespace Excess.Compiler.Razor
 
     public class RazorTemplate
     {
+        private readonly string _key;
+
+        private readonly TemplateKind _kind;
+
+        internal RazorTemplate(TemplateKind kind, string key)
+        {
+            _kind = kind;
+            _key = key;
+        }
+
         public static RazorTemplate ParseExpression(string text)
         {
             return new RazorTemplate(TemplateKind.Expression, ParseRazor(text));
@@ -78,17 +86,9 @@ namespace Excess.Compiler.Razor
             return result;
         }
 
-        TemplateKind _kind;
-        string _key;
-        internal RazorTemplate(TemplateKind kind, string key)
-        {
-            _kind = kind;
-            _key = key;
-        }
-
         public string Render(object model)
         {
-            return Engine.Razor.Run(_key, null, (object)model);
+            return Engine.Razor.Run(_key, null, model);
         }
 
         public SyntaxNode Get(object model)
@@ -99,9 +99,12 @@ namespace Excess.Compiler.Razor
             var text = Render(model);
             switch (_kind)
             {
-                case TemplateKind.Code: return CSharp.ParseCompilationUnit(text);
-                case TemplateKind.Expression: return CSharp.ParseExpression(text);
-                case TemplateKind.Statement: return CSharp.ParseStatement(text);
+                case TemplateKind.Code:
+                    return CSharp.ParseCompilationUnit(text);
+                case TemplateKind.Expression:
+                    return CSharp.ParseExpression(text);
+                case TemplateKind.Statement:
+                    return CSharp.ParseStatement(text);
             }
 
             throw new NotImplementedException();
