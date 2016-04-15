@@ -26,7 +26,7 @@ namespace Excess.Entensions.XS
                 .Extension("contract", ExtensionKind.Code, ProcessContract);
         }
 
-        private static SyntaxNode ProcessContract(SyntaxNode node, Scope scope, SyntacticalExtension<SyntaxNode> extension)
+        private static SyntaxNode ProcessContract(SyntaxNode node, Scope scope, SyntacticalExtensionDto<SyntaxNode> extension)
         {
             if (extension.Kind == ExtensionKind.Code)
             {

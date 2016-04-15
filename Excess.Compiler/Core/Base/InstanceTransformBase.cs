@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Excess.Compiler.Core
 {
@@ -12,7 +13,7 @@ namespace Excess.Compiler.Core
         private readonly Dictionary<string, InstanceConnector> _input;
         private readonly Dictionary<string, InstanceConnector> _output;
 
-        public InstanceTransformBase(
+        protected InstanceTransformBase(
             Dictionary<string, InstanceConnector> input,
             Dictionary<string, InstanceConnector> output,
             Dictionary<InstanceConnector, Action<InstanceConnector, object, object, Scope>> connectorDataTransform,
@@ -30,8 +31,9 @@ namespace Excess.Compiler.Core
 
         public TNode Transform(string id, object instance, TNode node, IEnumerable<InstanceConnection<TNode>> connections, Scope scope)
         {
-            var result = DoTransform(id, instance, node, connections, scope);
-            foreach (var connection in connections)
+            var instanceConnections = connections as InstanceConnection<TNode>[] ?? connections.ToArray();
+            var result = DoTransform(id, instance, node, instanceConnections, scope);
+            foreach (var connection in instanceConnections)
             {
                 var isInput = connection.InputModel == instance;
                 if (isInput)
@@ -78,7 +80,7 @@ namespace Excess.Compiler.Core
             dt = null;
             transform = null;
 
-            var result = null as InstanceConnector;
+            InstanceConnector result;
             if (_output.TryGetValue(connector, out result))
             {
                 _connectorDataTransform.TryGetValue(result, out dt);
@@ -95,7 +97,7 @@ namespace Excess.Compiler.Core
             dt = null;
             transform = null;
 
-            var result = null as InstanceConnector;
+            InstanceConnector result;
             if (_input.TryGetValue(connector, out result))
             {
                 _connectorDataTransform.TryGetValue(result, out dt);

@@ -1,19 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace Excess.Compiler.Core
 {
     public abstract class CompilerBase<TToken, TNode, TModel> : ICompiler<TToken, TNode, TModel>,
         IDocumentInjector<TToken, TNode, TModel>
     {
-        protected IDocument<TToken, TNode, TModel> _document;
+        protected IDocument<TToken, TNode, TModel> Document;
         protected ICompilerEnvironment _environment;
         protected IInstanceAnalisys<TNode> _instance;
         protected ILexicalAnalysis<TToken, TNode, TModel> _lexical;
         protected Scope _scope;
         protected ISemanticAnalysis<TToken, TNode, TModel> _semantics;
-        protected CompilerStage _stage = CompilerStage.Started;
+        protected CompilerStage Stage = CompilerStage.Started;
         protected ISyntaxAnalysis<TToken, TNode, TModel> _syntax;
 
         public CompilerBase(ILexicalAnalysis<TToken, TNode, TModel> lexical,
@@ -32,7 +30,7 @@ namespace Excess.Compiler.Core
             _scope = new Scope(scope);
         }
 
-        public Scope Scope { get { return _scope; } }
+        public Scope Scope => _scope;
 
         public ILexicalAnalysis<TToken, TNode, TModel> Lexical()
         {
@@ -61,11 +59,11 @@ namespace Excess.Compiler.Core
 
         public bool Compile(string text, CompilerStage stage)
         {
-            Debug.Assert(_document == null);
-            _document = CreateDocument();
+            Debug.Assert(Document == null);
+            Document = CreateDocument();
 
-            _document.ApplyChanges(stage);
-            return _document.HasErrors();
+            Document.ApplyChanges(stage);
+            return Document.HasErrors();
         }
 
         public bool CompileAll(string text)
@@ -75,8 +73,8 @@ namespace Excess.Compiler.Core
 
         public bool Advance(CompilerStage stage)
         {
-            _document.ApplyChanges(stage);
-            return _document.HasErrors();
+            Document.ApplyChanges(stage);
+            return Document.HasErrors();
         }
 
         public void Apply(IDocument<TToken, TNode, TModel> document)
@@ -101,38 +99,5 @@ namespace Excess.Compiler.Core
         }
 
         protected abstract IDocument<TToken, TNode, TModel> CreateDocument();
-    }
-
-    public class DelegateInjector<TToken, TNode, TModel> : ICompilerInjector<TToken, TNode, TModel>
-    {
-        private readonly Action<ICompiler<TToken, TNode, TModel>> _delegate;
-
-        public DelegateInjector(Action<ICompiler<TToken, TNode, TModel>> @delegate)
-        {
-            _delegate = @delegate;
-        }
-
-        public void Apply(ICompiler<TToken, TNode, TModel> compiler)
-        {
-            _delegate(compiler);
-        }
-    }
-
-    public class CompositeInjector<TToken, TNode, TModel> : ICompilerInjector<TToken, TNode, TModel>
-    {
-        private readonly IEnumerable<ICompilerInjector<TToken, TNode, TModel>> _injectors;
-
-        public CompositeInjector(IEnumerable<ICompilerInjector<TToken, TNode, TModel>> injectors)
-        {
-            _injectors = injectors;
-        }
-
-        public void Apply(ICompiler<TToken, TNode, TModel> compiler)
-        {
-            foreach (var injector in _injectors)
-            {
-                injector.Apply(compiler);
-            }
-        }
     }
 }

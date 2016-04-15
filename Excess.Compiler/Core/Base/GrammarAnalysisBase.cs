@@ -4,15 +4,15 @@ using System.Linq;
 
 namespace Excess.Compiler.Core
 {
-    public class BaseGrammarAnalysis<TToken, TNode, TModel, GNode, TGrammar> : IGrammarAnalysis<TGrammar, GNode, TToken, TNode>
-        where TGrammar : IGrammar<TToken, TNode, GNode>, new()
+    public class BaseGrammarAnalysis<TToken, TNode, TModel, TGNode, TGrammar> : IGrammarAnalysis<TGrammar, TGNode, TToken, TNode>
+        where TGrammar : IGrammar<TToken, TNode, TGNode>, new()
     {
         private readonly TGrammar _grammar;
 
-        private readonly Dictionary<Type, Func<GNode, Func<GNode, Scope, TNode>, Scope, TNode>> _transformers =
-            new Dictionary<Type, Func<GNode, Func<GNode, Scope, TNode>, Scope, TNode>>();
+        private readonly Dictionary<Type, Func<TGNode, Func<TGNode, Scope, TNode>, Scope, TNode>> _transformers =
+            new Dictionary<Type, Func<TGNode, Func<TGNode, Scope, TNode>, Scope, TNode>>();
 
-        private Func<TNode, TNode, Scope, LexicalExtension<TToken>, TNode> _then;
+        private Func<TNode, TNode, Scope, LexicalExtensionDto<TToken>, TNode> _then;
 
         public BaseGrammarAnalysis(ILexicalAnalysis<TToken, TNode, TModel> lexical, string keyword, ExtensionKind kind)
         {
@@ -20,12 +20,12 @@ namespace Excess.Compiler.Core
             _grammar = new TGrammar();
         }
 
-        public void Then(Func<TNode, TNode, Scope, LexicalExtension<TToken>, TNode> handler)
+        public void Then(Func<TNode, TNode, Scope, LexicalExtensionDto<TToken>, TNode> handler)
         {
             _then = handler;
         }
 
-        public IGrammarAnalysis<TGrammar, GNode, TToken, TNode> Transform<T>(Func<T, Func<GNode, Scope, TNode>, Scope, TNode> handler) where T : GNode
+        public IGrammarAnalysis<TGrammar, TGNode, TToken, TNode> Transform<T>(Func<T, Func<TGNode, Scope, TNode>, Scope, TNode> handler) where T : TGNode
         {
             var type = typeof(T);
             if (_transformers.ContainsKey(type))
@@ -37,10 +37,11 @@ namespace Excess.Compiler.Core
             return this;
         }
 
-        private TNode ParseExtension(TNode node, Scope scope, LexicalExtension<TToken> extension)
+        private TNode ParseExtension(TNode node, Scope scope, LexicalExtensionDto<TToken> extension)
         {
             var allTokens = extension.Body.ToArray();
-            var withoutBraces = Range(allTokens, 1, allTokens.Length - 1);
+            var woBraces = Range(allTokens, 1, allTokens.Length - 1);
+            var withoutBraces = woBraces as TToken[] ?? woBraces.ToArray();
             if (!withoutBraces.Any())
             {
                 return node;
@@ -49,7 +50,7 @@ namespace Excess.Compiler.Core
             var compiler = scope.GetService<TToken, TNode, TModel>();
             var g = _grammar.Parse(withoutBraces, scope, compiler.GetOffset(withoutBraces.First()));
 
-            if (g == null || g.Equals(default(GNode)))
+            if (g == null || g.Equals(default(TGNode)))
             {
                 return node; //errors added to the scope already
             }
@@ -71,13 +72,13 @@ namespace Excess.Compiler.Core
             }
         }
 
-        private TNode DoTransform(GNode g, Scope scope)
+        private TNode DoTransform(TGNode tg, Scope scope)
         {
-            var type = g.GetType();
-            var handler = null as Func<GNode, Func<GNode, Scope, TNode>, Scope, TNode>;
+            var type = tg.GetType();
+            Func<TGNode, Func<TGNode, Scope, TNode>, Scope, TNode> handler;
             if (_transformers.TryGetValue(type, out handler))
             {
-                return handler(g, DoTransform, scope);
+                return handler(tg, DoTransform, scope);
             }
 
             return default(TNode);

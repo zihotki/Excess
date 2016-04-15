@@ -21,10 +21,10 @@ namespace Excess.Compiler.Roslyn
             {
                 Original = oldSpan.Start - _currOriginal,
                 Modified = oldSpan.Start - _currOriginal,
-                isChange = false
+                IsChange = false
             });
 
-            _changes.Add(new Change {Original = oldSpan.Length, Modified = newLength, isChange = true});
+            _changes.Add(new Change {Original = oldSpan.Length, Modified = newLength, IsChange = true});
         }
 
         public void SemanticalChange(SyntaxNode oldNode, SyntaxNode newNode)
@@ -108,7 +108,7 @@ namespace Excess.Compiler.Roslyn
         {
             public int Original;
             public int Modified;
-            public bool isChange;
+            public bool IsChange;
         }
     }
 }

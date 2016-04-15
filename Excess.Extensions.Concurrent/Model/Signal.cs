@@ -20,7 +20,7 @@ namespace Excess.Extensions.Concurrent.Model
             Id = id;
             Name = name;
             Internal = false;
-            ReturnType = RoslynCompiler.boolean;
+            ReturnType = RoslynCompiler.Boolean;
             Public = @public;
         }
     }

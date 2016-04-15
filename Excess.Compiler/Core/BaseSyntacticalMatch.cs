@@ -14,7 +14,7 @@ namespace Excess.Compiler.Core
 
         private Func<TNode, Scope, TNode> _syntactical;
 
-        public BaseSyntacticalMatch(ISyntaxAnalysis<TToken, TNode, TModel> syntax)
+        protected BaseSyntacticalMatch(ISyntaxAnalysis<TToken, TNode, TModel> syntax)
         {
             _syntax = syntax;
         }
@@ -44,14 +44,9 @@ namespace Excess.Compiler.Core
 
         public ISyntacticalMatch<TToken, TNode, TModel> Descendants<T>(Func<T, bool> selector, string named) where T : TNode
         {
-            if (selector != null)
-            {
-                _matchers.Add(MatchDescendants(node => node is T && selector((T) node), named));
-            }
-            else
-            {
-                _matchers.Add(MatchDescendants(node => node is T, named));
-            }
+            _matchers.Add(selector != null
+                ? MatchDescendants(node => node is T && selector((T) node), named)
+                : MatchDescendants(node => node is T, named));
 
             return this;
         }
@@ -63,7 +58,7 @@ namespace Excess.Compiler.Core
 
         public ISyntaxAnalysis<TToken, TNode, TModel> Then(ISyntaxTransform<TNode> transform)
         {
-            return Then((node, scope) => transform.Transform(node, scope));
+            return Then(transform.Transform);
         }
 
         public ISyntaxAnalysis<TToken, TNode, TModel> Then(Func<TNode, Scope, TNode> handler)
@@ -103,11 +98,11 @@ namespace Excess.Compiler.Core
             return (node, scope) =>
             {
                 var nodes = Children(node)
-                    .Where(childNode => selector(childNode));
+                    .Where(selector);
 
                 if (named != null)
                 {
-                    scope.set(named, nodes);
+                    scope.Set(named, nodes);
                 }
 
                 return true;
@@ -119,11 +114,11 @@ namespace Excess.Compiler.Core
             return (node, scope) =>
             {
                 var nodes = Descendants(node)
-                    .Where(childNode => selector(childNode));
+                    .Where(selector);
 
                 if (named != null)
                 {
-                    scope.set(named, nodes);
+                    scope.Set(named, nodes);
                 }
 
                 return true;

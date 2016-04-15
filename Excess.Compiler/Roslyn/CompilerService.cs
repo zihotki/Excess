@@ -76,7 +76,7 @@ namespace Excess.Compiler.Roslyn
         public SyntaxNode MarkTree(SyntaxNode node)
         {
             //td: optimize?
-            return node.ReplaceNodes(node.DescendantNodes(), (oldNode, newNode) => { return MarkNode(newNode); });
+            return node.ReplaceNodes(node.DescendantNodes(), (oldNode, newNode) => MarkNode(newNode));
         }
 
         public int GetExcessId(SyntaxToken token)

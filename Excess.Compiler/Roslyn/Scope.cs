@@ -27,12 +27,12 @@ namespace Excess.Compiler.Roslyn
 
         internal static void InitDocumentScope(this Scope scope)
         {
-            scope.set("__additionalTypes", new List<TypeDeclarationSyntax>());
+            scope.Set("__additionalTypes", new List<TypeDeclarationSyntax>());
         }
 
         public static void AddType(this Scope scope, TypeDeclarationSyntax type)
         {
-            var types = scope.find<List<TypeDeclarationSyntax>>("__additionalTypes");
+            var types = scope.Find<List<TypeDeclarationSyntax>>("__additionalTypes");
             if (types == null)
                 throw new InvalidOperationException("document scope not initialized");
 
@@ -41,7 +41,7 @@ namespace Excess.Compiler.Roslyn
 
         public static IEnumerable<TypeDeclarationSyntax> GetAdditionalTypes(this Scope scope)
         {
-            var types = scope.find<List<TypeDeclarationSyntax>>("__additionalTypes");
+            var types = scope.Find<List<TypeDeclarationSyntax>>("__additionalTypes");
             if (types == null)
                 throw new InvalidOperationException("document scope not initialized");
 

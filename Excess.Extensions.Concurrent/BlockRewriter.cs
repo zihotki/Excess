@@ -265,13 +265,13 @@ namespace Excess.Extensions.Concurrent
             var success = parent == null
                 ? Templates
                     .ExpressionCompleteCall
-                    .Get<ExpressionSyntax>(Roslyn.@true, Roslyn.@null)
+                    .Get<ExpressionSyntax>(Roslyn.True, Roslyn.Null)
                 : CreateCallback(true, leftOfParent, parent.Callback);
 
             var failure = parent == null
                 ? Templates
                     .ExpressionCompleteCall
-                    .Get<ExpressionSyntax>(Roslyn.@false, Templates.FailureParameter)
+                    .Get<ExpressionSyntax>(Roslyn.False, Templates.FailureParameter)
                 : CreateCallback(false, leftOfParent, parent.Callback);
 
             var continuationStart = null as List<StatementSyntax>;
@@ -326,18 +326,18 @@ namespace Excess.Extensions.Concurrent
         {
             var arg1 = leftOfParent
                 ? success
-                    ? Roslyn.@true
-                    : Roslyn.@false
-                : Roslyn.@null;
+                    ? Roslyn.True
+                    : Roslyn.False
+                : Roslyn.Null;
 
             var arg2 = leftOfParent
-                ? Roslyn.@null
+                ? Roslyn.Null
                 : success
-                    ? Roslyn.@true
-                    : Roslyn.@false;
+                    ? Roslyn.True
+                    : Roslyn.False;
 
             var ex = success
-                ? Roslyn.@null
+                ? Roslyn.Null
                 : Templates.FailureParameter;
 
             return CSharp
@@ -370,12 +370,12 @@ namespace Excess.Extensions.Concurrent
                     _class.Name,
                     callbackName,
                     leftOperand
-                        ? Roslyn.@true
-                        : Roslyn.@null,
+                        ? Roslyn.True
+                        : Roslyn.Null,
                     leftOperand
-                        ? Roslyn.@null
-                        : Roslyn.@true,
-                    Roslyn.@null);
+                        ? Roslyn.Null
+                        : Roslyn.True,
+                    Roslyn.Null);
 
             var failure = Templates
                 .StartCallback
@@ -383,11 +383,11 @@ namespace Excess.Extensions.Concurrent
                     _class.Name,
                     callbackName,
                     leftOperand
-                        ? Roslyn.@false
-                        : Roslyn.@null,
+                        ? Roslyn.False
+                        : Roslyn.Null,
                     leftOperand
-                        ? Roslyn.@null
-                        : Roslyn.@false,
+                        ? Roslyn.Null
+                        : Roslyn.False,
                     Templates.FailureParameter);
 
             start

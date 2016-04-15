@@ -10,20 +10,20 @@ namespace Excess.Compiler.Roslyn
 
     public class ExtensionRewriter : CSharpSyntaxRewriter
     {
-        private readonly Dictionary<string, Func<SyntaxNode, Scope, SyntacticalExtension<SyntaxNode>, SyntaxNode>> _codeExtensions =
-            new Dictionary<string, Func<SyntaxNode, Scope, SyntacticalExtension<SyntaxNode>, SyntaxNode>>();
+        private readonly Dictionary<string, Func<SyntaxNode, Scope, SyntacticalExtensionDto<SyntaxNode>, SyntaxNode>> _codeExtensions =
+            new Dictionary<string, Func<SyntaxNode, Scope, SyntacticalExtensionDto<SyntaxNode>, SyntaxNode>>();
 
-        private readonly Dictionary<string, Func<SyntaxNode, Scope, SyntacticalExtension<SyntaxNode>, SyntaxNode>> _memberExtensions =
-            new Dictionary<string, Func<SyntaxNode, Scope, SyntacticalExtension<SyntaxNode>, SyntaxNode>>();
+        private readonly Dictionary<string, Func<SyntaxNode, Scope, SyntacticalExtensionDto<SyntaxNode>, SyntaxNode>> _memberExtensions =
+            new Dictionary<string, Func<SyntaxNode, Scope, SyntacticalExtensionDto<SyntaxNode>, SyntaxNode>>();
 
         private readonly Scope _scope;
 
-        private readonly Dictionary<string, Func<SyntaxNode, Scope, SyntacticalExtension<SyntaxNode>, SyntaxNode>> _typeExtensions =
-            new Dictionary<string, Func<SyntaxNode, Scope, SyntacticalExtension<SyntaxNode>, SyntaxNode>>();
+        private readonly Dictionary<string, Func<SyntaxNode, Scope, SyntacticalExtensionDto<SyntaxNode>, SyntaxNode>> _typeExtensions =
+            new Dictionary<string, Func<SyntaxNode, Scope, SyntacticalExtensionDto<SyntaxNode>, SyntaxNode>>();
 
         private Func<SyntaxNode, Scope, LookAheadResult> _lookahead;
 
-        public ExtensionRewriter(IEnumerable<SyntacticalExtension<SyntaxNode>> extensions, Scope scope)
+        public ExtensionRewriter(IEnumerable<SyntacticalExtensionDto<SyntaxNode>> extensions, Scope scope)
         {
             _scope = scope;
 
@@ -81,7 +81,7 @@ namespace Excess.Compiler.Roslyn
             return base.VisitMethodDeclaration(method);
         }
 
-        private SyntacticalExtension<SyntaxNode> MethodExtension(MethodDeclarationSyntax method)
+        private SyntacticalExtensionDto<SyntaxNode> MethodExtension(MethodDeclarationSyntax method)
         {
             string extName = null;
             string extIdentifier = null;
@@ -99,7 +99,7 @@ namespace Excess.Compiler.Roslyn
             {
                 if (_typeExtensions.ContainsKey(extName))
                 {
-                    return new SyntacticalExtension<SyntaxNode>
+                    return new SyntacticalExtensionDto<SyntaxNode>
                     {
                         Kind = ExtensionKind.Type,
                         Keyword = extName,
@@ -117,7 +117,7 @@ namespace Excess.Compiler.Roslyn
                 return null;
             }
 
-            return new SyntacticalExtension<SyntaxNode>
+            return new SyntacticalExtensionDto<SyntaxNode>
             {
                 Kind = ExtensionKind.Member,
                 Keyword = extName,
@@ -145,7 +145,7 @@ namespace Excess.Compiler.Roslyn
             return node; //error, stop processing
         }
 
-        private Func<SyntaxNode, Scope, LookAheadResult> MatchTypeExtension(IncompleteMemberSyntax incomplete, SyntacticalExtension<SyntaxNode> extension)
+        private Func<SyntaxNode, Scope, LookAheadResult> MatchTypeExtension(IncompleteMemberSyntax incomplete, SyntacticalExtensionDto<SyntaxNode> extension)
         {
             return (node, scope) =>
             {
@@ -169,14 +169,14 @@ namespace Excess.Compiler.Roslyn
             };
         }
 
-        private SyntacticalExtension<SyntaxNode> TypeExtension(IncompleteMemberSyntax node)
+        private SyntacticalExtensionDto<SyntaxNode> TypeExtension(IncompleteMemberSyntax node)
         {
             throw new NotImplementedException();
         }
 
         public override SyntaxNode VisitExpressionStatement(ExpressionStatementSyntax node)
         {
-            var extension = null as SyntacticalExtension<SyntaxNode>;
+            var extension = null as SyntacticalExtensionDto<SyntaxNode>;
             var expr = node.Expression;
             InvocationExpressionSyntax call = null;
 
@@ -218,23 +218,20 @@ namespace Excess.Compiler.Roslyn
                     .Declaration
                     .Variables[0];
 
-                if (variable.Initializer != null)
+                var call = variable.Initializer?.Value as InvocationExpressionSyntax;
+                if (call != null)
                 {
-                    var call = variable.Initializer.Value as InvocationExpressionSyntax;
-                    if (call != null)
+                    var extension = CodeExtension(call);
+                    if (extension != null)
                     {
-                        var extension = CodeExtension(call);
-                        if (extension != null)
+                        if (extension.Kind != ExtensionKind.Code)
                         {
-                            if (extension.Kind != ExtensionKind.Code)
-                            {
-                                //td: error, incorrect extension (i.e. a code extension being used inside a type)
-                                return node;
-                            }
-
-                            _lookahead = CheckCodeExtension(node, extension);
-                            return null;
+                            //td: error, incorrect extension (i.e. a code extension being used inside a type)
+                            return node;
                         }
+
+                        _lookahead = CheckCodeExtension(node, extension);
+                        return null;
                     }
                 }
             }
@@ -242,7 +239,7 @@ namespace Excess.Compiler.Roslyn
             return base.VisitLocalDeclarationStatement(node);
         }
 
-        private SyntacticalExtension<SyntaxNode> CodeExtension(InvocationExpressionSyntax call)
+        private SyntacticalExtensionDto<SyntaxNode> CodeExtension(InvocationExpressionSyntax call)
         {
             if (!(call.Expression is SimpleNameSyntax))
             {
@@ -255,7 +252,7 @@ namespace Excess.Compiler.Roslyn
                 return null; //not an extension
             }
 
-            return new SyntacticalExtension<SyntaxNode>
+            return new SyntacticalExtensionDto<SyntaxNode>
             {
                 Kind = ExtensionKind.Code,
                 Keyword = extName,
@@ -267,7 +264,7 @@ namespace Excess.Compiler.Roslyn
         }
 
         //rewriters
-        private Func<SyntaxNode, Scope, LookAheadResult> CheckCodeExtension(SyntaxNode original, SyntacticalExtension<SyntaxNode> extension)
+        private Func<SyntaxNode, Scope, LookAheadResult> CheckCodeExtension(SyntaxNode original, SyntacticalExtensionDto<SyntaxNode> extension)
         {
             return (node, scope) =>
             {
@@ -292,7 +289,7 @@ namespace Excess.Compiler.Roslyn
                         return new LookAheadResult {Matched = false};
                     }
 
-                    var localDecl = original as LocalDeclarationStatementSyntax;
+                    var localDecl = (LocalDeclarationStatementSyntax) original;
                     resulSyntaxNode = localDecl
                         .WithDeclaration(localDecl.Declaration
                             .WithVariables(CSharp.SeparatedList(new[]
@@ -305,7 +302,7 @@ namespace Excess.Compiler.Roslyn
                 }
                 else if (original is ExpressionStatementSyntax)
                 {
-                    var exprStatement = original as ExpressionStatementSyntax;
+                    var exprStatement = (ExpressionStatementSyntax) original;
                     var assignment = exprStatement.Expression as AssignmentExpressionSyntax;
                     if (assignment != null)
                     {

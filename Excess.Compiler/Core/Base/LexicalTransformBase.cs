@@ -66,11 +66,11 @@ namespace Excess.Compiler.Core
 
                         if (item.Span.Length == 1)
                         {
-                            scope.set(item.Identifier, idTokens.First());
+                            scope.Set(item.Identifier, idTokens.First());
                         }
                         else
                         {
-                            scope.set(item.Identifier, idTokens);
+                            scope.Set(item.Identifier, idTokens);
                         }
                     }
                 }

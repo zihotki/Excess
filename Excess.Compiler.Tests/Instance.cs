@@ -98,15 +98,15 @@ namespace Excess.Compiler.Tests
 
             //code extension
             instance
-                .match<InstanceFoo>()
+                .Match<InstanceFoo>()
                 .Input(new InstanceConnector {Id = "input"}, FooInput)
                 .Output(new InstanceConnector {Id = "output"})
                 .Then(TransformFoo)
-                .match<InstanceBar>()
+                .Match<InstanceBar>()
                 .Input(new InstanceConnector {Id = "input"})
                 .Output(new InstanceConnector {Id = "output"}, transform: BarOutput)
                 .Then(TransformBar)
-                .then(TransformInstances);
+                .Then(TransformInstances);
 
             SyntaxTree tree;
             string text;

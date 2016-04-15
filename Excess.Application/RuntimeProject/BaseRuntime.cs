@@ -90,11 +90,11 @@ namespace Excess.RuntimeProject
 
             foreach (var tool in _tools)
             {
-                _compilation.registerTool(tool.Key, tool.Value);
+                _compilation.RegisterTool(tool.Key, tool.Value);
             }
 
-            _compilation.addCSharpFile("console", consoleTree);
-            _compilation.addCSharpFile("random", randomTree);
+            _compilation.AddCSharpFile("console", consoleTree);
+            _compilation.AddCSharpFile("random", randomTree);
         }
 
         public bool Busy()
@@ -149,7 +149,7 @@ namespace Excess.RuntimeProject
                 errors = DoCompile();
                 if (errors == null)
                 {
-                    var assembly = _compilation.build();
+                    var assembly = _compilation.Build();
                     if (assembly != null)
                     {
                         SetupConsole(assembly);
@@ -157,7 +157,7 @@ namespace Excess.RuntimeProject
                     }
                     else
                     {
-                        errors = GatherErrors(_compilation.errors());
+                        errors = GatherErrors(_compilation.Errors());
                     }
                 }
             }
@@ -185,7 +185,7 @@ namespace Excess.RuntimeProject
                 throw new InvalidOperationException("duplicate file");
             }
 
-            _compilation.addDocument(file, contents, GetInjector(file));
+            _compilation.AddDocument(file, contents, GetInjector(file));
 
             _files[file] = fileId;
             _dirty = true;
@@ -198,7 +198,7 @@ namespace Excess.RuntimeProject
                 throw new InvalidOperationException();
             }
 
-            _compilation.updateDocument(file, contents);
+            _compilation.UpdateDocument(file, contents);
             _dirty = true;
         }
 
@@ -208,7 +208,7 @@ namespace Excess.RuntimeProject
         {
             if (_files.ContainsKey(file))
             {
-                return _compilation.documentText(file);
+                return _compilation.DocumentText(file);
             }
 
             return null;
@@ -232,7 +232,7 @@ namespace Excess.RuntimeProject
 
         public void setFilePath(dynamic path)
         {
-            _compilation.setPath(path);
+            _compilation.SetPath(path);
         }
 
         private IEnumerable<Error> GatherErrors(IEnumerable<Diagnostic> diagnostics)
@@ -270,7 +270,7 @@ namespace Excess.RuntimeProject
                 return null;
             }
 
-            var result = _compilation.compile();
+            var result = _compilation.Compile();
             if (_dirty)
             {
                 _dirty = false;
@@ -281,7 +281,7 @@ namespace Excess.RuntimeProject
                 return null;
             }
 
-            return GatherErrors(_compilation.errors());
+            return GatherErrors(_compilation.Errors());
         }
 
         protected abstract void DoRun(Assembly asm, out dynamic clientData);

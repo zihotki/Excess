@@ -128,6 +128,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ITranslationService.cs" />
+    <Compile Include="IUserServices.cs" />
     <Compile Include="ProjectTree.cs" />
     <Compile Include="RuntimeProject\AntlrTool.cs" />
     <Compile Include="RuntimeProject\BaseRuntime.cs" />

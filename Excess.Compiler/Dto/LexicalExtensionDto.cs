@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Excess.Compiler
 {
-    public class LexicalExtension<TToken>
+    public class LexicalExtensionDto<TToken>
     {
         public ExtensionKind Kind { get; set; }
         public TToken Keyword { get; set; }

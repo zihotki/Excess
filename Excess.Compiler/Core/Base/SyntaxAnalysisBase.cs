@@ -8,18 +8,18 @@ namespace Excess.Compiler.Core
     public abstract class BaseSyntaxAnalysis<TToken, TNode, TModel> : ISyntaxAnalysis<TToken, TNode, TModel>,
         IDocumentInjector<TToken, TNode, TModel>
     {
-        protected List<SyntacticalExtension<TNode>> _extensions = new List<SyntacticalExtension<TNode>>();
+        protected List<SyntacticalExtensionDto<TNode>> Extensions = new List<SyntacticalExtensionDto<TNode>>();
 
-        protected List<ISyntacticalMatch<TToken, TNode, TModel>> _matchers = new List<ISyntacticalMatch<TToken, TNode, TModel>>();
+        protected List<ISyntacticalMatch<TToken, TNode, TModel>> Matchers = new List<ISyntacticalMatch<TToken, TNode, TModel>>();
 
         public void Apply(IDocument<TToken, TNode, TModel> document)
         {
-            if (_extensions.Any())
+            if (Extensions.Any())
             {
-                document.Change(Extensions, "syntactical-extensions");
+                document.Change(Rewrite, "syntactical-extensions");
             }
 
-            foreach (var matcher in _matchers)
+            foreach (var matcher in Matchers)
             {
                 var handler = matcher as IDocumentInjector<TToken, TNode, TModel>;
                 Debug.Assert(handler != null);
@@ -29,22 +29,22 @@ namespace Excess.Compiler.Core
         }
 
         public ISyntaxAnalysis<TToken, TNode, TModel> Extension(string keyword, ExtensionKind kind,
-            Func<TNode, Scope, SyntacticalExtension<TNode>, TNode> handler)
+            Func<TNode, Scope, SyntacticalExtensionDto<TNode>, TNode> handler)
         {
-            _extensions.Add(new SyntacticalExtension<TNode>(keyword, kind, handler));
+            Extensions.Add(new SyntacticalExtensionDto<TNode>(keyword, kind, handler));
             return this;
         }
 
-        public ISyntaxAnalysis<TToken, TNode, TModel> Extension(string keyword, ExtensionKind kind, Func<TNode, SyntacticalExtension<TNode>, TNode> handler)
+        public ISyntaxAnalysis<TToken, TNode, TModel> Extension(string keyword, ExtensionKind kind, Func<TNode, SyntacticalExtensionDto<TNode>, TNode> handler)
         {
-            _extensions.Add(new SyntacticalExtension<TNode>(keyword, kind, (node, scope, ext) => handler(node, ext)));
+            Extensions.Add(new SyntacticalExtensionDto<TNode>(keyword, kind, (node, scope, ext) => handler(node, ext)));
             return this;
         }
 
         public ISyntacticalMatch<TToken, TNode, TModel> Match(Func<TNode, bool> selector)
         {
             var matcher = CreateMatch(selector);
-            _matchers.Add(matcher);
+            Matchers.Add(matcher);
 
             return matcher;
         }
@@ -52,7 +52,7 @@ namespace Excess.Compiler.Core
         public ISyntacticalMatch<TToken, TNode, TModel> Match<T>(Func<T, bool> selector) where T : TNode
         {
             var matcher = CreateMatch(node => node is T && selector((T) node));
-            _matchers.Add(matcher);
+            Matchers.Add(matcher);
 
             return matcher;
         }
@@ -60,7 +60,7 @@ namespace Excess.Compiler.Core
         public ISyntacticalMatch<TToken, TNode, TModel> Match<T>() where T : TNode
         {
             var matcher = CreateMatch(node => node is T);
-            _matchers.Add(matcher);
+            Matchers.Add(matcher);
 
             return matcher;
         }
@@ -85,6 +85,6 @@ namespace Excess.Compiler.Core
         protected abstract ISyntaxTransform<TNode> CreateTransform();
         protected abstract ISyntaxTransform<TNode> CreateTransform(Func<TNode, Scope, IEnumerable<TNode>, TNode> handler);
 
-        protected abstract TNode Extensions(TNode node, Scope scope);
+        protected abstract TNode Rewrite(TNode node, Scope scope);
     }
 }

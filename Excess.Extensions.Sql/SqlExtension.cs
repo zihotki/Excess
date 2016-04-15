@@ -78,7 +78,7 @@ select_statementContext:
 						);*/
         }
 
-        private static SyntaxNode Transform(SyntaxNode oldNode, SyntaxNode newNode, Scope scope, LexicalExtension<SyntaxToken> extension)
+        private static SyntaxNode Transform(SyntaxNode oldNode, SyntaxNode newNode, Scope scope, LexicalExtensionDto<SyntaxToken> extension)
         {
             Debug.Assert(newNode is BlockSyntax);
 

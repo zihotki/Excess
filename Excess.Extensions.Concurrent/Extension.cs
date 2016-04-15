@@ -47,7 +47,7 @@ namespace Excess.Extensions.Concurrent
             var className = @class.Identifier.ToString();
 
             var ctx = new Class(className, scope);
-            scope.set(ctx);
+            scope.Set(ctx);
 
             foreach (var member in @class.Members)
             {
@@ -134,7 +134,7 @@ namespace Excess.Extensions.Concurrent
             var hasReturnType = method.ReturnType.ToString() != "void";
             var returnType = hasReturnType
                 ? method.ReturnType
-                : Roslyn.boolean;
+                : Roslyn.Boolean;
 
             var isEmptySignal = method.Body == null
                                 || method.Body.IsMissing;
@@ -199,8 +199,8 @@ namespace Excess.Extensions.Concurrent
                                         currentIndex++)))
                                 .Union(new[]
                                 {
-                                    CSharp.Argument(Roslyn.@null),
-                                    CSharp.Argument(Roslyn.@null)
+                                    CSharp.Argument(Roslyn.Null),
+                                    CSharp.Argument(Roslyn.Null)
                                 }))))));
 
                 return true;
@@ -215,8 +215,8 @@ namespace Excess.Extensions.Concurrent
                             "__concurrent" + name,
                             Roslyn.Quoted(name),
                             isProtected
-                                ? Roslyn.@true
-                                : Roslyn.@false));
+                                ? Roslyn.True
+                                : Roslyn.False));
                 else
                     concurrentMethod(ctx, method);
             }
@@ -229,8 +229,8 @@ namespace Excess.Extensions.Concurrent
                         "__concurrent" + name,
                         Roslyn.Quoted(name),
                         isProtected
-                            ? Roslyn.@true
-                            : Roslyn.@false));
+                            ? Roslyn.True
+                            : Roslyn.False));
             else
                 return false;
 
@@ -269,7 +269,7 @@ namespace Excess.Extensions.Concurrent
                         (on, nn) => Templates
                             .ExpressionReturn
                             .Get<StatementSyntax>(nn.Expression == null || nn.Expression.IsMissing
-                                ? Roslyn.@null
+                                ? Roslyn.Null
                                 : nn.Expression,
                                 Roslyn.Quoted(method.Identifier.ToString())));
 
@@ -282,7 +282,7 @@ namespace Excess.Extensions.Concurrent
                 body = body.AddStatements(Templates
                     .ExpressionReturn
                     .Get<StatementSyntax>(
-                        Roslyn.@null,
+                        Roslyn.Null,
                         Roslyn.Quoted(method.Identifier.ToString())));
 
             var result = Templates
@@ -311,7 +311,7 @@ namespace Excess.Extensions.Concurrent
         {
             var returnType = method.ReturnType.ToString() != "void"
                 ? method.ReturnType
-                : Roslyn.@object;
+                : Roslyn.Object;
 
             var internalMethod = method.Identifier.ToString();
             if (!internalMethod.StartsWith("__concurrent"))

@@ -20,24 +20,24 @@ namespace Excess.Compiler.Roslyn
 
             var node = root;
             var normalized = false;
-            if (_normalizeStatements != null)
+            if (NormalizeStatements != null)
             {
                 node = NormalizeCode(root, out rootStatements, out normalized);
             }
 
-            if (!normalized && (_normalizeMembers != null || _normalizeTypes != null))
+            if (!normalized && (NormalizeMembers != null || NormalizeTypes != null))
             {
                 node = NormalizePass(root, out rootMembers, out rootTypes, out normalized);
             }
 
             if (normalized)
             {
-                if (_normalizeStatements != null && rootStatements != null && rootStatements.Any())
+                if (NormalizeStatements != null && rootStatements != null && rootStatements.Any())
                 {
-                    node = _normalizeStatements(node, rootStatements, scope);
+                    node = NormalizeStatements(node, rootStatements, scope);
                 }
 
-                if (_normalizeMembers != null)
+                if (NormalizeMembers != null)
                 {
                     if (node != root)
                     {
@@ -47,11 +47,11 @@ namespace Excess.Compiler.Roslyn
 
                     if (rootMembers != null && rootMembers.Any())
                     {
-                        node = _normalizeMembers(node, rootMembers, scope);
+                        node = NormalizeMembers(node, rootMembers, scope);
                     }
                 }
 
-                if (_normalizeTypes != null)
+                if (NormalizeTypes != null)
                 {
                     if (node != root)
                     {
@@ -60,14 +60,14 @@ namespace Excess.Compiler.Roslyn
 
                     if (rootTypes != null && rootTypes.Any())
                     {
-                        node = _normalizeTypes(node, rootTypes, scope);
+                        node = NormalizeTypes(node, rootTypes, scope);
                     }
                 }
             }
 
-            if (_normalizeThen != null)
+            if (NormalizeThen != null)
             {
-                node = _normalizeThen(node, scope);
+                node = NormalizeThen(node, scope);
             }
 
             return node;
@@ -158,28 +158,25 @@ namespace Excess.Compiler.Roslyn
                 if (child is MemberDeclarationSyntax)
                 {
                     var foundError = false;
-                    if (currError != null)
+                    if (child.SpanStart > currError?.Location.SourceSpan.Start)
                     {
-                        if (child.SpanStart > currError.Location.SourceSpan.Start)
+                        var errorSpan = new TextSpan(currErrorPos, child.SpanStart - currErrorPos);
+                        var errorSource = tree.GetText().GetSubText(errorSpan);
+
+                        statementBlock = (BlockSyntax) SyntaxFactory.ParseStatement("{" + errorSource + "}");
+                        statements.AddRange(statementBlock.Statements);
+
+                        toRemove.Add(errorSpan);
+
+                        foundError = true;
+                        currError = null;
+                        while (codeErrors.MoveNext())
                         {
-                            var errorSpan = new TextSpan(currErrorPos, child.SpanStart - currErrorPos);
-                            var errorSource = tree.GetText().GetSubText(errorSpan);
-
-                            statementBlock = (BlockSyntax) SyntaxFactory.ParseStatement("{" + errorSource + "}");
-                            statements.AddRange(statementBlock.Statements);
-
-                            toRemove.Add(errorSpan);
-
-                            foundError = true;
-                            currError = null;
-                            while (codeErrors.MoveNext())
+                            var nextError = codeErrors.Current;
+                            if (nextError.Location.SourceSpan.Start > child.Span.End)
                             {
-                                var nextError = codeErrors.Current;
-                                if (nextError.Location.SourceSpan.Start > child.Span.End)
-                                {
-                                    currError = nextError;
-                                    break;
-                                }
+                                currError = nextError;
+                                break;
                             }
                         }
                     }
@@ -190,7 +187,7 @@ namespace Excess.Compiler.Roslyn
                     if (foundError)
                     {
                         toAdd = toAdd.ReplaceTrivia(child.GetLeadingTrivia(),
-                            (oldTrivia, newTrivia) => { return CSharp.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, string.Empty); });
+                            (oldTrivia, newTrivia) => CSharp.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, string.Empty));
                     }
 
                     if (toAdd is TypeDeclarationSyntax || toAdd is EnumDeclarationSyntax)

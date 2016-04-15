@@ -102,12 +102,12 @@ namespace Excess.Compiler.Tests.TestRuntime
                         .Apply(compiler))
             });
 
-            compilation.addDocument("concurrent-test", text, injector);
+            compilation.AddDocument("concurrent-test", text, injector);
 
-            var assembly = compilation.build();
+            var assembly = compilation.Build();
             if (assembly == null)
             {
-                errors = compilation.errors();
+                errors = compilation.Errors();
 
                 //debug
                 var errorLines = new StringBuilder();

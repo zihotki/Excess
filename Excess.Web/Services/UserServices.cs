@@ -5,7 +5,7 @@ namespace Excess.Web.Services
 {
     public class UserService : IUserServices
     {
-        public string userId()
+        public string UserId()
         {
             return HttpContext.Current.User.Identity.GetUserId();
         }

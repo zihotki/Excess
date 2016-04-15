@@ -166,9 +166,9 @@ namespace Excess.Compiler.Roslyn
             {
                 if ((bool) value)
                 {
-                    return Roslyn.@true;
+                    return Roslyn.True;
                 }
-                return Roslyn.@false;
+                return Roslyn.False;
             }
 
             return CSharp.ParseExpression(value.ToString());

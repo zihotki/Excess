@@ -34,14 +34,14 @@ namespace Excess.Compiler.Tests
                 new DelegateInjector<SyntaxToken, SyntaxNode, SemanticModel>(compiler => config(compiler))
             });
 
-            compilation.addDocument("test", text, injector);
+            compilation.AddDocument("test", text, injector);
 
-            var assembly = compilation.build();
+            var assembly = compilation.Build();
             if (assembly == null)
             {
                 //debug
                 var errorLines = new StringBuilder();
-                foreach (var error in compilation.errors())
+                foreach (var error in compilation.Errors())
                 {
                     errorLines.AppendLine(error.ToString());
                 }

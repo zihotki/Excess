@@ -84,7 +84,7 @@ namespace Excess.Entensions.XS
             }
 
             if (type == null)
-                type = RoslynCompiler.dynamic;
+                type = RoslynCompiler.Dynamic;
 
             var property = _property
                 .WithIdentifier(variable.Identifier)
@@ -126,7 +126,7 @@ namespace Excess.Entensions.XS
 
             var modifiers = method.Modifiers.Any()
                 ? method.Modifiers
-                : RoslynCompiler.@public;
+                : RoslynCompiler.Public;
             return SyntaxFactory.ConstructorDeclaration(name).
                 WithModifiers(modifiers).
                 WithParameterList(method.ParameterList).
@@ -151,7 +151,7 @@ namespace Excess.Entensions.XS
                 var document = scope.GetDocument<SyntaxToken, SyntaxNode, SemanticModel>();
                 document.Change(method, FixReturnType);
 
-                return method.WithReturnType(RoslynCompiler.@void);
+                return method.WithReturnType(RoslynCompiler.Void);
             }
 
             return method;

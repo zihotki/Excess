@@ -14,7 +14,7 @@ namespace Excess
     {
         private RoslynCompiler _compiler;
 
-        public string translate(string text)
+        public string Translate(string text)
         {
             if (_compiler == null)
                 initCompiler();

@@ -18,7 +18,7 @@ namespace Excess.Compiler.Tests
             var lexical = compiler.Lexical();
             lexical
                 .Match()
-                .Any('(', '=', ',')
+                .Any(new[] { '(', '=', ','})
                 .Token("function", "fn")
                 .Enclosed('(', ')')
                 .Token('{', "brace")
@@ -79,7 +79,7 @@ namespace Excess.Compiler.Tests
                 .Count == 1);
         }
 
-        private IEnumerable<SyntaxToken> myExtLexical(IEnumerable<SyntaxToken> tokens, Scope scope, LexicalExtension<SyntaxToken> extension)
+        private IEnumerable<SyntaxToken> myExtLexical(IEnumerable<SyntaxToken> tokens, Scope scope, LexicalExtensionDto<SyntaxToken> extension)
         {
             var testResult = "my_ext_replaced "
                              + RoslynCompiler.TokensToString(extension.Arguments)
@@ -89,7 +89,7 @@ namespace Excess.Compiler.Tests
             return RoslynCompiler.ParseTokens(testResult);
         }
 
-        private SyntaxNode myExtSyntactical(SyntaxNode node, Scope scope, LexicalExtension<SyntaxToken> extension)
+        private SyntaxNode myExtSyntactical(SyntaxNode node, Scope scope, LexicalExtensionDto<SyntaxToken> extension)
         {
             Assert.IsTrue(node is MethodDeclarationSyntax);
             var method = node as MethodDeclarationSyntax;
@@ -244,7 +244,7 @@ namespace Excess.Compiler.Tests
                 .Count() == 1);
         }
 
-        private SyntaxNode codeExtension(SyntaxNode node, SyntacticalExtension<SyntaxNode> extension)
+        private SyntaxNode codeExtension(SyntaxNode node, SyntacticalExtensionDto<SyntaxNode> extension)
         {
             if (extension.Kind == ExtensionKind.Code)
             {
@@ -257,7 +257,7 @@ namespace Excess.Compiler.Tests
             return CSharp.ParseExpression("bar(7)");
         }
 
-        private SyntaxNode memberExtension(SyntaxNode node, SyntacticalExtension<SyntaxNode> extension)
+        private SyntaxNode memberExtension(SyntaxNode node, SyntacticalExtensionDto<SyntaxNode> extension)
         {
             var memberDecl = node as MethodDeclarationSyntax;
             Assert.IsNotNull(memberDecl);
@@ -270,7 +270,7 @@ namespace Excess.Compiler.Tests
                     .AddStatements(CSharp.ParseStatement("var myFoo = 5;"), CSharp.ParseStatement("bar(myFoo);")));
         }
 
-        private SyntaxNode typeExtension(SyntaxNode node, SyntacticalExtension<SyntaxNode> extension)
+        private SyntaxNode typeExtension(SyntaxNode node, SyntacticalExtensionDto<SyntaxNode> extension)
         {
             return CSharp.ClassDeclaration(extension.Identifier)
                 .WithMembers(CSharp.List<MemberDeclarationSyntax>(new[]

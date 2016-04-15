@@ -18,7 +18,7 @@ namespace Excess.Compiler
 
         public ICompilerService<TToken, TNode, TModel> GetService<TToken, TNode, TModel>()
         {
-            var result = get<ICompilerService<TToken, TNode, TModel>>();
+            var result = Get<ICompilerService<TToken, TNode, TModel>>();
             if (result == null && _parent != null)
                 result = _parent.GetService<TToken, TNode, TModel>();
 
@@ -27,7 +27,7 @@ namespace Excess.Compiler
 
         public IDocument<TToken, TNode, TModel> GetDocument<TToken, TNode, TModel>()
         {
-            var result = get<IDocument<TToken, TNode, TModel>>();
+            var result = Get<IDocument<TToken, TNode, TModel>>();
             if (result == null && _parent != null)
                 result = _parent.GetDocument<TToken, TNode, TModel>();
 
@@ -57,7 +57,7 @@ namespace Excess.Compiler
             return result;
         }
 
-        public Scope parent()
+        public Scope Parent()
         {
             return _parent;
         }
@@ -84,7 +84,7 @@ namespace Excess.Compiler
 
         private IDictionary<int, Scope> GetScopeRepository()
         {
-            var result = get<IDictionary<int, Scope>>();
+            var result = Get<IDictionary<int, Scope>>();
             if (result == null && _parent != null)
                 result = _parent.GetScopeRepository();
 
@@ -92,7 +92,7 @@ namespace Excess.Compiler
         }
 
         //DynamicObject
-        public dynamic context()
+        public dynamic Context()
         {
             return this;
         }
@@ -109,13 +109,13 @@ namespace Excess.Compiler
             return true;
         }
 
-        public T get<T>() where T : class
+        public T Get<T>() where T : class
         {
             var thash = typeof(T).GetHashCode().ToString();
-            return get<T>(thash);
+            return Get<T>(thash);
         }
 
-        public T get<T>(string id) where T : class
+        public T Get<T>(string id) where T : class
         {
             object result;
             if (_values.TryGetValue(id, out result))
@@ -124,7 +124,7 @@ namespace Excess.Compiler
             return default(T);
         }
 
-        public object get(string id)
+        public object Get(string id)
         {
             object result;
             if (_values.TryGetValue(id, out result))
@@ -133,46 +133,41 @@ namespace Excess.Compiler
             return null;
         }
 
-        public T find<T>() where T : class
+        public T Find<T>() where T : class
         {
             var thash = typeof(T).GetHashCode().ToString();
-            return find<T>(thash);
+            return Find<T>(thash);
         }
 
-        public T find<T>(string id) where T : class
+        public T Find<T>(string id) where T : class
         {
             object result;
             if (_values.TryGetValue(id, out result))
                 return (T) result;
 
-            return _parent != null
-                ? _parent.find<T>(id)
-                : default(T);
+            return _parent?.Find<T>(id);
         }
 
-        public object find(string id)
+        public object Find(string id)
         {
             object result;
-            if (_values.TryGetValue(id, out result))
-                return result;
-
-            return _parent != null
-                ? _parent.find(id)
-                : null;
+            return _values.TryGetValue(id, out result)
+                ? result
+                : _parent?.Find(id);
         }
 
-        public void set(string id, object value)
+        public void Set(string id, object value)
         {
             _values[id] = value;
         }
 
-        public void set<T>(T t) where T : class
+        public void Set<T>(T t) where T : class
         {
             var id = typeof(T).GetHashCode().ToString();
             _values[id] = t;
         }
 
-        public bool has(string id)
+        public bool Has(string id)
         {
             return _values.ContainsKey(id);
         }

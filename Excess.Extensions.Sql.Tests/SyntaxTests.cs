@@ -29,12 +29,12 @@ namespace Excess.Extensions.Sql.Tests
                     SqlExtension.Apply(compiler))
             });
 
-            compilation.addDocument("sql-test", text, injector);
+            compilation.AddDocument("sql-test", text, injector);
 
-            var assembly = compilation.build();
+            var assembly = compilation.Build();
             if (assembly == null)
             {
-                errors = compilation.errors().Select(x => x.ToString()).ToList();
+                errors = compilation.Errors().Select(x => x.ToString()).ToList();
             }
 
 

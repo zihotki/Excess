@@ -51,7 +51,7 @@ namespace Excess.RuntimeProject
 
         public bool Compile(string file, string contents, Scope scope, Dictionary<string, string> result)
         {
-            var environment = scope.get<ICompilerEnvironment>();
+            var environment = scope.Get<ICompilerEnvironment>();
 
             string path = environment.Path().ToolPath;
             var grammar = Path.GetFileName(file);

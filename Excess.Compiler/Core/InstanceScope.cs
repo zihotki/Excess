@@ -8,7 +8,7 @@ namespace Excess.Compiler.Core
     {
         public static void AddInstanceInitializer(this Scope scope, SyntaxNode node)
         {
-            var instanceInitializer = scope.find<List<SyntaxNode>>("_instanceInitializer");
+            var instanceInitializer = scope.Find<List<SyntaxNode>>("_instanceInitializer");
             Debug.Assert(instanceInitializer != null);
 
             instanceInitializer.Add(node);
@@ -16,7 +16,7 @@ namespace Excess.Compiler.Core
 
         public static List<SyntaxNode> GetInstanceInitializers(this Scope scope)
         {
-            var instanceInitializer = scope.find<List<SyntaxNode>>("_instanceInitializer");
+            var instanceInitializer = scope.Find<List<SyntaxNode>>("_instanceInitializer");
             Debug.Assert(instanceInitializer != null);
 
             return instanceInitializer;
@@ -24,7 +24,7 @@ namespace Excess.Compiler.Core
 
         public static void AddInstanceDeclaration(this Scope scope, SyntaxNode node)
         {
-            var instanceDeclaration = scope.find<List<SyntaxNode>>("_instanceDeclaration");
+            var instanceDeclaration = scope.Find<List<SyntaxNode>>("_instanceDeclaration");
             Debug.Assert(instanceDeclaration != null);
 
             instanceDeclaration.Add(node);
@@ -32,7 +32,7 @@ namespace Excess.Compiler.Core
 
         public static List<SyntaxNode> GetInstanceDeclarations(this Scope scope)
         {
-            var instanceDeclaration = scope.find<List<SyntaxNode>>("_instanceDeclaration");
+            var instanceDeclaration = scope.Find<List<SyntaxNode>>("_instanceDeclaration");
             Debug.Assert(instanceDeclaration != null);
 
             return instanceDeclaration;
@@ -40,10 +40,10 @@ namespace Excess.Compiler.Core
 
         internal static void InitInstance(this Scope scope)
         {
-            Debug.Assert(scope.find<List<SyntaxNode>>("_instanceDeclaration") == null);
+            Debug.Assert(scope.Find<List<SyntaxNode>>("_instanceDeclaration") == null);
 
-            scope.set("_instanceDeclaration", new List<SyntaxNode>());
-            scope.set("_instanceInitializer", new List<SyntaxNode>());
+            scope.Set("_instanceDeclaration", new List<SyntaxNode>());
+            scope.Set("_instanceInitializer", new List<SyntaxNode>());
         }
     }
 }

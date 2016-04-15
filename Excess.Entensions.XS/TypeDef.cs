@@ -96,7 +96,7 @@ namespace Excess.Entensions.XS
             var parentScope = scope.CreateScope<SyntaxToken, SyntaxNode, SemanticModel>(field.Parent);
             Debug.Assert(parentScope != null);
 
-            parentScope.set("__tdef" + identifier, type);
+            parentScope.Set("__tdef" + identifier, type);
 
             //schedule deletion
             var document = scope.GetDocument<SyntaxToken, SyntaxNode, SemanticModel>();
@@ -118,7 +118,7 @@ namespace Excess.Entensions.XS
                 var typeScope = scope.GetScope<SyntaxToken, SyntaxNode, SemanticModel>(type);
                 if (typeScope != null)
                 {
-                    var realType = typeScope.get<SyntaxNode>("__tdef" + node);
+                    var realType = typeScope.Get<SyntaxNode>("__tdef" + node);
                     if (realType != null)
                     {
                         realType = RoslynCompiler.Mark(realType); //make sure not to duplicate nodes

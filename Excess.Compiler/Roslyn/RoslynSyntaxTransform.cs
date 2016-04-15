@@ -13,8 +13,8 @@ namespace Excess.Compiler.Roslyn
 
         public RoslynSyntaxTransform(Func<SyntaxNode, Scope, IEnumerable<SyntaxNode>, SyntaxNode> handler)
         {
-            _selectors.Add(null);
-            _transformers.Add(handler);
+            Selectors.Add(null);
+            Transformers.Add(handler);
         }
 
         protected override SyntaxNode AddToNode(SyntaxNode node, IEnumerable<SyntaxNode> nodes)
@@ -32,7 +32,6 @@ namespace Excess.Compiler.Roslyn
             return node.ReplaceNodes(nodes, (oldNode, newNode) =>
             {
                 //change the result temporarily, this might need revisiting
-                var oldResulSyntaxNode = node;
                 var returnValue = handler(newNode, scope);
                 return returnValue;
             });

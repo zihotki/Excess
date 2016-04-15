@@ -22,7 +22,7 @@ namespace Excess.Entensions.XS
 
             lexical
                 .Match() //lambda
-                .Any('(', '=', ',')
+                .Any(new [] { '(', '=', ','})
                 .Token("function", "fn")
                 .Enclosed('(', ')')
                 .Token('{', "brace")
@@ -51,7 +51,7 @@ namespace Excess.Entensions.XS
                 if (method.ReturnType.IsMissing)
                 {
                     document.Change(method, ReturnType);
-                    return method.WithReturnType(RoslynCompiler.@void);
+                    return method.WithReturnType(RoslynCompiler.Void);
                 }
 
                 return node;

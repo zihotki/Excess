@@ -46,16 +46,16 @@ namespace Excess.Entensions.XS
             {
                 if (oldParam.Identifier.IsMissing)
                     return newParam
-                        .WithType(RoslynCompiler.@void)
+                        .WithType(RoslynCompiler.Void)
                         .WithIdentifier(CSharp.Identifier(newParam.Type.ToString()));
 
                 return newParam;
             });
 
             var result = method
-                .WithReturnType(RoslynCompiler.@void)
+                .WithReturnType(RoslynCompiler.Void)
                 .WithParameterList(args)
-                .WithModifiers(RoslynCompiler.@private);
+                .WithModifiers(RoslynCompiler.Private);
 
             var document = scope.GetDocument<SyntaxToken, SyntaxNode, SemanticModel>();
             return document.Change(result, SemanticEventHandler);
@@ -177,7 +177,7 @@ namespace Excess.Entensions.XS
                     .Variables[0];
 
                 var delegateName = variable.Identifier.ToString() + "_delegate"; //td: unique ids
-                var delegateDecl = CSharp.DelegateDeclaration(RoslynCompiler.@void, delegateName)
+                var delegateDecl = CSharp.DelegateDeclaration(RoslynCompiler.Void, delegateName)
                     .WithParameterList(@params)
                     .WithModifiers(@event.Modifiers);
 

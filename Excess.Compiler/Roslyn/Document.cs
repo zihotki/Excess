@@ -12,7 +12,7 @@ namespace Excess.Compiler.Roslyn
 {
     public class RoslynDocument : BaseDocument<SyntaxToken, SyntaxNode, SemanticModel>
     {
-        private readonly string _documentID;
+        private readonly string _documentId;
 
         private readonly List<Diagnostic> _errors = new List<Diagnostic>();
 
@@ -20,17 +20,17 @@ namespace Excess.Compiler.Roslyn
 
         public RoslynDocument(Scope scope) : base(scope)
         {
-            _scope.set<IDocument<SyntaxToken, SyntaxNode, SemanticModel>>(this);
-            _scope.InitDocumentScope();
+            Scope.Set<IDocument<SyntaxToken, SyntaxNode, SemanticModel>>(this);
+            Scope.InitDocumentScope();
         }
 
         public RoslynDocument(Scope scope, string text, string id = null) : base(scope)
         {
             Text = text;
-            _scope.set<IDocument<SyntaxToken, SyntaxNode, SemanticModel>>(this);
-            _scope.InitDocumentScope();
+            Scope.Set<IDocument<SyntaxToken, SyntaxNode, SemanticModel>>(this);
+            Scope.InitDocumentScope();
 
-            _documentID = id;
+            _documentId = id;
         }
 
         public FileLinePositionSpan OriginalPosition(Location location)
@@ -47,13 +47,13 @@ namespace Excess.Compiler.Roslyn
                 return default(FileLinePositionSpan);
             }
 
-            var nodeID = RoslynCompiler.NodeMark(errorNode);
-            if (nodeID == null)
+            var nodeId = RoslynCompiler.NodeMark(errorNode);
+            if (nodeId == null)
             {
                 return default(FileLinePositionSpan);
             }
 
-            var originalNode = RoslynCompiler.FindNode(_original, nodeID);
+            var originalNode = RoslynCompiler.FindNode(Original, nodeId);
             if (originalNode == null)
             {
                 return default(FileLinePositionSpan);
@@ -65,7 +65,7 @@ namespace Excess.Compiler.Roslyn
 
         public void AddError(string id, string message, SyntaxNode node)
         {
-            var location = Location.Create(_root.SyntaxTree, node.Span);
+            var location = Location.Create(Root.SyntaxTree, node.Span);
             var descriptor = new DiagnosticDescriptor(id, message, message, "Excess", DiagnosticSeverity.Error, true);
 
             var error = Diagnostic.Create(descriptor, location);
@@ -74,7 +74,7 @@ namespace Excess.Compiler.Roslyn
 
         public void AddError(string id, string message, int offset, int length)
         {
-            var location = Location.Create(_root.SyntaxTree, new TextSpan(offset, length));
+            var location = Location.Create(Root.SyntaxTree, new TextSpan(offset, length));
             var descriptor = new DiagnosticDescriptor(id, message, message, "Excess", DiagnosticSeverity.Error, true);
 
             var error = Diagnostic.Create(descriptor, location);
@@ -93,7 +93,7 @@ namespace Excess.Compiler.Roslyn
 
         protected override SyntaxNode UpdateRoot(SyntaxNode root)
         {
-            var newTree = root.SyntaxTree.WithFilePath(_documentID);
+            var newTree = root.SyntaxTree.WithFilePath(_documentId);
             return newTree.GetRoot();
         }
 
@@ -104,11 +104,9 @@ namespace Excess.Compiler.Roslyn
                 return true;
             }
 
-            return _root != null &&
-                   _root
-                       .GetDiagnostics()
-                       .Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error)
-                       .Any();
+            return Root != null &&
+                   Root.GetDiagnostics()
+                       .Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
         }
 
         protected override SyntaxNode Transform(SyntaxNode node, Dictionary<int, Func<SyntaxNode, Scope, SyntaxNode>> transformers)
@@ -130,7 +128,7 @@ namespace Excess.Compiler.Roslyn
                 Func<SyntaxNode, Scope, SyntaxNode> handler;
                 if (nodes.TryGetValue(oldNode, out handler))
                 {
-                    var result = handler(newNode, _scope);
+                    var result = handler(newNode, Scope);
                     return result;
                 }
 
@@ -170,7 +168,7 @@ namespace Excess.Compiler.Roslyn
                 Func<SyntaxNode, SyntaxNode, SemanticModel, Scope, SyntaxNode> handler;
                 if (nodes.TryGetValue(oldNode, out handler))
                 {
-                    var result = handler(oldNode, newNode, Model, _scope);
+                    var result = handler(oldNode, newNode, Model, Scope);
                     return result;
                 }
 
@@ -197,12 +195,12 @@ namespace Excess.Compiler.Roslyn
 
         protected override SyntaxNode GetRoot()
         {
-            return _root;
+            return Root;
         }
 
         protected override void SetRoot(SyntaxNode node)
         {
-            _root = node;
+            Root = node;
         }
 
 
@@ -210,23 +208,19 @@ namespace Excess.Compiler.Roslyn
         {
             base.ApplySyntactical();
 
-            var additionalTypes = _scope.GetAdditionalTypes();
+            var additionalTypes = Scope.GetAdditionalTypes();
             if (additionalTypes != null && additionalTypes.Any())
             {
-                var namespaces = _root
-                    .DescendantNodes()
-                    .OfType<NamespaceDeclarationSyntax>();
+                var namespaces = Root.DescendantNodes().OfType<NamespaceDeclarationSyntax>();
 
                 if (!namespaces.Any())
                 {
-                    _root = (_root as CompilationUnitSyntax)
+                    Root = (Root as CompilationUnitSyntax)
                         .AddMembers(additionalTypes.ToArray());
                 }
                 else
                 {
-                    _root = _root
-                        .ReplaceNodes(namespaces,
-                            (on, nn) => nn.AddMembers(additionalTypes.ToArray()));
+                    Root = Root.ReplaceNodes(namespaces, (on, nn) => nn.AddMembers(additionalTypes.ToArray()));
                 }
             }
         }

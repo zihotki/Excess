@@ -32,10 +32,10 @@ namespace Excess.Compiler.Roslyn
             Debug.Assert(_parser != null);
             var instances = new Dictionary<string, object>();
             var connections = new List<Connection>();
-            if (_parser(_text, instances, connections, _scope))
+            if (_parser(Text, instances, connections, Scope))
             {
-                _scope.InitInstance();
-                _root = _instance.transform(instances, connections, _scope);
+                Scope.InitInstance();
+                Root = _instance.Transform(instances, connections, Scope);
             }
         }
     }

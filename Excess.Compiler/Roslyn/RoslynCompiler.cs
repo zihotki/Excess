@@ -15,31 +15,31 @@ namespace Excess.Compiler.Roslyn
     public class RoslynCompiler : CompilerBase<SyntaxToken, SyntaxNode, SemanticModel>
     {
         //declarations
-        public static TypeSyntax @void = CSharp.PredefinedType(CSharp.Token(SyntaxKind.VoidKeyword));
-        public static TypeSyntax @object = CSharp.PredefinedType(CSharp.Token(SyntaxKind.ObjectKeyword));
-        public static TypeSyntax @double = CSharp.PredefinedType(CSharp.Token(SyntaxKind.DoubleKeyword));
-        public static TypeSyntax @int = CSharp.PredefinedType(CSharp.Token(SyntaxKind.IntKeyword));
-        public static TypeSyntax @string = CSharp.PredefinedType(CSharp.Token(SyntaxKind.StringKeyword));
-        public static TypeSyntax boolean = CSharp.PredefinedType(CSharp.Token(SyntaxKind.BoolKeyword));
-        public static TypeSyntax dynamic = CSharp.ParseTypeName("dynamic");
-        public static TypeSyntax exception = CSharp.ParseTypeName("Exception");
+        public static TypeSyntax Void = CSharp.PredefinedType(CSharp.Token(SyntaxKind.VoidKeyword));
+        public static TypeSyntax Object = CSharp.PredefinedType(CSharp.Token(SyntaxKind.ObjectKeyword));
+        public static TypeSyntax Double = CSharp.PredefinedType(CSharp.Token(SyntaxKind.DoubleKeyword));
+        public static TypeSyntax Int = CSharp.PredefinedType(CSharp.Token(SyntaxKind.IntKeyword));
+        public static TypeSyntax String = CSharp.PredefinedType(CSharp.Token(SyntaxKind.StringKeyword));
+        public static TypeSyntax Boolean = CSharp.PredefinedType(CSharp.Token(SyntaxKind.BoolKeyword));
+        public static TypeSyntax Dynamic = CSharp.ParseTypeName("dynamic");
+        public static TypeSyntax Exception = CSharp.ParseTypeName("Exception");
 
 
         //modifiers
-        public static SyntaxTokenList @public = CSharp.TokenList(CSharp.Token(SyntaxKind.PublicKeyword));
+        public static SyntaxTokenList Public = CSharp.TokenList(CSharp.Token(SyntaxKind.PublicKeyword));
 
-        public static SyntaxTokenList @private = CSharp.TokenList(CSharp.Token(SyntaxKind.PrivateKeyword));
-        public static SyntaxTokenList @static = CSharp.TokenList(CSharp.Token(SyntaxKind.StaticKeyword));
-        public static SyntaxToken @out = CSharp.Token(SyntaxKind.OutKeyword);
+        public static SyntaxTokenList Private = CSharp.TokenList(CSharp.Token(SyntaxKind.PrivateKeyword));
+        public static SyntaxTokenList Static = CSharp.TokenList(CSharp.Token(SyntaxKind.StaticKeyword));
+        public static SyntaxToken Out = CSharp.Token(SyntaxKind.OutKeyword);
 
         //constants
-        public static ExpressionSyntax @null = CSharp.ParseExpression("null");
-        public static SyntaxToken nullToken = CSharp.ParseToken("null");
-        public static ExpressionSyntax @true = CSharp.ParseExpression("true");
-        public static ExpressionSyntax @false = CSharp.ParseExpression("false");
+        public static ExpressionSyntax Null = CSharp.ParseExpression("null");
+        public static SyntaxToken NullToken = CSharp.ParseToken("null");
+        public static ExpressionSyntax True = CSharp.ParseExpression("true");
+        public static ExpressionSyntax False = CSharp.ParseExpression("false");
 
         //tokens
-        public static SyntaxToken semicolon = CSharp.ParseToken(";");
+        public static SyntaxToken Semicolon = CSharp.ParseToken(";");
 
 
         //node marking
@@ -55,8 +55,8 @@ namespace Excess.Compiler.Roslyn
                 new InstanceAnalisysBase<SyntaxToken, SyntaxNode, SemanticModel>(),
                 scope)
         {
-            _scope.set<ICompilerService<SyntaxToken, SyntaxNode, SemanticModel>>(new CompilerService());
-            _scope.set(environment);
+            _scope.Set<ICompilerService<SyntaxToken, SyntaxNode, SemanticModel>>(new CompilerService());
+            _scope.Set(environment);
         }
 
         public RoslynCompiler(Scope scope) : this(new RoslynEnvironment(scope, null), scope)
@@ -70,7 +70,7 @@ namespace Excess.Compiler.Roslyn
         protected override IDocument<SyntaxToken, SyntaxNode, SemanticModel> CreateDocument()
         {
             var result = new RoslynDocument(_scope);
-            _scope.set<IDocument<SyntaxToken, SyntaxNode, SemanticModel>>(result);
+            _scope.Set<IDocument<SyntaxToken, SyntaxNode, SemanticModel>>(result);
 
             ApplyLexical(result);
             return result;
@@ -99,7 +99,7 @@ namespace Excess.Compiler.Roslyn
         {
             var document = new RoslynDocument(_scope, expr);
             var handler = _lexical as IDocumentInjector<SyntaxToken, SyntaxNode, SemanticModel>;
-            _scope.set<IDocument<SyntaxToken, SyntaxNode, SemanticModel>>(document);
+            _scope.Set<IDocument<SyntaxToken, SyntaxNode, SemanticModel>>(document);
 
             handler.Apply(document);
             document.ApplyChanges(CompilerStage.Lexical);
@@ -111,7 +111,7 @@ namespace Excess.Compiler.Roslyn
         {
             var document = new RoslynDocument(_scope, text);
             var handler = _lexical as IDocumentInjector<SyntaxToken, SyntaxNode, SemanticModel>;
-            _scope.set<IDocument<SyntaxToken, SyntaxNode, SemanticModel>>(document);
+            _scope.Set<IDocument<SyntaxToken, SyntaxNode, SemanticModel>>(document);
 
             handler.Apply(document);
             document.ApplyChanges(CompilerStage.Lexical);
@@ -557,11 +557,11 @@ namespace Excess.Compiler.Roslyn
 
         private static IEnumerable<StatementSyntax> ExplodeStatements(SyntaxList<StatementSyntax> statements, SyntaxNode toReplace, BlockSyntax block)
         {
-            var nodeID = NodeMark(toReplace);
+            var nodeId = NodeMark(toReplace);
             foreach (var statement in statements)
             {
-                var innerID = NodeMark(statement);
-                if (innerID == nodeID)
+                var innerId = NodeMark(statement);
+                if (innerId == nodeId)
                 {
                     foreach (var inner in block.Statements)
                     {
@@ -614,22 +614,22 @@ namespace Excess.Compiler.Roslyn
                     double dval;
                     if (int.TryParse(valueStr, out val))
                     {
-                        return @int;
+                        return Int;
                     }
                     if (double.TryParse(valueStr, out dval))
                     {
-                        return @double;
+                        return Double;
                     }
 
                     break;
                 }
 
                 case SyntaxKind.StringLiteralExpression:
-                    return @string;
+                    return String;
 
                 case SyntaxKind.TrueLiteralExpression:
                 case SyntaxKind.FalseLiteralExpression:
-                    return boolean;
+                    return Boolean;
             }
 
             return null;
@@ -640,7 +640,7 @@ namespace Excess.Compiler.Roslyn
             var cfa = model.AnalyzeControlFlow(code);
             if (!cfa.ReturnStatements.Any())
             {
-                return @void;
+                return Void;
             }
 
             ITypeSymbol rt = null;
@@ -673,7 +673,7 @@ namespace Excess.Compiler.Roslyn
 
             if (rt == null)
             {
-                return dynamic;
+                return Dynamic;
             }
 
             return CSharp.ParseTypeName(rt.Name);

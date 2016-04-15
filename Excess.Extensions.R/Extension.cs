@@ -16,24 +16,24 @@ namespace Excess.Extensions.R
     {
         public static void InitR(this Scope scope)
         {
-            scope.set("rPreStatements", new List<StatementSyntax>());
-            scope.set("rVariables", new List<string>());
+            scope.Set("rPreStatements", new List<StatementSyntax>());
+            scope.Set("rVariables", new List<string>());
         }
 
         public static List<StatementSyntax> PreStatements(this Scope scope)
         {
-            var result = scope.find<List<StatementSyntax>>("rPreStatements");
+            var result = scope.Find<List<StatementSyntax>>("rPreStatements");
             Debug.Assert(result != null);
             return result;
         }
 
         public static bool hasVariable(this Scope scope, string varName)
         {
-            var result = scope.find<List<string>>("rVariables");
+            var result = scope.Find<List<string>>("rVariables");
             if (result != null && result.Contains(varName))
                 return true;
 
-            var parent = scope.parent();
+            var parent = scope.Parent();
             return parent == null
                 ? false
                 : parent.hasVariable(varName);
@@ -41,7 +41,7 @@ namespace Excess.Extensions.R
 
         public static void addVariable(this Scope scope, string varName)
         {
-            var result = scope.find<List<string>>("rVariables");
+            var result = scope.Find<List<string>>("rVariables");
             Debug.Assert(result != null && !result.Contains(varName));
             result.Add(varName);
         }
@@ -150,7 +150,7 @@ namespace Excess.Extensions.R
                 ;
         }
 
-        private static SyntaxNode Transform(SyntaxNode oldNode, SyntaxNode newNode, Scope scope, LexicalExtension<SyntaxToken> extension)
+        private static SyntaxNode Transform(SyntaxNode oldNode, SyntaxNode newNode, Scope scope, LexicalExtensionDto<SyntaxToken> extension)
         {
             Debug.Assert(newNode is BlockSyntax);
             var isAssignment = oldNode is LocalDeclarationStatementSyntax;

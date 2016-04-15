@@ -165,13 +165,13 @@ lexical
             extension = null;
             transform = null;
 
-            var grammar = _compilation.getFileByExtension(".g4");
+            var grammar = _compilation.GetFileByExtension(".g4");
             if (grammar == null)
                 return false;
 
             var grammarName = Path.GetFileNameWithoutExtension(grammar);
             var listenerName = grammarName + "BaseListener.cs";
-            var listener = _compilation.getCSharpFile(listenerName);
+            var listener = _compilation.GetCSharpFile(listenerName);
 
             if (listener == null)
                 return false;

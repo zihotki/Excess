@@ -7,62 +7,62 @@ namespace Excess.Compiler.Core
 {
     public abstract class BaseSyntaxTransform<TToken, TNode, TModel> : ISyntaxTransform<TNode>
     {
-        protected List<Func<TNode, Scope, IEnumerable<TNode>>> _selectors = new List<Func<TNode, Scope, IEnumerable<TNode>>>();
-        protected List<Func<TNode, Scope, IEnumerable<TNode>, TNode>> _transformers = new List<Func<TNode, Scope, IEnumerable<TNode>, TNode>>();
+        protected List<Func<TNode, Scope, IEnumerable<TNode>>> Selectors = new List<Func<TNode, Scope, IEnumerable<TNode>>>();
+        protected List<Func<TNode, Scope, IEnumerable<TNode>, TNode>> Transformers = new List<Func<TNode, Scope, IEnumerable<TNode>, TNode>>();
 
         public ISyntaxTransform<TNode> AddToScope(Func<TNode, Scope, IEnumerable<TNode>> handler, bool type = false, bool @namespace = false)
         {
-            _selectors.Add(handler);
-            _transformers.Add(AddToScope(type, @namespace));
+            Selectors.Add(handler);
+            Transformers.Add(AddToScope(type, @namespace));
             return this;
         }
 
         public ISyntaxTransform<TNode> AddToScope(string nodes, bool type = false, bool @namespace = false)
         {
-            _selectors.Add(SelectFromScope(nodes));
-            _transformers.Add(AddToScope(type, @namespace));
+            Selectors.Add(SelectFromScope(nodes));
+            Transformers.Add(AddToScope(type, @namespace));
             return this;
         }
 
         public ISyntaxTransform<TNode> Remove(string nodes)
         {
-            _selectors.Add(SelectFromScope(nodes));
-            _transformers.Add(RemoveNodes());
+            Selectors.Add(SelectFromScope(nodes));
+            Transformers.Add(RemoveNodes());
             return this;
         }
 
         public ISyntaxTransform<TNode> Remove(Func<TNode, Scope, IEnumerable<TNode>> selector)
         {
-            _selectors.Add(selector);
-            _transformers.Add(RemoveNodes());
+            Selectors.Add(selector);
+            Transformers.Add(RemoveNodes());
             return this;
         }
 
         public ISyntaxTransform<TNode> Replace(string nodes, Func<TNode, TNode> handler)
         {
-            _selectors.Add(SelectFromScope(nodes));
-            _transformers.Add(ReplaceNodes((node, scope) => handler(node)));
+            Selectors.Add(SelectFromScope(nodes));
+            Transformers.Add(ReplaceNodes((node, scope) => handler(node)));
             return this;
         }
 
         public ISyntaxTransform<TNode> Replace(string nodes, Func<TNode, Scope, TNode> handler)
         {
-            _selectors.Add(SelectFromScope(nodes));
-            _transformers.Add(ReplaceNodes(handler));
+            Selectors.Add(SelectFromScope(nodes));
+            Transformers.Add(ReplaceNodes(handler));
             return this;
         }
 
         public ISyntaxTransform<TNode> Replace(Func<TNode, Scope, IEnumerable<TNode>> selector, Func<TNode, Scope, TNode> handler)
         {
-            _selectors.Add(selector);
-            _transformers.Add(ReplaceNodes(handler));
+            Selectors.Add(selector);
+            Transformers.Add(ReplaceNodes(handler));
             return this;
         }
 
         public ISyntaxTransform<TNode> Replace(Func<TNode, Scope, IEnumerable<TNode>> selector, Func<TNode, TNode> handler)
         {
-            _selectors.Add(selector);
-            _transformers.Add(ReplaceNodes((node, scope) => handler(node)));
+            Selectors.Add(selector);
+            Transformers.Add(ReplaceNodes((node, scope) => handler(node)));
             return this;
         }
 
@@ -70,19 +70,19 @@ namespace Excess.Compiler.Core
         {
             var compiler = scope.GetService<TToken, TNode, TModel>();
 
-            Debug.Assert(compiler != null && _selectors.Count == _transformers.Count);
-            switch (_transformers.Count)
+            Debug.Assert(compiler != null && Selectors.Count == Transformers.Count);
+            switch (Transformers.Count)
             {
                 case 0:
                     return node;
                 case 1:
                 {
                     //do not track on single transformations
-                    var selector = _selectors[0];
+                    var selector = Selectors[0];
                     var nodes = selector != null
                         ? selector(node, scope)
                         : new TNode[] {};
-                    var resultNode = _transformers[0](node, scope, nodes);
+                    var resultNode = Transformers[0](node, scope, nodes);
                     return resultNode;
                 }
                 default:
@@ -93,7 +93,7 @@ namespace Excess.Compiler.Core
                     //so, td:
 
                     var selectorIds = new Dictionary<object, List<string>>();
-                    foreach (var selector in _selectors)
+                    foreach (var selector in Selectors)
                     {
                         var sNodes = selector(node, scope);
                         if (sNodes.Any())
@@ -114,10 +114,10 @@ namespace Excess.Compiler.Core
                         }
                     }
 
-                    for (var i = 0; i < _transformers.Count; i++)
+                    for (var i = 0; i < Transformers.Count; i++)
                     {
-                        var transformer = _transformers[i];
-                        var selector = _selectors[i];
+                        var transformer = Transformers[i];
+                        var selector = Selectors[i];
 
                         IEnumerable<TNode> nodes = null;
                         List<string> nodeIds;
@@ -162,7 +162,7 @@ namespace Excess.Compiler.Core
 
         private Func<TNode, Scope, IEnumerable<TNode>> SelectFromScope(string nodes)
         {
-            return (node, scope) => scope.get<IEnumerable<TNode>>(nodes);
+            return (node, scope) => scope.Get<IEnumerable<TNode>>(nodes);
         }
 
         private Func<TNode, Scope, IEnumerable<TNode>, TNode> RemoveNodes()

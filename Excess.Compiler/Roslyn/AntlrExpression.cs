@@ -12,41 +12,41 @@ namespace Excess.Compiler.Roslyn
 
     public static class AntlrExpression
     {
-        private static readonly Dictionary<string, Func<ParserRuleContext, ExpressionSyntax>> _handlers =
+        private static readonly Dictionary<string, Func<ParserRuleContext, ExpressionSyntax>> Handlers =
             new Dictionary<string, Func<ParserRuleContext, ExpressionSyntax>>();
 
         static AntlrExpression()
         {
-            _handlers["ExpressionContext"] = Expression;
-            _handlers["AssignmentExpressionContext"] = Assignment;
-            _handlers["UnaryExpressionContext"] = UnaryExpression;
-            _handlers["LogicalAndExpressionContext"] = BinaryExpression;
-            _handlers["AdditiveExpressionContext"] = BinaryExpression;
-            _handlers["ConditionalExpressionContext"] = BinaryExpression;
-            _handlers["LogicalOrExpressionContext"] = BinaryExpression;
-            _handlers["InclusiveOrExpressionContext"] = BinaryExpression;
-            _handlers["ExclusiveOrExpressionContext"] = BinaryExpression;
-            _handlers["AndExpressionContext"] = BinaryExpression;
-            _handlers["EqualityExpressionContext"] = BinaryExpression;
-            _handlers["ConstantContext"] = Constant;
-            _handlers["CastExpressionContext"] = Cast;
-            _handlers["RelationalExpressionContext"] = BinaryExpression;
-            _handlers["ShiftExpressionContext"] = BinaryExpression;
-            _handlers["MultiplicativeExpressionContext"] = BinaryExpression;
-            _handlers["MemberAccessContext"] = MemberAccess;
-            _handlers["ParenthesizedContext"] = Parenthesized;
-            _handlers["MemberPointerAccessContext"] = MemberAccess;
-            _handlers["SimpleExpressionContext"] = Expression;
-            _handlers["IndexContext"] = Index;
-            _handlers["CallContext"] = Call;
-            _handlers["PostfixIncrementContext"] = PostFix;
-            _handlers["PostfixDecrementContext"] = PostFix;
-            _handlers["IdentifierContext"] = Identifer;
-            _handlers["StringLiteralContext"] = StringLiteral;
-            _handlers["ArgumentExpressionListContext"] = Hidden;
-            _handlers["UnaryOperatorContext"] = Hidden;
-            _handlers["AssignmentOperatorContext"] = Hidden;
-            _handlers["ConstantExpressionContext"] = Hidden;
+            Handlers["ExpressionContext"] = Expression;
+            Handlers["AssignmentExpressionContext"] = Assignment;
+            Handlers["UnaryExpressionContext"] = UnaryExpression;
+            Handlers["LogicalAndExpressionContext"] = BinaryExpression;
+            Handlers["AdditiveExpressionContext"] = BinaryExpression;
+            Handlers["ConditionalExpressionContext"] = BinaryExpression;
+            Handlers["LogicalOrExpressionContext"] = BinaryExpression;
+            Handlers["InclusiveOrExpressionContext"] = BinaryExpression;
+            Handlers["ExclusiveOrExpressionContext"] = BinaryExpression;
+            Handlers["AndExpressionContext"] = BinaryExpression;
+            Handlers["EqualityExpressionContext"] = BinaryExpression;
+            Handlers["ConstantContext"] = Constant;
+            Handlers["CastExpressionContext"] = Cast;
+            Handlers["RelationalExpressionContext"] = BinaryExpression;
+            Handlers["ShiftExpressionContext"] = BinaryExpression;
+            Handlers["MultiplicativeExpressionContext"] = BinaryExpression;
+            Handlers["MemberAccessContext"] = MemberAccess;
+            Handlers["ParenthesizedContext"] = Parenthesized;
+            Handlers["MemberPointerAccessContext"] = MemberAccess;
+            Handlers["SimpleExpressionContext"] = Expression;
+            Handlers["IndexContext"] = Index;
+            Handlers["CallContext"] = Call;
+            Handlers["PostfixIncrementContext"] = PostFix;
+            Handlers["PostfixDecrementContext"] = PostFix;
+            Handlers["IdentifierContext"] = Identifer;
+            Handlers["StringLiteralContext"] = StringLiteral;
+            Handlers["ArgumentExpressionListContext"] = Hidden;
+            Handlers["UnaryOperatorContext"] = Hidden;
+            Handlers["AssignmentOperatorContext"] = Hidden;
+            Handlers["ConstantExpressionContext"] = Hidden;
         }
 
         public static SyntaxNode Parse(ParserRuleContext node, Func<ParserRuleContext, Scope, SyntaxNode> continuation, Scope scope)
@@ -172,10 +172,12 @@ namespace Excess.Compiler.Roslyn
 
         private static ArgumentListSyntax Arguments(ParserRuleContext node)
         {
-            var expr = null as ExpressionSyntax;
+            ExpressionSyntax expr;
             var args = null as ArgumentListSyntax;
             if (node.ChildCount == 1)
+            {
                 expr = VisitNode(node.GetRuleContext<ParserRuleContext>(0));
+            }
             else
             {
                 Debug.Assert(node.ChildCount == 2);
@@ -295,7 +297,7 @@ namespace Excess.Compiler.Roslyn
         private static ExpressionSyntax VisitNode(ParserRuleContext node)
         {
             var typename = node.GetType().Name;
-            return _handlers[typename](node);
+            return Handlers[typename](node);
         }
     }
 }

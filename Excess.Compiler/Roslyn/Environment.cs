@@ -81,7 +81,7 @@ namespace Excess.Compiler.Roslyn
 
         public ICompilerEnvironment Global<T>() where T : class, new()
         {
-            _root.set(new T());
+            _root.Set(new T());
             return this;
         }
 

@@ -9,14 +9,10 @@ namespace Excess.Compiler
         ILexicalMatch<TToken, TNode, TModel> Token(string token, string named = null);
         ILexicalMatch<TToken, TNode, TModel> Token(Func<TToken, bool> matcher, string named = null);
 
-        ILexicalMatch<TToken, TNode, TModel> Any(params char[] anyOf);
-        ILexicalMatch<TToken, TNode, TModel> Any(params string[] anyOf);
         ILexicalMatch<TToken, TNode, TModel> Any(char[] anyOf, string named = null, bool matchDocumentStart = false);
         ILexicalMatch<TToken, TNode, TModel> Any(string[] anyOf, string named = null, bool matchDocumentStart = false);
         ILexicalMatch<TToken, TNode, TModel> Any(Func<TToken, bool> anyOf, string named = null, bool matchDocumentStart = false);
 
-        ILexicalMatch<TToken, TNode, TModel> Optional(params char[] anyOf);
-        ILexicalMatch<TToken, TNode, TModel> Optional(params string[] anyOf);
         ILexicalMatch<TToken, TNode, TModel> Optional(char[] anyOf, string named = null);
         ILexicalMatch<TToken, TNode, TModel> Optional(string[] anyOf, string named = null);
         ILexicalMatch<TToken, TNode, TModel> Optional(Func<TToken, bool> anyOf, string named = null);
@@ -28,14 +24,10 @@ namespace Excess.Compiler
             Func<TToken, bool> close,
             string start = null, string end = null, string contents = null);
 
-        ILexicalMatch<TToken, TNode, TModel> Many(params char[] anyOf);
-        ILexicalMatch<TToken, TNode, TModel> Many(params string[] anyOf);
         ILexicalMatch<TToken, TNode, TModel> Many(char[] anyOf, string named = null);
         ILexicalMatch<TToken, TNode, TModel> Many(string[] anyOf, string named = null);
         ILexicalMatch<TToken, TNode, TModel> Many(Func<TToken, bool> tokens, string named = null);
 
-        ILexicalMatch<TToken, TNode, TModel> ManyOrNone(params char[] anyOf);
-        ILexicalMatch<TToken, TNode, TModel> ManyOrNone(params string[] anyOf);
         ILexicalMatch<TToken, TNode, TModel> ManyOrNone(char[] anyOf, string named = null);
         ILexicalMatch<TToken, TNode, TModel> ManyOrNone(string[] anyOf, string named = null);
         ILexicalMatch<TToken, TNode, TModel> ManyOrNone(Func<TToken, bool> tokens, string named = null);

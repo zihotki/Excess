@@ -35,7 +35,7 @@ namespace Excess.Entensions.XS
                 .Extension("synch", ExtensionKind.Code, ProcessSynch);
         }
 
-        private static SyntaxNode ProcessAsynch(SyntaxNode node, Scope scope, SyntacticalExtension<SyntaxNode> extension)
+        private static SyntaxNode ProcessAsynch(SyntaxNode node, Scope scope, SyntacticalExtensionDto<SyntaxNode> extension)
         {
             if (extension.Kind == ExtensionKind.Code)
             {
@@ -55,7 +55,7 @@ namespace Excess.Entensions.XS
             return node;
         }
 
-        private static SyntaxNode ProcessSynch(SyntaxNode node, Scope scope, SyntacticalExtension<SyntaxNode> extension)
+        private static SyntaxNode ProcessSynch(SyntaxNode node, Scope scope, SyntacticalExtensionDto<SyntaxNode> extension)
         {
             if (extension.Kind == ExtensionKind.Code)
             {

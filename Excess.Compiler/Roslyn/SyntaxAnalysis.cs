@@ -27,9 +27,9 @@ namespace Excess.Compiler.Roslyn
             return new RoslynSyntaxTransform(handler);
         }
 
-        protected override SyntaxNode Extensions(SyntaxNode node, Scope scope)
+        protected override SyntaxNode Rewrite(SyntaxNode node, Scope scope)
         {
-            var rewriter = new ExtensionRewriter(_extensions, scope);
+            var rewriter = new ExtensionRewriter(Extensions, scope);
             return rewriter.Visit(node);
         }
     }

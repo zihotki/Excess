@@ -6,7 +6,7 @@ namespace Excess.Services
 {
     public class ProjectService : IProjectManager
     {
-        public IRuntimeProject createRuntime(string projectType, string projectName, dynamic config, dynamic path, IPersistentStorage storage)
+        public IRuntimeProject CreateRuntime(string projectType, string projectName, dynamic config, dynamic path, IPersistentStorage storage)
         {
             var result = null as IRuntimeProject;
             switch (projectType)

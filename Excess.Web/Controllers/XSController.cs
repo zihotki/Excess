@@ -39,7 +39,7 @@ namespace Excess.Web.Controllers
         [ValidateInput(false)]
         public ActionResult Translate(string text)
         {
-            var result = _translator.translate(text);
+            var result = _translator.Translate(text);
             return Content(result);
         }
 

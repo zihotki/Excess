@@ -42,7 +42,7 @@ namespace Excess.Web.Controllers
             var path = new Scope(null) as dynamic;
             path.ToolPath = Path.Combine(Server.MapPath("~/App_Data"), "Tools");
 
-            IRuntimeProject runtime = _manager.createRuntime(project.ProjectType, project.Name, config, path, new ProjectStorage(project));
+            IRuntimeProject runtime = _manager.CreateRuntime(project.ProjectType, project.Name, config, path, new ProjectStorage(project));
             foreach (var file in project.ProjectFiles)
                 runtime.Add(file.Name, file.ID, file.Contents);
 
