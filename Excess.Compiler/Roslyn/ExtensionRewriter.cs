@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -153,6 +154,8 @@ namespace Excess.Compiler.Roslyn
                 var resulSyntaxNode = node;
                 if (node is ClassDeclarationSyntax)
                 {
+                    Debugger.Break();
+                    // TODO: something suspicious going on here, probably value should be assigned back to node
                     var clazz = (ClassDeclarationSyntax) node;
                     clazz.WithAttributeLists(incomplete.AttributeLists)
                         .WithModifiers(incomplete.Modifiers);

@@ -16,25 +16,6 @@ namespace Excess.Entensions.XS
     using ExcessCompiler = ICompiler<SyntaxToken, SyntaxNode, SemanticModel>;
     using Roslyn = RoslynCompiler;
 
-    internal class JsonGrammar : IGrammar<SyntaxToken, SyntaxNode, ParserRuleContext>
-    {
-        public ParserRuleContext Parse(IEnumerable<SyntaxToken> tokens, Scope scope, int offset)
-        {
-            var text = RoslynCompiler.TokensToString(tokens);
-            var stream = new AntlrInputStream(text);
-            ITokenSource lexer = new JSONLexer(stream);
-            ITokenStream tokenStream = new CommonTokenStream(lexer);
-            var parser = new JSONParser(tokenStream);
-
-            parser.AddErrorListener(new AntlrErrors<IToken>(scope, offset));
-            var result = parser.json();
-            if (parser.NumberOfSyntaxErrors > 0)
-                return null;
-
-            return result;
-        }
-    }
-
     public class Json
     {
         private static readonly Template createJson = Template.ParseExpression("JObject.FromObject(__0)");

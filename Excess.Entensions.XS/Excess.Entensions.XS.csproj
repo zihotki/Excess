@@ -40,8 +40,9 @@
     <AssemblyOriginatorKeyFile>Excess.Extensions.XS.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Antlr4.Runtime">
-      <HintPath>..\Lib\Antlr4.Runtime.dll</HintPath>
+    <Reference Include="Antlr4.Runtime, Version=4.5.0.0, Culture=neutral, PublicKeyToken=e9931a4108ef2354, processorArchitecture=MSIL">
+      <HintPath>..\packages\Antlr4.Runtime.4.5-alpha003\lib\net45\Antlr4.Runtime.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.CodeAnalysis, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.CodeAnalysis.Common.1.1.1\lib\net45\Microsoft.CodeAnalysis.dll</HintPath>
@@ -122,6 +123,7 @@
     <Compile Include="Grammar\JSONListener.cs" />
     <Compile Include="Grammar\JSONParser.cs" />
     <Compile Include="Json.cs" />
+    <Compile Include="JsonGrammar.cs" />
     <Compile Include="Match.cs" />
     <Compile Include="Members.cs" />
     <Compile Include="XSLang.cs" />
