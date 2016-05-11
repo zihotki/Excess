@@ -94,7 +94,7 @@ namespace Excess.Compiler.Tests
         public void InstanceUsage()
         {
             var compiler = new RoslynCompiler();
-            var instance = compiler.Instance();
+            var instance = compiler.Instance;
 
             //code extension
             instance

@@ -118,7 +118,7 @@ namespace Excess.Compiler.Roslyn
                     .GetAnnotatedNodes(RoslynCompiler.NodeIdAnnotation + transformer.Key)
                     .First();
 
-                Debug.Assert(tNode != null); //td: cases
+                Debug.Assert(tNode != null); //TODO: cases
                 nodes[tNode] = transformer.Value;
             }
 
@@ -143,24 +143,23 @@ namespace Excess.Compiler.Roslyn
             var nodes = new Dictionary<SyntaxNode, Func<SyntaxNode, SyntaxNode, SemanticModel, Scope, SyntaxNode>>();
             foreach (var transformer in transformers)
             {
-                var tNode = node
-                    .GetAnnotatedNodes(RoslynCompiler.NodeIdAnnotation + transformer.Key)
+                var tNode = node.GetAnnotatedNodes(RoslynCompiler.NodeIdAnnotation + transformer.Key)
                     .First();
 
-                Debug.Assert(tNode != null); //td: cases
+                Debug.Assert(tNode != null); //TODO: cases
 
-                if (Mapper != null)
+                /*if (Mapper != null)
                 {
                     tNode = Mapper.SemanticalMap(tNode);
-                }
+                }*/
 
                 nodes[tNode] = transformer.Value;
             }
 
-            if (Mapper != null)
+            /*if (Mapper != null)
             {
                 node = Mapper.SemanticalMap(node);
-            }
+            }*/
 
             IEnumerable<SyntaxNode> toReplace = nodes.Keys;
             return node.ReplaceNodes(toReplace, (oldNode, newNode) =>

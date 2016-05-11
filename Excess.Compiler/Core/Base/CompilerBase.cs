@@ -6,13 +6,15 @@ namespace Excess.Compiler.Core
         IDocumentInjector<TToken, TNode, TModel>
     {
         protected IDocument<TToken, TNode, TModel> Document;
-        protected ICompilerEnvironment _environment;
-        protected IInstanceAnalisys<TNode> _instance;
-        protected ILexicalAnalysis<TToken, TNode, TModel> _lexical;
-        protected Scope _scope;
-        protected ISemanticAnalysis<TToken, TNode, TModel> _semantics;
         protected CompilerStage Stage = CompilerStage.Started;
-        protected ISyntaxAnalysis<TToken, TNode, TModel> _syntax;
+
+        public Scope Scope { get; protected set; }
+        public ILexicalAnalysis<TToken, TNode, TModel> Lexical { get; protected set; }
+        public ISyntaxAnalysis<TToken, TNode, TModel> Syntax { get; protected set; }
+        public ISemanticAnalysis<TToken, TNode, TModel> Semantics { get; protected set; }
+        public IInstanceAnalisys<TNode> Instance { get; protected set; }
+        public ICompilerEnvironment Environment { get; protected set; }
+
 
         public CompilerBase(ILexicalAnalysis<TToken, TNode, TModel> lexical,
             ISyntaxAnalysis<TToken, TNode, TModel> syntax,
@@ -21,40 +23,13 @@ namespace Excess.Compiler.Core
             IInstanceAnalisys<TNode> instance,
             Scope scope)
         {
-            _lexical = lexical;
-            _syntax = syntax;
-            _semantics = semantics;
-            _environment = environment;
-            _instance = instance;
+            Lexical = lexical;
+            Syntax = syntax;
+            Semantics = semantics;
+            Environment = environment;
+            Instance = instance;
 
-            _scope = new Scope(scope);
-        }
-
-        public Scope Scope => _scope;
-
-        public ILexicalAnalysis<TToken, TNode, TModel> Lexical()
-        {
-            return _lexical;
-        }
-
-        public ISyntaxAnalysis<TToken, TNode, TModel> Syntax()
-        {
-            return _syntax;
-        }
-
-        public ISemanticAnalysis<TToken, TNode, TModel> Semantics()
-        {
-            return _semantics;
-        }
-
-        public IInstanceAnalisys<TNode> Instance()
-        {
-            return _instance;
-        }
-
-        public ICompilerEnvironment Environment()
-        {
-            return _environment;
+            Scope = new Scope(scope);
         }
 
         public bool Compile(string text, CompilerStage stage)
@@ -79,22 +54,22 @@ namespace Excess.Compiler.Core
 
         public void Apply(IDocument<TToken, TNode, TModel> document)
         {
-            var iLexical = _lexical as IDocumentInjector<TToken, TNode, TModel>;
+            var iLexical = Lexical as IDocumentInjector<TToken, TNode, TModel>;
             iLexical?.Apply(document);
 
-            var iSyntax = _syntax as IDocumentInjector<TToken, TNode, TModel>;
+            var iSyntax = Syntax as IDocumentInjector<TToken, TNode, TModel>;
             iSyntax?.Apply(document);
 
-            var iSemantics = _semantics as IDocumentInjector<TToken, TNode, TModel>;
+            var iSemantics = Semantics as IDocumentInjector<TToken, TNode, TModel>;
             iSemantics?.Apply(document);
 
             if (document is IInstanceDocument<TNode>)
             {
-                var iInstance = _instance as IDocumentInjector<TToken, TNode, TModel>;
+                var iInstance = Instance as IDocumentInjector<TToken, TNode, TModel>;
                 iInstance?.Apply(document);
             }
 
-            var iEnvironment = _environment as IDocumentInjector<TToken, TNode, TModel>;
+            var iEnvironment = Environment as IDocumentInjector<TToken, TNode, TModel>;
             iEnvironment?.Apply(document);
         }
 

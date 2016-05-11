@@ -12,15 +12,15 @@ namespace Excess.Entensions.XS
 
     public class Members
     {
-        private static readonly PropertyDeclarationSyntax _property = SyntaxFactory.ParseCompilationUnit("__1 __2 {get; set;}")
+        private static readonly PropertyDeclarationSyntax _property = CSharp.ParseCompilationUnit("__1 __2 {get; set;}")
             .DescendantNodes().OfType<PropertyDeclarationSyntax>().First();
 
-        private static readonly ExpressionStatementSyntax _assignment = (ExpressionStatementSyntax) SyntaxFactory.ParseStatement("__1 = __2;");
+        private static readonly ExpressionStatementSyntax _assignment = (ExpressionStatementSyntax)CSharp.ParseStatement("__1 = __2;");
 
         public static void Apply(ExcessCompiler compiler)
         {
-            var lexical = compiler.Lexical();
-            var syntax = compiler.Syntax();
+            var lexical = compiler.Lexical;
+            var syntax = compiler.Syntax;
 
             lexical
                 //methods 
@@ -61,13 +61,13 @@ namespace Excess.Entensions.XS
 
             if (field == null)
             {
-                //td: error, malformed property
+                //TODO: error, malformed property
                 return node;
             }
 
             if (field.Declaration.Variables.Count != 1)
             {
-                //td: error, malformed property
+                //TODO: error, malformed property
                 return node;
             }
 
@@ -96,7 +96,7 @@ namespace Excess.Entensions.XS
             var document = scope.GetDocument<SyntaxToken, SyntaxNode, SemanticModel>();
 
             //schedule the field replacement
-            //td: coud be done in this pass with the right info from lexical
+            //TODO: coud be done in this pass with the right info from lexical
             document.Change(field, RoslynCompiler.ReplaceNode(property));
 
             //must be initialized
@@ -127,7 +127,7 @@ namespace Excess.Entensions.XS
             var modifiers = method.Modifiers.Any()
                 ? method.Modifiers
                 : RoslynCompiler.Public;
-            return SyntaxFactory.ConstructorDeclaration(name).
+            return CSharp.ConstructorDeclaration(name).
                 WithModifiers(modifiers).
                 WithParameterList(method.ParameterList).
                 WithBody(method.Body);
@@ -137,7 +137,7 @@ namespace Excess.Entensions.XS
         {
             if (!(node is MethodDeclarationSyntax))
             {
-                //td: error
+                //TODO: error
                 return node;
             }
 

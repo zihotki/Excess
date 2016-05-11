@@ -49,7 +49,6 @@ namespace Excess.Compiler.Core
 
             var compiler = scope.GetService<TToken, TNode, TModel>();
             var g = _grammar.Parse(withoutBraces, scope, compiler.GetOffset(withoutBraces.First()));
-
             if (g == null || g.Equals(default(TGNode)))
             {
                 return node; //errors added to the scope already

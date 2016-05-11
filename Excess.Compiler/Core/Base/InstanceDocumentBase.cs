@@ -62,13 +62,13 @@ namespace Excess.Compiler.Core
                 Instance<TNode> target;
                 if (!namedInstances.TryGetValue(connection.Source, out source))
                 {
-                    //td: error, invalid source
+                    //TODO: error, invalid source
                     continue;
                 }
 
                 if (!namedInstances.TryGetValue(connection.Target, out target))
                 {
-                    //td: error, invalid source
+                    //TODO: error, invalid source
                     continue;
                 }
 

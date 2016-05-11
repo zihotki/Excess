@@ -158,7 +158,7 @@ namespace Excess.Compiler.Tests.TestRuntime
 
     public class ConcurrentObject
     {
-        private readonly Random __rand = new Random(); //td: test only
+        private readonly Random __rand = new Random(); //TODO: test only
 
         private int _busy;
 

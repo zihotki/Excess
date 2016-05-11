@@ -20,7 +20,7 @@ namespace Excess.Entensions.XS
 
         public static void Apply(ExcessCompiler compiler)
         {
-            var syntax = compiler.Syntax();
+            var syntax = compiler.Syntax;
 
             syntax
                 .Extension("contract", ExtensionKind.Code, ProcessContract);

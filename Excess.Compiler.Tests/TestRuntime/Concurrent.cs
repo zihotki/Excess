@@ -85,7 +85,7 @@ namespace Excess.Compiler.Tests.TestRuntime
             var injector = new CompositeInjector<SyntaxToken, SyntaxNode, SemanticModel>(new[]
             {
                 new DelegateInjector<SyntaxToken, SyntaxNode, SemanticModel>(compiler => compiler
-                    .Environment()
+                    .Environment
                     .Dependency<console>("Excess.Compiler.Tests.TestRuntime")
                     //.dependency<object>(new[] {
                     //    "System",

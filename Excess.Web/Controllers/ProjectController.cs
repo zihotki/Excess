@@ -33,10 +33,10 @@ namespace Excess.Web.Controllers
             if (!project.IsSample)
             {
                 if (!User.Identity.IsAuthenticated)
-                    return HttpNotFound(); //td: right error
+                    return HttpNotFound(); //TODO: right error
 
                 if (User.Identity.GetUserId() != project.UserID)
-                    return HttpNotFound(); //td: right error
+                    return HttpNotFound(); //TODO: right error
             }
 
             var path = new Scope(null) as dynamic;
@@ -64,11 +64,11 @@ namespace Excess.Web.Controllers
         {
             var project = Session["project"] as IRuntimeProject;
             if (project == null || file == null)
-                return HttpNotFound(); //td: right error
+                return HttpNotFound(); //TODO: right error
 
             var contents = project.FileContents(file);
             if (contents == null)
-                return HttpNotFound(); //td: right error
+                return HttpNotFound(); //TODO: right error
 
             return Content(contents);
         }
@@ -78,7 +78,7 @@ namespace Excess.Web.Controllers
         {
             var project = Session["project"] as IRuntimeProject;
             if (project == null)
-                return HttpNotFound(); //td: right error
+                return HttpNotFound(); //TODO: right error
 
             project.Modify(file, contents);
 
@@ -86,7 +86,7 @@ namespace Excess.Web.Controllers
             {
                 var fileIdx = project.FileId(file);
                 if (fileIdx < 0)
-                    return HttpNotFound(); //td: right error
+                    return HttpNotFound(); //TODO: right error
 
                 var repo = new ProjectRepository();
                 repo.SaveFile(fileIdx, contents);
@@ -99,7 +99,7 @@ namespace Excess.Web.Controllers
         {
             var project = Session["project"] as IRuntimeProject;
             if (project == null)
-                return HttpNotFound(); //td: right error
+                return HttpNotFound(); //TODO: right error
 
             var contents = " ";
             if (string.IsNullOrEmpty(Path.GetExtension(className)))
@@ -137,7 +137,7 @@ namespace Excess.Web.Controllers
         {
             var project = Session["project"] as IRuntimeProject;
             if (project == null)
-                return HttpNotFound(); //td: right error
+                return HttpNotFound(); //TODO: right error
 
             var result = new CompilationResult(project.Compile());
             return Json(result, JsonRequestBehavior.AllowGet);
@@ -147,7 +147,7 @@ namespace Excess.Web.Controllers
         {
             var project = Session["project"] as IRuntimeProject;
             if (project == null)
-                return HttpNotFound(); //td: right error
+                return HttpNotFound(); //TODO: right error
 
             dynamic clientData;
             var errors = project.Run(new HubNotifier(notification), out clientData);
@@ -158,7 +158,7 @@ namespace Excess.Web.Controllers
         public ActionResult UserProjects()
         {
             if (!User.Identity.IsAuthenticated)
-                return HttpNotFound(); //td: right error
+                return HttpNotFound(); //TODO: right error
 
             var repo = new ProjectRepository();
             var projects = repo.GetUserProjects(User.Identity.GetUserId());
@@ -168,7 +168,7 @@ namespace Excess.Web.Controllers
         public ActionResult CreateProject(string projectType, string projectName, string projectData)
         {
             if (!User.Identity.IsAuthenticated)
-                return HttpNotFound(); //td: right error
+                return HttpNotFound(); //TODO: right error
 
             var repo = new ProjectRepository();
             var result = repo.CreateProject(projectType, projectName, projectData, User.Identity.GetUserId());
@@ -180,14 +180,14 @@ namespace Excess.Web.Controllers
         {
             var runtime = Session["project"] as IExtensionRuntime;
             if (runtime == null)
-                return HttpNotFound(); //td: right error
+                return HttpNotFound(); //TODO: right error
 
             string result;
             try
             {
                 result = runtime.DebugExtension(text);
 
-                //td: !!!
+                //TODO: !!!
                 //var notProvider = runtime as IRuntimeProject;
                 //var nots = notProvider.notifications();
 
@@ -216,9 +216,9 @@ namespace Excess.Web.Controllers
                 project = Session["SampleProjectId"] as int?;
 
             if (project == null)
-                return HttpNotFound(); //td: right error
+                return HttpNotFound(); //TODO: right error
 
-            //td: !!! entity project
+            //TODO: !!! entity project
             var _db = new ExcessDbContext();
             var result = _db.DSLTests.Where(test => test.ProjectID == project);
 
@@ -231,11 +231,11 @@ namespace Excess.Web.Controllers
         {
             var project = Session["projectId"] as int?;
             if (project == null)
-                return HttpNotFound(); //td: right error
+                return HttpNotFound(); //TODO: right error
 
             Guid testId;
             if (!Guid.TryParse(id, out testId))
-                return HttpNotFound(); //td: right error
+                return HttpNotFound(); //TODO: right error
 
             var _db = new ExcessDbContext();
             var result = _db.DSLTests
@@ -243,7 +243,7 @@ namespace Excess.Web.Controllers
                 .FirstOrDefault();
 
             if (result == null)
-                return HttpNotFound(); //td: right error
+                return HttpNotFound(); //TODO: right error
 
             result.Contents = contents;
             _db.SaveChanges();
@@ -256,7 +256,7 @@ namespace Excess.Web.Controllers
         {
             var project = Session["projectId"] as int?;
             if (project == null)
-                return HttpNotFound(); //td: right error
+                return HttpNotFound(); //TODO: right error
 
             var _db = new ExcessDbContext();
 
@@ -278,11 +278,11 @@ namespace Excess.Web.Controllers
         {
             var runtime = Session["project"] as IExtensionRuntime;
             if (runtime == null)
-                return HttpNotFound(); //td: right error
+                return HttpNotFound(); //TODO: right error
 
             string extension, transform;
             if (!runtime.GenerateGrammar(out extension, out transform))
-                return HttpNotFound(); //td: right error
+                return HttpNotFound(); //TODO: right error
 
             return Json(new
             {

@@ -22,12 +22,12 @@ namespace Excess.RuntimeProject
         private static readonly Injector _main = new DelegateInjector(compiler =>
         {
             compiler
-                .Lexical()
+                .Lexical
                 .Normalize()
                 .With(MoveToRun);
 
             compiler
-                .Environment()
+                .Environment
                 .Dependency<Expression>("System.Linq");
         });
 

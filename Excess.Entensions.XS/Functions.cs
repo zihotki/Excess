@@ -17,8 +17,8 @@ namespace Excess.Entensions.XS
     {
         public static void Apply(ExcessCompiler compiler)
         {
-            var lexical = compiler.Lexical();
-            var semantics = compiler.Semantics();
+            var lexical = compiler.Lexical;
+            var semantics = compiler.Semantics;
 
             lexical
                 .Match() //lambda
@@ -26,7 +26,7 @@ namespace Excess.Entensions.XS
                 .Token("function", "fn")
                 .Enclosed('(', ')')
                 .Token('{', "brace")
-                .Then(compiler.Lexical().Transform()
+                .Then(compiler.Lexical.Transform()
                     .Remove("fn")
                     .Insert("=>", "brace"))
                 .Match()
@@ -63,7 +63,7 @@ namespace Excess.Entensions.XS
                 .OfType<StatementSyntax>()
                 .FirstOrDefault();
 
-            Debug.Assert(statement != null); //td: error, maybe?
+            Debug.Assert(statement != null); //TODO: error, maybe?
             Debug.Assert(statement is ExpressionStatementSyntax);
 
             var invocation = (statement as ExpressionStatementSyntax)
@@ -74,12 +74,12 @@ namespace Excess.Entensions.XS
             Debug.Assert(function != null);
 
             var parent = statement.Parent as BlockSyntax;
-            Debug.Assert(parent != null); //td: error, maybe?
+            Debug.Assert(parent != null); //TODO: error, maybe?
 
             var body = RoslynCompiler.NextStatement(parent, statement) as BlockSyntax;
             if (body == null)
             {
-                //td: error, function declaration must be followed by a block of code
+                //TODO: error, function declaration must be followed by a block of code
                 return node;
             }
 
@@ -166,7 +166,7 @@ namespace Excess.Entensions.XS
                                 .WithIdentifier(name.Identifier)
                                 .WithInitializer(variable.Initializer
                                     .WithValue(lambda
-                                        //.WithParameterList(invocation.ArgumentList) //td: extension arguments
+                                        //.WithParameterList(invocation.ArgumentList) //TODO: extension arguments
                                         .WithBody(body)))
                         })));
             };

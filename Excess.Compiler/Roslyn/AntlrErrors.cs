@@ -14,9 +14,11 @@ namespace Excess.Compiler.Roslyn
             _offset = offset;
         }
 
-        public void SyntaxError(IRecognizer recognizer, TToken offendingSymbol, int line, int charPositionInLine, string msg, RecognitionException e)
+        public void SyntaxError(IRecognizer recognizer, TToken offendingSymbol, int line,
+            int charPositionInLine, string msg, RecognitionException e)
         {
-            _scope.AddError("grammar syntax error", msg, _offset + offendingSymbol.StartIndex, offendingSymbol.StopIndex - offendingSymbol.StartIndex);
+            _scope.AddError("grammar syntax error", msg, _offset + offendingSymbol.StartIndex,
+                offendingSymbol.StopIndex - offendingSymbol.StartIndex);
         }
     }
 }

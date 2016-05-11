@@ -29,7 +29,7 @@ namespace Excess.RuntimeProject
             var assemblyPath = Path.GetDirectoryName(typeof(object).Assembly.Location);
 
             compiler
-                .Environment()
+                .Environment
                 .Dependency<Injector>(new[]
                 {
                     "Excess.Compiler",
@@ -52,7 +52,7 @@ namespace Excess.RuntimeProject
         private static readonly Injector Extension = new DelegateInjector(compiler =>
         {
             compiler
-                .Lexical()
+                .Lexical
                 .Normalize()
                 .With(MoveToApply, then: CreateExtensionClass);
         });
@@ -62,7 +62,7 @@ namespace Excess.RuntimeProject
             {
                 public static void Apply(ICompiler<SyntaxToken, SyntaxNode, SemanticModel> compiler)
                 {
-                    var lexical = compiler.Lexical();
+                    var lexical = compiler.Lexical;
                     var syntax = compiler.Syntax();
                     var semantics = compiler.Semantics();
                     var environment = compiler.Environment();
@@ -73,7 +73,7 @@ namespace Excess.RuntimeProject
         private static readonly Injector Transform = new DelegateInjector(compiler =>
         {
             compiler
-                .Lexical()
+                .Lexical
                 .Normalize()
                 .With(members: MoveToClass, then: CreateTransformClass);
         });
@@ -340,7 +340,7 @@ lexical
                 debuggerCtrl = "dslDebuggerCtrl",
                 debuggerData = new
                 {
-                    keywords = KeywordString(_compiler.Environment().Keywords())
+                    keywords = KeywordString(_compiler.Environment.Keywords())
                 }
             };
         }

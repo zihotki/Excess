@@ -14,15 +14,10 @@ namespace Excess.Compiler.Roslyn
     public class Compilation
     {
         private readonly Dictionary<string, SyntaxTree> _csharpFiles = new Dictionary<string, SyntaxTree>();
-
         private readonly List<CompilationDocument> _documents = new List<CompilationDocument>();
-
         private readonly RoslynEnvironment _environment;
-
         private readonly Scope _scope = new Scope(null);
-
         private readonly Dictionary<string, ICompilationTool> _tools = new Dictionary<string, ICompilationTool>();
-
         private readonly Dictionary<string, SyntaxTree> _trees = new Dictionary<string, SyntaxTree>();
         private CSharpCompilation _compilation;
 
@@ -77,10 +72,10 @@ namespace Excess.Compiler.Roslyn
             if (_documents.Any(doc => doc.Id == id))
                 throw new InvalidOperationException();
 
-            var ext = Path.GetExtension(id);
             var compiler = null as RoslynCompiler;
             var tool = null as ICompilationTool;
             var hash = 0;
+            var ext = Path.GetExtension(id);
             if (string.IsNullOrEmpty(ext))
             {
                 compiler = new RoslynCompiler(_environment, _scope);
@@ -113,11 +108,12 @@ namespace Excess.Compiler.Roslyn
                 newDoc.Stage = CompilerStage.Started;
                 newDoc.Document = new RoslynDocument(compiler.Scope, contents, id);
 
-                var documentInjector = newDoc.Compiler as IDocumentInjector<SyntaxToken, SyntaxNode, SemanticModel>;
-                documentInjector.Apply(newDoc.Document);
+                ((IDocumentInjector<SyntaxToken, SyntaxNode, SemanticModel>) compiler).Apply(newDoc.Document);
             }
             else
+            {
                 newDoc.Contents = contents;
+            }
 
             _documents.Add(newDoc);
         }
@@ -127,12 +123,16 @@ namespace Excess.Compiler.Roslyn
             var doc = _documents.FirstOrDefault(document => document.Id == id);
 
             if (doc == null)
+            {
                 throw new InvalidOperationException();
+            }
 
             if (doc.Document != null)
             {
                 if (_compilation != null && doc.Document.SyntaxRoot != null)
+                {
                     _compilation = _compilation.RemoveSyntaxTrees(doc.Document.SyntaxRoot.SyntaxTree);
+                }
 
                 doc.Document = new RoslynDocument(doc.Compiler.Scope, contents, id);
 
@@ -428,7 +428,7 @@ namespace Excess.Compiler.Roslyn
                     fileDiagnostics.Add(diagnostic);
                 }
                 else
-                    yield return diagnostic; //td: maybe ignore?
+                    yield return diagnostic; //TODO: maybe ignore?
             }
 
             foreach (var doc in _documents)

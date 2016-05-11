@@ -51,7 +51,7 @@ namespace Excess.Compiler.Roslyn
 
         public static SyntaxNode Parse(ParserRuleContext node, Func<ParserRuleContext, Scope, SyntaxNode> continuation, Scope scope)
         {
-            return VisitNode(node); //td: scope needed?
+            return VisitNode(node); //TODO: scope needed?
         }
 
         private static ExpressionSyntax StringLiteral(ParserRuleContext arg)
@@ -273,10 +273,9 @@ namespace Excess.Compiler.Roslyn
             var expr = VisitNode(node.GetRuleContext<ParserRuleContext>(0));
             var args = null as ArgumentListSyntax;
 
-            if (node.ChildCount == 4)
-                args = Arguments(node.GetRuleContext<ParserRuleContext>(2));
-            else
-                args = CSharp.ArgumentList();
+            args = node.ChildCount == 4
+                ? Arguments(node.GetRuleContext<ParserRuleContext>(2))
+                : CSharp.ArgumentList();
 
             return CSharp.InvocationExpression(expr, args);
         }

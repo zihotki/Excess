@@ -9,7 +9,7 @@
         if (_mime)
             return;
 
-        _mime = true; //td: different keywords in the same page?
+        _mime = true; //TODO: different keywords in the same page?
         extraKeywords = extraKeywords || "";
 
         function words(str) {
@@ -90,7 +90,7 @@
                     ctrl.registerMime(keywords);
 
                 var options = {};
-                //td: parse options
+                //TODO: parse options
 
                 options = angular.extend({}, options, config);
                 if (keywords == null)

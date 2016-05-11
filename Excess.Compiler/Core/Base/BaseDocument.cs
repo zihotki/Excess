@@ -10,36 +10,19 @@ namespace Excess.Compiler.Core
     {
         private readonly List<Func<IEnumerable<TToken>, Scope, IEnumerable<TToken>>> _lexical =
             new List<Func<IEnumerable<TToken>, Scope, IEnumerable<TToken>>>();
-
         private readonly List<ChangeDto> _lexicalChanges = new List<ChangeDto>();
-
         private readonly List<Func<TNode, TModel, Scope, TNode>> _semantical = new List<Func<TNode, TModel, Scope, TNode>>();
-
         private readonly List<ChangeDto> _semanticalChanges = new List<ChangeDto>();
-
         private readonly List<Func<TNode, Scope, TNode>> _syntactical = new List<Func<TNode, Scope, TNode>>();
-
         private readonly List<ChangeDto> _syntacticalChanges = new List<ChangeDto>();
         private readonly Dictionary<string, Func<TNode, Scope, TNode>> _syntacticalPass = new Dictionary<string, Func<TNode, Scope, TNode>>();
 
+        private int _semanticalTries;
+        
         protected ICompilerService<TToken, TNode, TModel> Compiler;
         protected TNode Original;
-
         protected TNode Root;
         
-        private int _semanticalTries;
-
-        protected BaseDocument(Scope scope)
-        {
-            Scope = new Scope(scope);
-            Compiler = Scope.GetService<TToken, TNode, TModel>();
-            Stage = CompilerStage.Started;
-
-            //setup the node repository
-            //td: per document?
-            Scope.Set<IDictionary<int, Scope>>(new Dictionary<int, Scope>());
-        }
-
         public CompilerStage Stage { get; private set; }
 
         public string Text { get; set; }
@@ -50,7 +33,19 @@ namespace Excess.Compiler.Core
 
         public Scope Scope { get; }
 
-        public IMappingService<TNode> Mapper { get; set; }
+        //public IMappingService<TNode> Mapper { get; set; }
+
+
+        protected BaseDocument(Scope scope)
+        {
+            Scope = new Scope(scope);
+            Compiler = Scope.GetService<TToken, TNode, TModel>();
+            Stage = CompilerStage.Started;
+
+            //setup the node repository
+            //TODO: per document?
+            Scope.Set<IDictionary<int, Scope>>(new Dictionary<int, Scope>());
+        }
 
 
         public void Change(Func<IEnumerable<TToken>, Scope, IEnumerable<TToken>> transform, string kind)
@@ -82,6 +77,7 @@ namespace Excess.Compiler.Core
         {
             int id;
             var result = Compiler.MarkTokens(tokens, out id);
+
             _lexicalChanges.Add(new ChangeDto
             {
                 Id = id,
@@ -111,6 +107,7 @@ namespace Excess.Compiler.Core
         {
             int id;
             var result = Compiler.MarkTokens(tokens, out id);
+
             _lexicalChanges.Add(new ChangeDto
             {
                 Id = id,
@@ -167,6 +164,7 @@ namespace Excess.Compiler.Core
             else
             {
                 Debug.Assert(Stage == CompilerStage.Semantical);
+
                 _semanticalChanges.Add(new ChangeDto
                 {
                     Id = nodeId,
@@ -180,7 +178,7 @@ namespace Excess.Compiler.Core
 
         public void Change(Func<TNode, TModel, Scope, TNode> transform, string kind = null)
         {
-            Debug.Assert(kind == null); //td: 
+            Debug.Assert(kind == null); //TODO: 
 
             _semantical.Add(transform);
         }
@@ -200,12 +198,7 @@ namespace Excess.Compiler.Core
             return result;
         }
 
-        public bool ApplyChanges()
-        {
-            return ApplyChanges(CompilerStage.Finished);
-        }
-
-        public bool ApplyChanges(CompilerStage stage)
+        public bool ApplyChanges(CompilerStage stage = CompilerStage.Finished)
         {
             if (stage < Stage)
             {
@@ -292,7 +285,7 @@ namespace Excess.Compiler.Core
 
         private TNode CalculateNewText(IEnumerable<TToken> tokens, Dictionary<string, SourceSpan> annotations, out string modifiedText)
         {
-            //td: !! mapping info
+            //TODO: !! mapping info
             var newText = new StringBuilder();
             string currId = null;
             foreach (var token in tokens)

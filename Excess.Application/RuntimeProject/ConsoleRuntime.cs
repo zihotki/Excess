@@ -20,7 +20,7 @@ namespace Excess.RuntimeProject
         private static readonly Injector Main = new DelegateInjector(compiler =>
         {
             compiler
-                .Lexical()
+                .Lexical
                 .Normalize()
                 .With(MoveToMain, MoveToApplication);
         });
@@ -36,14 +36,10 @@ namespace Excess.RuntimeProject
 
         private static SyntaxNode MoveToMain(SyntaxNode root, IEnumerable<SyntaxNode> statements, Scope scope)
         {
-            var appClass = root
-                .DescendantNodes()
+            var appClass = root.DescendantNodes()
                 .OfType<ClassDeclarationSyntax>()
-                .Where(@class => @class.Identifier.ToString() == "application")
-                .FirstOrDefault();
-
-            if (appClass == null)
-                appClass = CSharp.ClassDeclaration("application");
+                .FirstOrDefault(@class => @class.Identifier.ToString() == "application")
+                           ?? CSharp.ClassDeclaration("application");
 
             return CSharp.CompilationUnit()
                 .WithMembers(CSharp.List(new MemberDeclarationSyntax[]
@@ -62,11 +58,7 @@ namespace Excess.RuntimeProject
             var appClass = root
                 .DescendantNodes()
                 .OfType<ClassDeclarationSyntax>()
-                .Where(@class => @class.Identifier.ToString() == "application")
-                .FirstOrDefault();
-
-            if (appClass == null)
-                appClass = CSharp.ClassDeclaration("application");
+                .FirstOrDefault(@class => @class.Identifier.ToString() == "application") ?? CSharp.ClassDeclaration("application");
 
             return CSharp.CompilationUnit()
                 .WithMembers(CSharp.List(new[]

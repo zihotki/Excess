@@ -152,6 +152,7 @@ namespace Excess.Compiler.Roslyn
         {
             var idx = _values[node];
             var value = values[idx];
+
             if (value is SyntaxNode)
             {
                 return (SyntaxNode) value;

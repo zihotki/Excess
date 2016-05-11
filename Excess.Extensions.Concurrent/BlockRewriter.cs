@@ -45,7 +45,7 @@ namespace Excess.Extensions.Concurrent
                 var expr = (statement.Expression as AwaitExpressionSyntax)
                     .Expression;
 
-                Debug.Assert(expr != null); //td: error
+                Debug.Assert(expr != null); //TODO: error
                 result = VisitExpressionStatement(Templates
                     .AwaitExpr
                     .Get<ExpressionStatementSyntax>(expr));
@@ -136,7 +136,7 @@ namespace Excess.Extensions.Concurrent
 
         public override SyntaxNode VisitAwaitExpression(AwaitExpressionSyntax node)
         {
-            Debug.Assert(false); //td: error
+            Debug.Assert(false); //TODO: error
             return node;
         }
 
@@ -301,7 +301,7 @@ namespace Excess.Extensions.Concurrent
                     break;
 
                 default:
-                    throw new NotImplementedException(); //td: error
+                    throw new NotImplementedException(); //TODO: error
             }
 
             //register

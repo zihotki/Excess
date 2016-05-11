@@ -17,7 +17,7 @@ namespace Excess.Extensions.Sql.Tests
             var injector = new CompositeInjector<SyntaxToken, SyntaxNode, SemanticModel>(new[]
             {
                 new DelegateInjector<SyntaxToken, SyntaxNode, SemanticModel>(compiler => compiler
-                    .Environment()
+                    .Environment
                     .Dependency(new[]
                     {
                         "System",

@@ -104,10 +104,10 @@ namespace Excess.Extensions.R
 
         public static void Apply(ICompiler<SyntaxToken, SyntaxNode, SemanticModel> compiler)
         {
-            compiler.Environment()
+            compiler.Environment
                 .Dependency<IVector>("Excess.Extensions.R");
 
-            compiler.Lexical()
+            compiler.Lexical
                 .Grammar<RGrammar, ParserRuleContext>("R", ExtensionKind.Code)
                 .Transform<RParser.ProgContext>(Program)
                 .Transform<RParser.Expr_or_assignContext>(EitherOr)
@@ -228,7 +228,7 @@ namespace Excess.Extensions.R
             var indexExprs = index.sublist().sub();
             if (indexExprs.Length != 1)
             {
-                //td: error
+                //TODO: error
                 return null;
             }
 
@@ -320,7 +320,7 @@ namespace Excess.Extensions.R
 
         private static SyntaxNode NA(RParser.NAContext na, Func<ParserRuleContext, Scope, SyntaxNode> transform, Scope scope)
         {
-            return CSharp.ParseExpression("null"); //td: use cases
+            return CSharp.ParseExpression("null"); //TODO: use cases
         }
 
         private static SyntaxNode NullLiteral(RParser.NullLiteralContext @null, Func<ParserRuleContext, Scope, SyntaxNode> transform, Scope scope)
@@ -330,7 +330,7 @@ namespace Excess.Extensions.R
 
         private static SyntaxNode ComplexLiteral(RParser.ComplexLiteralContext complex, Func<ParserRuleContext, Scope, SyntaxNode> transform, Scope scope)
         {
-            throw new NotImplementedException(); //td: find a complex library
+            throw new NotImplementedException(); //TODO: find a complex library
         }
 
         private static SyntaxNode FloatLiteral(RParser.FloatLiteralContext @float, Func<ParserRuleContext, Scope, SyntaxNode> transform, Scope scope)
@@ -509,7 +509,7 @@ namespace Excess.Extensions.R
 
         private static SyntaxNode createInvocation(string call, ArgumentListSyntax args)
         {
-            //td: use cases
+            //TODO: use cases
             //switch (call)
             //{
             //    case "c":

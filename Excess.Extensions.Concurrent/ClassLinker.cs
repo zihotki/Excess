@@ -89,7 +89,7 @@ namespace Excess.Extensions.Concurrent
                     //i.e. no try { if () { EXPRESSION }}
                     if (_trysInStack > 1 && !(newNode.Parent.Parent is TryStatementSyntax))
                     {
-                        Debug.Assert(false); //td: error
+                        Debug.Assert(false); //TODO: error
                         return newNode;
                     }
 
@@ -113,7 +113,7 @@ namespace Excess.Extensions.Concurrent
                                             .Take(currentIndex - oldIndex - 1))));
 
                                 //variable and return yield
-                                //td: assert
+                                //TODO: assert
                                 newStatements.Add(statements[currentIndex - 1]);
                                 newStatements.Add(statements[currentIndex++]);
                                 break;
@@ -254,7 +254,7 @@ namespace Excess.Extensions.Concurrent
                     if (_trysInStack > 0)
                     {
                         _tryConcurrent = true;
-                        Debug.Assert(statement.Parent.Parent is TryStatementSyntax); //td: error
+                        Debug.Assert(statement.Parent.Parent is TryStatementSyntax); //TODO: error
                     }
 
                     var assignments = new Dictionary<string, TypeSyntax>();
@@ -306,7 +306,7 @@ namespace Excess.Extensions.Concurrent
         {
             var body = expression.Body as BlockSyntax;
             if (body == null)
-                return expression; //td: error checking
+                return expression; //TODO: error checking
 
             return expression
                 .WithBody(body
@@ -322,13 +322,13 @@ namespace Excess.Extensions.Concurrent
             //why? why not?
             var exprStatement = statement as ExpressionStatementSyntax;
             if (exprStatement == null)
-                return statement; //td: error checking
+                return statement; //TODO: error checking
 
             var invocation = exprStatement.Expression as InvocationExpressionSyntax;
             if (invocation == null
                 || invocation.Expression.ToString() != "__marker__"
                 || invocation.ArgumentList.Arguments.Count != 3)
-                return statement; //td: error checking
+                return statement; //TODO: error checking
 
 
             var operand = invocation.ArgumentList.Arguments[0].Expression;
@@ -381,7 +381,7 @@ namespace Excess.Extensions.Concurrent
 
             Debug.Assert(assignment.Left is IdentifierNameSyntax);
             Debug.Assert(!assignments.ContainsKey(leftString));
-            Debug.Assert(leftType != null); //td: error
+            Debug.Assert(leftType != null); //TODO: error
 
             assignments[leftString] = leftType;
 
@@ -512,7 +512,7 @@ namespace Excess.Extensions.Concurrent
             Debug.Assert(!invocation.Expression
                 .DescendantNodes()
                 .OfType<InvocationExpressionSyntax>()
-                .Any()); //td: errors
+                .Any()); //TODO: errors
 
             var symbol = _model.GetSymbolInfo(invocation.Expression).Symbol;
             if (symbol == null)
@@ -550,7 +550,7 @@ namespace Excess.Extensions.Concurrent
                     result = Templates
                         .Seconds
                         .Get<StatementSyntax>(invocation.ArgumentList
-                            .Arguments[0] //td: validate
+                            .Arguments[0] //TODO: validate
                             .Expression,
                             success,
                             failure);

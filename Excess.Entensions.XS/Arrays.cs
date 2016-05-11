@@ -11,11 +11,11 @@ namespace Excess.Entensions.XS
     {
         public static void Apply(ExcessCompiler compiler)
         {
-            compiler.Lexical()
+            compiler.Lexical
                 .Match()
                 .Any(new[] {'(', '=', ','}, "start", true)
                 .Enclosed('[', ']', "open", "close")
-                .Then(compiler.Lexical().Transform()
+                .Then(compiler.Lexical.Transform()
                     .Insert("new []", after: "start")
                     .Replace("open", "{")
                     .Replace("close", "}"));

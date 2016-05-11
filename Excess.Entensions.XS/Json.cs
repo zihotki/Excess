@@ -41,10 +41,10 @@ namespace Excess.Entensions.XS
 
         public static void Apply(ExcessCompiler compiler)
         {
-            compiler.Environment()
+            compiler.Environment
                 .Dependency<JObject>("Newtonsoft.Json.Linq");
 
-            compiler.Lexical()
+            compiler.Lexical
                 .Grammar<JsonGrammar, ParserRuleContext>("json", ExtensionKind.Code)
                 .Transform<JSONParser.ExpressionContext>(AntlrExpression.Parse)
                 .Transform<JSONParser.JsonContext>(Main)

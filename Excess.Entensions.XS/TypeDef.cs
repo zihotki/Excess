@@ -16,8 +16,8 @@ namespace Excess.Entensions.XS
     {
         public static void Apply(ExcessCompiler compiler)
         {
-            var lexical = compiler.Lexical();
-            var semantics = compiler.Semantics();
+            var lexical = compiler.Lexical;
+            var semantics = compiler.Semantics;
 
             lexical
                 .Match()
@@ -29,7 +29,7 @@ namespace Excess.Entensions.XS
                 .Match()
                 .Token("typedef", "keyword")
                 .Until(';', "definition")
-                .Then(compiler.Lexical().Transform()
+                .Then(compiler.Lexical.Transform()
                     .Remove("keyword")
                     .Then(Typedef));
 
@@ -73,7 +73,7 @@ namespace Excess.Entensions.XS
             if (field == null)
             {
                 scope.AddError("xs01", "malformed typedef", node);
-                //td: error, malformed typedef
+                //TODO: error, malformed typedef
                 return node;
             }
 

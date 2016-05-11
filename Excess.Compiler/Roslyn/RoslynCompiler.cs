@@ -55,8 +55,8 @@ namespace Excess.Compiler.Roslyn
                 new InstanceAnalisysBase<SyntaxToken, SyntaxNode, SemanticModel>(),
                 scope)
         {
-            _scope.Set<ICompilerService<SyntaxToken, SyntaxNode, SemanticModel>>(new CompilerService());
-            _scope.Set(environment);
+            Scope.Set<ICompilerService<SyntaxToken, SyntaxNode, SemanticModel>>(new CompilerService());
+            Scope.Set(environment);
         }
 
         public RoslynCompiler(Scope scope) : this(new RoslynEnvironment(scope, null), scope)
@@ -69,8 +69,8 @@ namespace Excess.Compiler.Roslyn
 
         protected override IDocument<SyntaxToken, SyntaxNode, SemanticModel> CreateDocument()
         {
-            var result = new RoslynDocument(_scope);
-            _scope.Set<IDocument<SyntaxToken, SyntaxNode, SemanticModel>>(result);
+            var result = new RoslynDocument(Scope);
+            Scope.Set<IDocument<SyntaxToken, SyntaxNode, SemanticModel>>(result);
 
             ApplyLexical(result);
             return result;
@@ -78,12 +78,12 @@ namespace Excess.Compiler.Roslyn
 
         public static ExpressionSyntax Constant(object value)
         {
-            return SyntaxFactory.ParseExpression(value.ToString());
+            return CSharp.ParseExpression(value.ToString());
         }
 
         private void ApplyLexical(RoslynDocument document)
         {
-            var handler = _lexical as IDocumentInjector<SyntaxToken, SyntaxNode, SemanticModel>;
+            var handler = Lexical as IDocumentInjector<SyntaxToken, SyntaxNode, SemanticModel>;
             Debug.Assert(handler != null);
 
             handler.Apply(document);
@@ -92,14 +92,14 @@ namespace Excess.Compiler.Roslyn
         //out of interface methods, used for testing
         public RoslynDocument CreateDocument(string text)
         {
-            return new RoslynDocument(_scope, text);
+            return new RoslynDocument(Scope, text);
         }
 
         public ExpressionSyntax CompileExpression(string expr)
         {
-            var document = new RoslynDocument(_scope, expr);
-            var handler = _lexical as IDocumentInjector<SyntaxToken, SyntaxNode, SemanticModel>;
-            _scope.Set<IDocument<SyntaxToken, SyntaxNode, SemanticModel>>(document);
+            var document = new RoslynDocument(Scope, expr);
+            var handler = Lexical as IDocumentInjector<SyntaxToken, SyntaxNode, SemanticModel>;
+            Scope.Set<IDocument<SyntaxToken, SyntaxNode, SemanticModel>>(document);
 
             handler.Apply(document);
             document.ApplyChanges(CompilerStage.Lexical);
@@ -109,9 +109,9 @@ namespace Excess.Compiler.Roslyn
 
         public SyntaxNode ApplyLexicalPass(string text, out string newText)
         {
-            var document = new RoslynDocument(_scope, text);
-            var handler = _lexical as IDocumentInjector<SyntaxToken, SyntaxNode, SemanticModel>;
-            _scope.Set<IDocument<SyntaxToken, SyntaxNode, SemanticModel>>(document);
+            var document = new RoslynDocument(Scope, text);
+            var handler = Lexical as IDocumentInjector<SyntaxToken, SyntaxNode, SemanticModel>;
+            Scope.Set<IDocument<SyntaxToken, SyntaxNode, SemanticModel>>(document);
 
             handler.Apply(document);
             document.ApplyChanges(CompilerStage.Lexical);
@@ -129,9 +129,9 @@ namespace Excess.Compiler.Roslyn
 
         public SyntaxTree ApplySyntacticalPass(string text, out string result)
         {
-            var document = new RoslynDocument(_scope, text); //we actually dont touch our own state during these calls
-            var lHandler = _lexical as IDocumentInjector<SyntaxToken, SyntaxNode, SemanticModel>;
-            var sHandler = _syntax as IDocumentInjector<SyntaxToken, SyntaxNode, SemanticModel>;
+            var document = new RoslynDocument(Scope, text); //we actually dont touch our own state during these calls
+            var lHandler = Lexical as IDocumentInjector<SyntaxToken, SyntaxNode, SemanticModel>;
+            var sHandler = Syntax as IDocumentInjector<SyntaxToken, SyntaxNode, SemanticModel>;
 
             lHandler.Apply(document);
             sHandler.Apply(document);
@@ -156,15 +156,15 @@ namespace Excess.Compiler.Roslyn
 
         public SyntaxTree ApplySemanticalPass(string text, out string result)
         {
-            var document = new RoslynDocument(_scope, text);
+            var document = new RoslynDocument(Scope, text);
             return ApplySemanticalPass(document, out result);
         }
 
         public SyntaxTree ApplySemanticalPass(RoslynDocument document, out string result)
         {
-            var lHandler = _lexical as IDocumentInjector<SyntaxToken, SyntaxNode, SemanticModel>;
-            var sHandler = _syntax as IDocumentInjector<SyntaxToken, SyntaxNode, SemanticModel>;
-            var ssHandler = _semantics as IDocumentInjector<SyntaxToken, SyntaxNode, SemanticModel>;
+            var lHandler = Lexical as IDocumentInjector<SyntaxToken, SyntaxNode, SemanticModel>;
+            var sHandler = Syntax as IDocumentInjector<SyntaxToken, SyntaxNode, SemanticModel>;
+            var ssHandler = Semantics as IDocumentInjector<SyntaxToken, SyntaxNode, SemanticModel>;
 
             lHandler.Apply(document);
             sHandler.Apply(document);
@@ -199,7 +199,7 @@ namespace Excess.Compiler.Roslyn
 
         public SyntaxTree CompileInstance(RoslynInstanceDocument document, out string result)
         {
-            var iHandler = _instance as IDocumentInjector<SyntaxToken, SyntaxNode, SemanticModel>;
+            var iHandler = Instance as IDocumentInjector<SyntaxToken, SyntaxNode, SemanticModel>;
             iHandler.Apply(document);
 
             return ApplySemanticalPass(document, out result);
@@ -217,7 +217,7 @@ namespace Excess.Compiler.Roslyn
                     return (node as ClassDeclarationSyntax).AddMembers(member);
                 }
 
-                Debug.Assert(false); //td: case
+                Debug.Assert(false); //TODO: case
                 return node;
             };
         }
@@ -301,12 +301,7 @@ namespace Excess.Compiler.Roslyn
                 .GetAnnotations(NodeIdAnnotation)
                 .FirstOrDefault();
 
-            if (annotation != null)
-            {
-                return annotation.Data;
-            }
-
-            return null;
+            return annotation?.Data;
         }
 
         public static SyntaxToken MarkToken(SyntaxToken token, string id)
@@ -319,12 +314,8 @@ namespace Excess.Compiler.Roslyn
         public static string TokenMark(SyntaxToken token)
         {
             var annotation = token.GetAnnotations(NodeIdAnnotation).FirstOrDefault();
-            if (annotation != null)
-            {
-                return annotation.Data;
-            }
 
-            return null;
+            return annotation?.Data;
         }
 
         public static SyntaxToken MarkToken(SyntaxToken token, string mark, object value)
@@ -363,7 +354,7 @@ namespace Excess.Compiler.Roslyn
 
         public static ParameterListSyntax ParseParameterList(IEnumerable<SyntaxToken> parameters)
         {
-            var parameterString = TokensToString(parameters); //td: mapping
+            var parameterString = TokensToString(parameters); //TODO: mapping
             return CSharp.ParseParameterList(parameterString);
         }
 
@@ -508,21 +499,21 @@ namespace Excess.Compiler.Roslyn
                     .OfType<ConstructorDeclarationSyntax>(), (oldConstuctor, newConstuctor) =>
                     {
                         found = true;
-                        return newConstuctor.WithBody(SyntaxFactory.Block().
-                            WithStatements(SyntaxFactory.List(
+                        return newConstuctor.WithBody(CSharp.Block().
+                            WithStatements(CSharp.List(
                                 newConstuctor.Body.Statements.Union(
                                     new[] {initializer}))));
                     });
 
                 if (!found)
                 {
-                    result = result.WithMembers(SyntaxFactory.List(
+                    result = result.WithMembers(CSharp.List(
                         result.Members.Union(
                             new MemberDeclarationSyntax[]
                             {
-                                SyntaxFactory.ConstructorDeclaration(decl.Identifier.ToString()).
-                                    WithBody(SyntaxFactory.Block().
-                                        WithStatements(SyntaxFactory.List(new[]
+                                CSharp.ConstructorDeclaration(decl.Identifier.ToString()).
+                                    WithBody(CSharp.Block().
+                                        WithStatements(CSharp.List(new[]
                                         {
                                             initializer
                                         })))
@@ -679,7 +670,7 @@ namespace Excess.Compiler.Roslyn
             return CSharp.ParseTypeName(rt.Name);
         }
 
-        //td: !!! refactor the marking
+        //TODO: !!! refactor the marking
         public static SyntaxNode UnMark(SyntaxNode node)
         {
             return node.ReplaceNodes(node.DescendantNodesAndSelf(), (oldNode, newNode) =>

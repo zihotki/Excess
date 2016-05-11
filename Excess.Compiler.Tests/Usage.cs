@@ -15,20 +15,20 @@ namespace Excess.Compiler.Tests
         public void LexicalTokenMatching()
         {
             var compiler = new RoslynCompiler();
-            var lexical = compiler.Lexical();
+            var lexical = compiler.Lexical;
             lexical
                 .Match()
                 .Any(new[] { '(', '=', ','})
                 .Token("function", "fn")
                 .Enclosed('(', ')')
                 .Token('{', "brace")
-                .Then(compiler.Lexical().Transform()
+                .Then(compiler.Lexical.Transform()
                     .Remove("fn")
                     .Insert("=>", "brace"))
                 .Match()
                 .Any(new[] {'(', '=', ','}, "start")
                 .Enclosed('[', ']', "open", "close")
-                .Then(compiler.Lexical().Transform()
+                .Then(compiler.Lexical.Transform()
                     .Insert("new []", after: "start")
                     .Replace("open", "{")
                     .Replace("close", "}"));
@@ -48,7 +48,7 @@ namespace Excess.Compiler.Tests
         public void LexicalExtension()
         {
             var compiler = new RoslynCompiler();
-            var lexical = compiler.Lexical();
+            var lexical = compiler.Lexical;
             lexical
                 .Extension("my_ext", ExtensionKind.Code, myExtLexical);
 
@@ -117,7 +117,7 @@ namespace Excess.Compiler.Tests
         public void SyntacticalMatching()
         {
             var compiler = new RoslynCompiler();
-            var syntax = compiler.Syntax();
+            var syntax = compiler.Syntax;
 
             //simple match
             syntax
@@ -167,7 +167,7 @@ namespace Excess.Compiler.Tests
         public void SyntacticalExtensions()
         {
             var compiler = new RoslynCompiler();
-            var syntax = compiler.Syntax();
+            var syntax = compiler.Syntax;
 
             SyntaxTree tree;
 

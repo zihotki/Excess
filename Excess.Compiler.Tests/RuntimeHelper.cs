@@ -20,7 +20,7 @@ namespace Excess.Compiler.Tests
     {
         private static readonly Injector _main = new DelegateInjector(compiler =>
         {
-            compiler.Lexical()
+            compiler.Lexical
                 .Normalize()
                 .With(members: Normalize);
         });

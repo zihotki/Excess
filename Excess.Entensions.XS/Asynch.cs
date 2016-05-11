@@ -27,7 +27,7 @@ namespace Excess.Entensions.XS
 
         public static void Apply(ExcessCompiler compiler)
         {
-            var syntax = compiler.Syntax();
+            var syntax = compiler.Syntax;
 
             //code extension
             syntax
@@ -59,7 +59,7 @@ namespace Excess.Entensions.XS
         {
             if (extension.Kind == ExtensionKind.Code)
             {
-                //td: verify it's inside an asynch
+                //TODO: verify it's inside an asynch
                 return SynchTemplate
                     .ReplaceNodes(SynchTemplate
                         .DescendantNodes()

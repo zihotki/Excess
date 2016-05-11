@@ -141,7 +141,7 @@ namespace Excess.RuntimeProject
             // Run the external process & wait for it to finish
             using (var proc = Process.Start(start))
             {
-                //td: catch errors
+                //TODO: catch errors
                 //StringBuilder error = new StringBuilder();
                 //proc.ErrorDataReceived += (sender, e) =>
                 //{

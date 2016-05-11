@@ -18,8 +18,8 @@ namespace Excess.Entensions.XS
 
         public static void Apply(ExcessCompiler compiler)
         {
-            var lexical = compiler.Lexical();
-            var syntax = compiler.Syntax();
+            var lexical = compiler.Lexical;
+            var syntax = compiler.Syntax;
 
             lexical
                 .Match()
@@ -38,7 +38,7 @@ namespace Excess.Entensions.XS
             var method = (MethodDeclarationSyntax) node;
             if (method.Modifiers.Any())
             {
-                //td: error, no modifiers allowed 
+                //TODO: error, no modifiers allowed 
                 return node;
             }
 
@@ -132,7 +132,7 @@ namespace Excess.Entensions.XS
 
             if (!found)
             {
-                //td: error, no such event
+                //TODO: error, no such event
             }
 
             return mthd.WithIdentifier(CSharp.Identifier(methodName)).
@@ -176,7 +176,7 @@ namespace Excess.Entensions.XS
                     .Declaration
                     .Variables[0];
 
-                var delegateName = variable.Identifier.ToString() + "_delegate"; //td: unique ids
+                var delegateName = variable.Identifier.ToString() + "_delegate"; //TODO: unique ids
                 var delegateDecl = CSharp.DelegateDeclaration(RoslynCompiler.Void, delegateName)
                     .WithParameterList(@params)
                     .WithModifiers(@event.Modifiers);

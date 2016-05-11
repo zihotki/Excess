@@ -70,12 +70,12 @@ namespace Excess.Compiler.Roslyn
 
         public SyntaxNode MarkNode(SyntaxNode node)
         {
-            return RoslynCompiler.MarkNode(node, RoslynCompiler.UniqueId()); //td: scope ids
+            return RoslynCompiler.MarkNode(node, RoslynCompiler.UniqueId()); //TODO: scope ids
         }
 
         public SyntaxNode MarkTree(SyntaxNode node)
         {
-            //td: optimize?
+            //TODO: optimize?
             return node.ReplaceNodes(node.DescendantNodes(), (oldNode, newNode) => MarkNode(newNode));
         }
 
@@ -114,7 +114,7 @@ namespace Excess.Compiler.Roslyn
 
         public IEnumerable<SyntaxNode> Find(SyntaxNode node, IEnumerable<string> xsIds)
         {
-            //td: optimize
+            //TODO: optimize
             foreach (var id in xsIds)
             {
                 var result = FindNode(node, id);

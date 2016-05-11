@@ -15,7 +15,7 @@ namespace Excess.Entensions.XS
     {
         public static void Apply(ExcessCompiler compiler)
         {
-            var lexical = compiler.Lexical();
+            var lexical = compiler.Lexical;
 
             lexical
                 .Match()

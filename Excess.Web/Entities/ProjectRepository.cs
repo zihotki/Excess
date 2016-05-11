@@ -189,7 +189,7 @@ namespace Excess.Web.Entities
                 //{
                 //    DSLConfiguration config = JsonConvert.DeserializeObject<DSLConfiguration>(projectData);
 
-                //    //td: parser and linker types
+                //    //TODO: parser and linker types
                 //    StringBuilder members = new StringBuilder();
                 //    if (config.extendsNamespaces)
                 //        members.AppendLine(ProjectTemplates.DSLParseNamespace);

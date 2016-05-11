@@ -16,12 +16,13 @@ namespace Excess.Compiler.Roslyn
         private readonly Dictionary<string, Func<SyntaxNode, Scope, SyntacticalExtensionDto<SyntaxNode>, SyntaxNode>> _memberExtensions =
             new Dictionary<string, Func<SyntaxNode, Scope, SyntacticalExtensionDto<SyntaxNode>, SyntaxNode>>();
 
-        private readonly Scope _scope;
-
         private readonly Dictionary<string, Func<SyntaxNode, Scope, SyntacticalExtensionDto<SyntaxNode>, SyntaxNode>> _typeExtensions =
             new Dictionary<string, Func<SyntaxNode, Scope, SyntacticalExtensionDto<SyntaxNode>, SyntaxNode>>();
 
         private Func<SyntaxNode, Scope, LookAheadResult> _lookahead;
+
+        private readonly Scope _scope;
+
 
         public ExtensionRewriter(IEnumerable<SyntacticalExtensionDto<SyntaxNode>> extensions, Scope scope)
         {
@@ -72,7 +73,7 @@ namespace Excess.Compiler.Roslyn
                     }
                     default:
                     {
-                        //td: error, incorrect extension (i.e. a code extension being used inside a type)
+                        //TODO: error, incorrect extension (i.e. a code extension being used inside a type)
                         return null;
                     }
                 }
@@ -138,7 +139,7 @@ namespace Excess.Compiler.Roslyn
                     _lookahead = MatchTypeExtension(node, extension);
                     return null; //remove the incomplete member
                 }
-                //td: error, incorrect extension (i.e. a code extension being used inside a type)
+                //TODO: error, incorrect extension (i.e. a code extension being used inside a type)
                 return null;
             }
 
@@ -153,14 +154,13 @@ namespace Excess.Compiler.Roslyn
                 if (node is ClassDeclarationSyntax)
                 {
                     var clazz = (ClassDeclarationSyntax) node;
-                    clazz = clazz
-                        .WithAttributeLists(incomplete.AttributeLists)
+                    clazz.WithAttributeLists(incomplete.AttributeLists)
                         .WithModifiers(incomplete.Modifiers);
 
                     resulSyntaxNode = extension.Handler(node, scope, extension);
                 }
 
-                //td: error?, expecting class
+                //TODO: error?, expecting class
                 return new LookAheadResult
                 {
                     Matched = resulSyntaxNode != null,
@@ -195,28 +195,26 @@ namespace Excess.Compiler.Roslyn
                 extension = CodeExtension(call);
             }
 
-            if (extension != null)
+            if (extension == null)
             {
-                if (extension.Kind != ExtensionKind.Code)
-                {
-                    //td: error, incorrect extension (i.e. a code extension being used inside a type)
-                    return node;
-                }
-
-                _lookahead = CheckCodeExtension(node, extension);
-                return null;
+                return node;
             }
 
-            return node;
+            if (extension.Kind != ExtensionKind.Code)
+            {
+                //TODO: error, incorrect extension (i.e. a code extension being used inside a type)
+                return node;
+            }
+
+            _lookahead = CheckCodeExtension(node, extension);
+            return null;
         }
 
         public override SyntaxNode VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
         {
             if (node.Declaration.Variables.Count == 1)
             {
-                var variable = node
-                    .Declaration
-                    .Variables[0];
+                var variable = node.Declaration.Variables[0];
 
                 var call = variable.Initializer?.Value as InvocationExpressionSyntax;
                 if (call != null)
@@ -226,7 +224,7 @@ namespace Excess.Compiler.Roslyn
                     {
                         if (extension.Kind != ExtensionKind.Code)
                         {
-                            //td: error, incorrect extension (i.e. a code extension being used inside a type)
+                            //TODO: error, incorrect extension (i.e. a code extension being used inside a type)
                             return node;
                         }
 
@@ -285,7 +283,7 @@ namespace Excess.Compiler.Roslyn
                     resulSyntaxNode = extension.Handler(node, scope, extension);
                     if (!(resulSyntaxNode is ExpressionSyntax))
                     {
-                        //td: error, expecting expression
+                        //TODO: error, expecting expression
                         return new LookAheadResult {Matched = false};
                     }
 
@@ -310,7 +308,7 @@ namespace Excess.Compiler.Roslyn
                         resulSyntaxNode = extension.Handler(node, scope, extension);
                         if (!(resulSyntaxNode is ExpressionSyntax))
                         {
-                            //td: error, expecting expression
+                            //TODO: error, expecting expression
                             return new LookAheadResult {Matched = false};
                         }
 

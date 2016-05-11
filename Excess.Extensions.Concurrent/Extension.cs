@@ -19,7 +19,7 @@ namespace Excess.Extensions.Concurrent
     {
         public static void Apply(ExcessCompiler compiler)
         {
-            var lexical = compiler.Lexical();
+            var lexical = compiler.Lexical;
 
             lexical
                 .Match()

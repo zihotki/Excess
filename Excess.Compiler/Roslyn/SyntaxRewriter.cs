@@ -20,22 +20,27 @@ namespace Excess.Compiler.Roslyn
         public override SyntaxNode Visit(SyntaxNode node)
         {
             if (node == null)
-                return null;
-
-            var result = node;
-            foreach (var transformer in _transformers)
             {
-                var before = result;
-                result = transformer(result, _scope);
-
-                if (result != before)
-                    result = RoslynCompiler.UpdateExcessId(result, before);
-
-                if (result == null)
-                    return null;
+                return null;
             }
 
-            return base.Visit(result);
+            foreach (var transformer in _transformers)
+            {
+                var before = node;
+                node = transformer(node, _scope);
+
+                if (node != before)
+                {
+                    node = RoslynCompiler.UpdateExcessId(node, before);
+                }
+
+                if (node == null)
+                {
+                    return null;
+                }
+            }
+
+            return base.Visit(node);
         }
     }
 }

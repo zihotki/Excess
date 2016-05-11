@@ -50,7 +50,7 @@ namespace Excess.Compiler
             Scope result;
             if (!repository.TryGetValue(id, out result))
             {
-                result = new Scope(this); //td: find parent scope
+                result = new Scope(this); //TODO: find parent scope
                 repository[id] = result;
             }
 

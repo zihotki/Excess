@@ -78,7 +78,7 @@ namespace Excess.Compiler.Roslyn
             normalized = true;
             rootStatements = null;
 
-            //td: line numbers!
+            //TODO: line numbers!
             var newTree = CSharp.ParseSyntaxTree("void m() {" + root.ToFullString() + "}", new CSharpParseOptions(kind: SourceCodeKind.Script));
             try
             {
@@ -140,7 +140,7 @@ namespace Excess.Compiler.Roslyn
                     var field = (FieldDeclarationSyntax) child;
                     if (!field.Modifiers.Any())
                     {
-                        //td: !!! variable initialization
+                        //TODO: !!! variable initialization
                         continue;
                     }
                 }
@@ -163,7 +163,7 @@ namespace Excess.Compiler.Roslyn
                         var errorSpan = new TextSpan(currErrorPos, child.SpanStart - currErrorPos);
                         var errorSource = tree.GetText().GetSubText(errorSpan);
 
-                        statementBlock = (BlockSyntax) SyntaxFactory.ParseStatement("{" + errorSource + "}");
+                        statementBlock = (BlockSyntax)CSharp.ParseStatement("{" + errorSource + "}");
                         statements.AddRange(statementBlock.Statements);
 
                         toRemove.Add(errorSpan);
@@ -210,7 +210,7 @@ namespace Excess.Compiler.Roslyn
             {
                 var errorSpan = new TextSpan(currErrorPos, tree.GetRoot().FullSpan.End - currErrorPos);
                 var errorSource = tree.GetText().GetSubText(errorSpan);
-                statementBlock = (BlockSyntax) SyntaxFactory.ParseStatement("{" + errorSource + "}");
+                statementBlock = (BlockSyntax)CSharp.ParseStatement("{" + errorSource + "}");
                 statements.AddRange(statementBlock.Statements);
 
                 toRemove.Add(errorSpan);

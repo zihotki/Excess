@@ -169,7 +169,7 @@
     <Compile Include="Dto\LexicalMatchItemDto.cs" />
     <Compile Include="Roslyn\AntlrErrors.cs" />
     <Compile Include="Core\Base\CompilerBase.cs" />
-    <Compile Include="Core\Base\DocumentBase.cs" />
+    <Compile Include="Core\Base\BaseDocument.cs" />
     <Compile Include="Core\Base\GrammarAnalysisBase.cs" />
     <Compile Include="Core\Base\LexicalAnalisysBase.cs" />
     <Compile Include="Core\Base\LexicalTransformBase.cs" />
@@ -197,7 +197,6 @@
     <Compile Include="Roslyn\SyntaxRewriter.cs" />
     <Compile Include="Roslyn\ExtensionRewriter.cs" />
     <Compile Include="Roslyn\Template.cs" />
-    <Compile Include="Roslyn\ToolEventArgs.cs" />
     <Compile Include="Roslyn\ToolEventHandler.cs" />
     <Compile Include="Scope.cs" />
     <Compile Include="Interfaces\ISemanticAnalysis.cs" />
