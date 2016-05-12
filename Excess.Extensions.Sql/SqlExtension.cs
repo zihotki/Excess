@@ -7,41 +7,15 @@ using Excess.Extensions.Sql.Grammar;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
-using ExcessCompiler = Excess.Compiler.ICompiler<Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxNode, Microsoft.CodeAnalysis.SemanticModel>;
 using CSharp = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+using ExcessCompiler = Excess.Compiler.ICompiler<Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxNode, Microsoft.CodeAnalysis.SemanticModel>;
 
 
 namespace Excess.Extensions.Sql
 {
 	public static class SqlExtension
 	{
-		/*
-select_statementContext:
-
-	query_expressionContext:
-		query_specificationContext:
-			Select_listContext:
-				Select_list_elemContext:
-					Column_ref_expressionContext
-			Table_sourceContext:
-				Table_source_list_joinedContext:
-					Table_source_itemContext:
-						Table_name_with_hintContext:
-							Table_nameContext
-			Search_conditionContext:
-				Search_conditionOrContext:
-					Search_conditionNotContext:
-						PredicateContext:
-							Column_ref_expressionContext
-							Comparison_operatorContext
-							Column_ref_expressionContext
-	
-	order_by_clause:
-		order_by_expression:
-			column_ref_expression:
-				Full_column_name_context
-			*/
+		
 
 		public static void Apply(ExcessCompiler compiler)
 		{
@@ -67,7 +41,7 @@ select_statementContext:
 		private static SyntaxNode SelectStatement(tsqlParser.Select_statementContext statement,
 			Func<ParserRuleContext, Scope, SyntaxNode> transform, Scope scope)
 		{
-			return EqualsValueClause(ObjectCreationExpression(IdentifierName("Select")));
+			return CSharp.EqualsValueClause(CSharp.ObjectCreationExpression(CSharp.IdentifierName("Select")));
 
 
 /*				Block(
@@ -91,7 +65,7 @@ select_statementContext:
 
 			if (isAssignment)
 			{
-				scope.AddError("etsql01", "Sql always returns value", oldNode);
+				scope.AddError("sqldsl01", "Sql always returns value", oldNode);
 				return newNode;
 			}
 

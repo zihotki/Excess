@@ -1,1 +1,50 @@
-﻿
+﻿Excess allows to setup a compilation handler based on some sort of a pattern. For sql dsl the pattern is like:
+var x = Sql()
+{
+......
+}
+
+During compilation when Excess finds such pattern we can inject some processing logic to completely re-process 
+the tokens insile of the pattern. To do that Antlr4 generated grammar lexer and parser is used. The tokens
+inside the pattern are converted back to string and then string is passed to Antlr4 sql lexer and parser pipeline.
+
+After that we need transform sql syntax tree into actual c# syntax tree. The sql syntax tree should be translated
+into function calls of some fluent sql library supporting using lambdas to reference columns. In this case Class 
+type will be a table and properties will be columns. In this case semantic validation will be accomplished out of 
+the box - all queries will be translated into some class function calls with expression parameters.
+  
+
+
+Compiler phases:
+ * Lexical
+ * Syntax
+ * Semantic
+
+
+
+==== Transformation syntax tree ===
+select_statementContext:
+
+	query_expressionContext:
+		query_specificationContext:
+			Select_listContext:
+				Select_list_elemContext:
+					Column_ref_expressionContext
+			Table_sourceContext:
+				Table_source_list_joinedContext:
+					Table_source_itemContext:
+						Table_name_with_hintContext:
+							Table_nameContext
+			Search_conditionContext:
+				Search_conditionOrContext:
+					Search_conditionNotContext:
+						PredicateContext:
+							Column_ref_expressionContext
+							Comparison_operatorContext
+							Column_ref_expressionContext
+	
+	order_by_clause:
+		order_by_expression:
+			column_ref_expression:
+				Full_column_name_context
+			

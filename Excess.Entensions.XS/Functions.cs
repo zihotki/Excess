@@ -37,6 +37,7 @@ namespace Excess.Entensions.XS
                 .Then(lexical.Transform()
                     .Remove("fn")
                     .Then(ProcessMemberFunction, "id"));
+
             semantics
                 .Error("CS0246", FunctionType);
         }
