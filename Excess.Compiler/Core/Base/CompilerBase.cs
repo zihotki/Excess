@@ -46,12 +46,6 @@ namespace Excess.Compiler.Core
             return Compile(text, CompilerStage.Finished);
         }
 
-        public bool Advance(CompilerStage stage)
-        {
-            Document.ApplyChanges(stage);
-            return Document.HasErrors();
-        }
-
         public void Apply(IDocument<TToken, TNode, TModel> document)
         {
             var iLexical = Lexical as IDocumentInjector<TToken, TNode, TModel>;

@@ -12,6 +12,5 @@
 
         bool Compile(string text, CompilerStage stage = CompilerStage.Started);
         bool CompileAll(string text);
-        bool Advance(CompilerStage stage);
     }
 }
